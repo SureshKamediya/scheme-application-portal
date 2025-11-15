@@ -218,3 +218,40 @@ model scheme_schemefiles {
   @@index([name], map: "scheme_schemefiles_name_d6fdc055_like")
   @@index([Scheme_id], map: "scheme_schemefiles_parent_id_5480ae01")
 }
+
+model OTP_otp {
+  id            String        @id @db.Uuid
+  code          String        @db.VarChar(6)
+  mobile_number String        @db.VarChar(10)
+  expires_at    DateTime      @db.Timestamptz(6)
+  is_used       Boolean
+  created_at    DateTime      @db.Timestamptz(6)
+  otp_attempt   otp_attempt[]
+
+  @@index([mobile_number], map: "OTP_otp_mobile_number_3a3f3928")
+  @@index([mobile_number], map: "OTP_otp_mobile_number_3a3f3928_like")
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model otp_attempt {
+  id            String   @id @db.Uuid
+  identifier    String   @db.VarChar(255)
+  attempt_type  String   @db.VarChar(20)
+  ip_address    String   @db.Inet
+  user_agent    String?
+  timestamp     DateTime @db.Timestamptz(6)
+  success       Boolean
+  error_message String?  @db.VarChar(255)
+  metadata      Json
+  otp_id        String?  @db.Uuid
+  OTP_otp       OTP_otp? @relation(fields: [otp_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "otp_attempt_otp_id_631f927b_fk_OTP_otp_id")
+
+  @@index([identifier, attempt_type, timestamp], map: "idx_identifier_type_time")
+  @@index([ip_address, timestamp], map: "idx_ip_time")
+  @@index([otp_id, success, timestamp], map: "idx_otp_success_time")
+  @@index([timestamp], map: "idx_timestamp")
+  @@index([identifier], map: "otp_attempt_identifier_5ffeabc2")
+  @@index([identifier], map: "otp_attempt_identifier_5ffeabc2_like")
+  @@index([otp_id], map: "otp_attempt_otp_id_631f927b")
+  @@index([timestamp], map: "otp_attempt_timestamp_9bde206f")
+}

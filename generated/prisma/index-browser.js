@@ -266,9 +266,35 @@ exports.Prisma.Scheme_schemefilesScalarFieldEnum = {
   Scheme_id: 'Scheme_id'
 };
 
+exports.Prisma.OTP_otpScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  mobile_number: 'mobile_number',
+  expires_at: 'expires_at',
+  is_used: 'is_used',
+  created_at: 'created_at'
+};
+
+exports.Prisma.Otp_attemptScalarFieldEnum = {
+  id: 'id',
+  identifier: 'identifier',
+  attempt_type: 'attempt_type',
+  ip_address: 'ip_address',
+  user_agent: 'user_agent',
+  timestamp: 'timestamp',
+  success: 'success',
+  error_message: 'error_message',
+  metadata: 'metadata',
+  otp_id: 'otp_id'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.JsonNullValueInput = {
+  JsonNull: Prisma.JsonNull
 };
 
 exports.Prisma.QueryMode = {
@@ -279,6 +305,12 @@ exports.Prisma.QueryMode = {
 exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
+};
+
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
 };
 
 
@@ -295,7 +327,9 @@ exports.Prisma.ModelName = {
   django_session: 'django_session',
   scheme_application: 'scheme_application',
   scheme_scheme: 'scheme_scheme',
-  scheme_schemefiles: 'scheme_schemefiles'
+  scheme_schemefiles: 'scheme_schemefiles',
+  OTP_otp: 'OTP_otp',
+  otp_attempt: 'otp_attempt'
 };
 
 /**

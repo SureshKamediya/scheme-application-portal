@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { api } from "~/trpc/react";
+import { validateFile, formatFileSize } from "~/utils/fileUpload";
 
 type FormState = {
   mobile_number: string;
@@ -75,8 +77,89 @@ export function ApplicationForm({
     scheme_id: initialSchemeId,
   });
 
-  const [status, setStatus] = useState<string | null>(null);
+  const [status, setStatus] = useState<{
+    type: "success" | "error" | "info";
+    message: string;
+  } | null>(null);
   const [step, setStep] = useState<number>(0); // 0: personal, 1: payment, 2: refund
+  const [uploadedFile, setUploadedFile] = useState<{
+    name: string;
+    size: string;
+    file: File;
+  } | null>(null);
+
+  const createApplication = api.application.create.useMutation({
+    onSuccess: async (application) => {
+      // Application created successfully, now upload file to S3 if we have one
+      if (uploadedFile) {
+        try {
+          setStatus({
+            type: "info",
+            message: "Uploading payment proof to cloud storage...",
+          });
+
+          // Convert file to base64
+          const fileBuffer = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const result = reader.result as string;
+              const base64Content = result.split(",")[1] ?? "";
+              resolve(base64Content);
+            };
+            reader.onerror = () => reject(new Error("Failed to read file"));
+            reader.readAsDataURL(uploadedFile.file);
+          });
+
+          // Upload to S3 with real applicationNumber
+          const uploadResult = await uploadPaymentProof.mutateAsync({
+            applicationId: application.application_number,
+            filename: uploadedFile.name,
+            fileBuffer: fileBuffer,
+            mimeType: uploadedFile.file.type,
+          });
+
+          setStatus({
+            type: "success",
+            message: "Application submitted and payment proof uploaded successfully!",
+          });
+
+          console.log("S3 Upload Result:", uploadResult);
+        } catch (uploadError) {
+          console.error("File upload error:", uploadError);
+          setStatus({
+            type: "success",
+            message: "Application submitted successfully! (File upload pending)",
+          });
+        }
+      } else {
+        setStatus({
+          type: "success",
+          message: "Application submitted successfully!",
+        });
+      }
+
+      // Redirect after success
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 2000);
+    },
+    onError: (error) => {
+      let message = "Failed to submit application";
+
+      if (error.data?.code === "INTERNAL_SERVER_ERROR") {
+        message = error.message;
+      } else if (error.message) {
+        message = error.message;
+      }
+
+      setStatus({
+        type: "error",
+        message,
+      });
+    },
+  });
+
+  const uploadPaymentProof = api.application.uploadPaymentProof.useMutation();
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setState((s) => ({ ...s, [e.target.name]: e.target.value }));
@@ -84,7 +167,29 @@ export function ApplicationForm({
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file
+      const error = validateFile(file);
+      if (error) {
+        setStatus({
+          type: "error",
+          message: error,
+        });
+        return;
+      }
+
+      // Store file object and display file info
+      // File will be uploaded after application is created with applicationNumber
       setState((s) => ({ ...s, payment_proof: file.name }));
+      setUploadedFile({
+        name: file.name,
+        size: formatFileSize(file.size),
+        file: file,
+      });
+
+      setStatus({
+        type: "success",
+        message: "Payment proof file selected. Will be uploaded after application submission.",
+      });
     }
   };
 
@@ -130,7 +235,10 @@ export function ApplicationForm({
     setStatus(null);
     const err = validateStep(step);
     if (err) {
-      setStatus(err);
+      setStatus({
+        type: "error",
+        message: err,
+      });
       return;
     }
     if (step < 2) setStep((s) => s + 1);
@@ -145,10 +253,34 @@ export function ApplicationForm({
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus(null);
-    const err = validateStep(step);
-    if (err) {
-      setStatus(err);
-      return;
+
+    // Validate all steps
+    for (let i = 0; i <= 2; i++) {
+      const err = validateStep(i);
+      if (err) {
+        setStatus({
+          type: "error",
+          message: `Step ${i + 1}: ${err}`,
+        });
+        setStep(i);
+        return;
+      }
+    }
+
+    // Convert string values to appropriate types for Decimal fields
+    const applicationData = {
+      ...state,
+      registration_fees: state.registration_fees || "0.00",
+      processing_fees: state.processing_fees || "0.00",
+      total_payable_amount: state.total_payable_amount || "0.00",
+      dd_amount: state.dd_amount || "0.00",
+    };
+
+    try {
+      await createApplication.mutateAsync(applicationData);
+    } catch (error) {
+      // Error is already handled by onError callback
+      console.error("Application submission error:", error);
     }
   };
 
@@ -478,8 +610,24 @@ export function ApplicationForm({
 
             <div className="sm:col-span-2">
               <label className="block text-sm"><span className="text-red-500">*</span> Payment proof</label>
-              <input type="file" onChange={onFileChange} required className="w-full" />
-              {state.payment_proof && <div className="text-sm mt-1 text-gray-600">Selected: {state.payment_proof}</div>}
+              <div className="mt-2">
+                <input
+                  type="file"
+                  onChange={onFileChange}
+                  required
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                />
+              </div>
+              {uploadedFile && (
+                <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded">
+                  <div className="text-sm text-green-800">
+                    <div className="font-medium">✓ File uploaded</div>
+                    <div className="mt-1">Name: {uploadedFile.name}</div>
+                    <div>Size: {uploadedFile.size}</div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -581,7 +729,19 @@ export function ApplicationForm({
         </div>
       </div>
 
-      {status && <div className="text-sm text-red-600 mt-2">{status}</div>}
+      {status && (
+        <div
+          className={`rounded-md p-3 text-sm font-medium ${
+            status.type === "success"
+              ? "bg-green-100 text-green-800"
+              : status.type === "error"
+                ? "bg-red-100 text-red-800"
+                : "bg-blue-100 text-blue-800"
+          }`}
+        >
+          {status.message}
+        </div>
+      )}
     </form>
   );
 }
