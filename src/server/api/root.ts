@@ -10,7 +10,6 @@ import { schemeRouter } from "./routers/scheme";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  post: postRouter,
   application: applicationRouter,
   otp: otpRouter,
   scheme: schemeRouter,

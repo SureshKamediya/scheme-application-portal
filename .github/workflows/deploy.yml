@@ -1,52 +1,52 @@
-name: Deploy to ECS
+# name: Deploy to ECS
 
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
-    inputs:
-      image_tag:
-        description: 'Docker image tag to deploy (default: latest)'
-        required: false
-        default: 'latest'
+# on:
+#   push:
+#     branches: [ main ]
+#   workflow_dispatch:
+#     inputs:
+#       image_tag:
+#         description: 'Docker image tag to deploy (default: latest)'
+#         required: false
+#         default: 'latest'
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v3
+#     steps:
+#       - uses: actions/checkout@v3
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          aws-region: ap-south-1
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v2
+#         with:
+#           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+#           aws-region: ap-south-1
 
-      - name: Update ECS Service
-        run: |
-          IMAGE_TAG="${{ github.event.inputs.image_tag || 'latest' }}"
-          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          IMAGE_URI="$AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/scheme-app:$IMAGE_TAG"
+#       - name: Update ECS Service
+#         run: |
+#           IMAGE_TAG="${{ github.event.inputs.image_tag || 'latest' }}"
+#           AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+#           IMAGE_URI="$AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/scheme-app:$IMAGE_TAG"
           
-          aws ecs update-service \
-            --cluster scheme-app-cluster \
-            --service scheme-app-service \
-            --force-new-deployment \
-            --region ap-south-1
+#           aws ecs update-service \
+#             --cluster scheme-app-cluster \
+#             --service scheme-app-service \
+#             --force-new-deployment \
+#             --region ap-south-1
 
-      - name: Wait for Service Deployment
-        run: |
-          aws ecs wait services-stable \
-            --cluster scheme-app-cluster \
-            --services scheme-app-service \
-            --region ap-south-1
+#       - name: Wait for Service Deployment
+#         run: |
+#           aws ecs wait services-stable \
+#             --cluster scheme-app-cluster \
+#             --services scheme-app-service \
+#             --region ap-south-1
 
-      - name: Verify Deployment
-        run: |
-          aws ecs describe-services \
-            --cluster scheme-app-cluster \
-            --services scheme-app-service \
-            --region ap-south-1 \
-            --query 'services[0].[status, desiredCount, runningCount]' \
-            --output table
+#       - name: Verify Deployment
+#         run: |
+#           aws ecs describe-services \
+#             --cluster scheme-app-cluster \
+#             --services scheme-app-service \
+#             --region ap-south-1 \
+#             --query 'services[0].[status, desiredCount, runningCount]' \
+#             --output table
