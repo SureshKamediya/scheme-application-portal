@@ -6,6 +6,8 @@ export const schemeRouter = createTRPCRouter({
    * Get all schemes with their basic information
    */
   getAll: publicProcedure.query(async ({ ctx }) => {
+    console.log("DB URL EXIST:", process.env.DATABASE_URL ? "YES" : "NO");
+    console.log("Fetching all schemes from the database...");
     const schemes = await ctx.db.scheme_scheme.findMany({
       select: {
         id: true,
