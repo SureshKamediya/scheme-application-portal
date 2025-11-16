@@ -36,7 +36,7 @@ export function ApplicationLookup() {
     }
   }, []);
 
-  // @ts-expect-error - TRPC router type inference
+  
   const getApplication = api.application.getByMobileAndNumber?.useMutation({
     onSuccess: (application: unknown) => {
       const app = application as ApplicationResponse;
