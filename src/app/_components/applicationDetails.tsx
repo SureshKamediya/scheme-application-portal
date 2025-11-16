@@ -1,11 +1,12 @@
 "use client";
 
+import type { Decimal } from "generated/prisma/runtime/library";
 import React, { useState } from "react";
 import { api } from "~/trpc/react";
 
 interface ApplicationDetailsProps {
   application: {
-    id: number;
+    id: bigint;
     application_number: number;
     application_status: string | null;
     applicant_name: string;
@@ -17,9 +18,9 @@ interface ApplicationDetailsProps {
     application_submission_date: Date | null;
     payment_mode: string | null;
     payment_status: string | null;
-    registration_fees: string | null;
-    processing_fees: string | null;
-    total_payable_amount: string | null;
+    registration_fees: Decimal | null;
+    processing_fees: Decimal | null;
+    total_payable_amount: Decimal | null;
     permanent_address: string | null;
     permanent_address_pincode: string | null;
     postal_address: string | null;
@@ -155,15 +156,15 @@ export function ApplicationDetails({
           </div>
           <div>
             <p className="text-sm text-gray-600">Registration Fees</p>
-            <p className="font-medium">₹{application.registration_fees ?? "0.00"}</p>
+            <p className="font-medium">₹{application.registration_fees?.toString() ?? "0.00"}</p>
           </div>
           <div>
             <p className="text-sm text-gray-600">Processing Fees</p>
-            <p className="font-medium">₹{application.processing_fees ?? "0.00"}</p>
+            <p className="font-medium">₹{application.processing_fees?.toString() ?? "0.00"}</p>
           </div>
           <div>
             <p className="text-sm text-gray-600">Total Payable Amount</p>
-            <p className="font-bold text-lg">₹{application.total_payable_amount ?? "0.00"}</p>
+            <p className="font-bold text-lg">₹{application.total_payable_amount?.toString() ?? "0.00"}</p>
           </div>
         </div>
       </div>
