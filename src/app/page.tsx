@@ -1,11 +1,11 @@
 import { HydrateClient } from "~/trpc/server";
-import { OTPForm } from "~/app/_components/otp";
+import { SchemesList } from "~/app/_components/schemes-list";
 
 export default async function Home() {
   return (
     <HydrateClient>
-      <main className="min-h-screen p-8">
-        <OTPForm />
+      <main className="min-h-screen bg-gray-50 py-8">
+        <SchemesList />
       </main>
     </HydrateClient>
   );

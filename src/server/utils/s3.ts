@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-
 /**
  * AWS S3 integration for file uploads
  * Server-side utility for uploading files to AWS S3 bucket
@@ -49,6 +47,7 @@ export function isS3Configured(): boolean {
  * @param contentType - MIME type
  * @returns S3 URL or null if not configured
  */
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any */
 export async function uploadToS3(
   key: string,
   body: Buffer | Uint8Array,
@@ -69,6 +68,7 @@ export async function uploadToS3(
       ContentType: contentType,
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     await (client as any).send(command);
 
     // Construct and return the S3 URL
@@ -84,6 +84,7 @@ export async function uploadToS3(
  * Delete file from S3
  * @param key - S3 object key (path)
  */
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any */
 export async function deleteFromS3(key: string): Promise<void> {
   if (!isS3Configured()) {
     console.warn("AWS S3 not configured");
@@ -98,6 +99,7 @@ export async function deleteFromS3(key: string): Promise<void> {
       Key: key,
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     await (client as any).send(command);
   } catch (error) {
     console.error("Error deleting file from S3:", error);
@@ -129,8 +131,9 @@ export async function getPresignedUrl(
       Key: key,
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const url = await getSignedUrl(client as any, command, { expiresIn });
-    return url as string;
+    return url;
   } catch (error) {
     console.error("Error generating presigned URL:", error);
     throw new Error("Failed to generate presigned URL");

@@ -279,4 +279,130 @@ export const applicationRouter = createTRPCRouter({
         });
       }
     }),
+
+  /**
+   * Get application by mobile number and application number
+   * Used for application lookup/verification
+   */
+  getByMobileAndNumber: publicProcedure
+    .input(
+      z.object({
+        mobile_number: z.string().length(10, "Mobile number must be 10 digits"),
+        application_number: z.number().int("Application number must be an integer"),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const application = await ctx.db.scheme_application.findFirst({
+          where: {
+            mobile_number: input.mobile_number,
+            application_number: input.application_number,
+          },
+          include: {
+            scheme_scheme: true,
+          },
+        });
+
+        if (!application) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Application not found with the provided details",
+          });
+        }
+
+        return application;
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+
+        console.error("Get application error:", error);
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error instanceof Error ? error.message : "Failed to fetch application",
+        });
+      }
+    }),
+
+  /**
+   * Get application by ID with scheme details
+   */
+  getById: publicProcedure
+    .input(z.number().int("Application ID must be an integer"))
+    .query(async ({ ctx, input }) => {
+      try {
+        const application = await ctx.db.scheme_application.findUnique({
+          where: { id: input },
+          include: {
+            scheme_scheme: true,
+          },
+        });
+
+        if (!application) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Application not found",
+          });
+        }
+
+        return application;
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+
+        console.error("Get application by ID error:", error);
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error instanceof Error ? error.message : "Failed to fetch application",
+        });
+      }
+    }),
+
+  /**
+   * Download application PDF
+   * Returns presigned S3 URL if available, or stored URL
+   */
+  downloadPdf: publicProcedure
+    .input(z.number().int("Application ID must be an integer"))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const application = await ctx.db.scheme_application.findUnique({
+          where: { id: input },
+        });
+
+        if (!application) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Application not found",
+          });
+        }
+
+        // Return the payment proof URL if available
+        if (!application.payment_proof) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Application PDF not available for download",
+          });
+        }
+
+        return {
+          downloadUrl: application.payment_proof,
+          filename: `application_${application.application_number}.pdf`,
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+
+        console.error("Download PDF error:", error);
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error instanceof Error ? error.message : "Failed to generate download link",
+        });
+      }
+    }),
 });

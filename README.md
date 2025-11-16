@@ -1,29 +1,196 @@
-# Create T3 App
+# 🎯 Scheme Application Portal - Production Setup
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+**Production-ready infrastructure for Rajasthan with auto-scaling and CI/CD pipelines**
 
-## What's next? How do I make an app with this?
+---
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+## 📊 Quick Overview
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+```
+✅ Region               : India (ap-south-1, Mumbai)
+✅ Scalability          : Auto-scales 1-4 tasks (100-10,000 req/day)
+✅ Production Ready     : Multi-AZ database, health checks, monitoring
+✅ Deployment Duration  : 2 months max, then cleanup
+✅ CI/CD Pipeline       : GitHub Actions (Build & Deploy)
+✅ Monthly Cost         : ~$100-120 (scales with traffic)
+✅ High Availability    : Automatic RDS failover
+✅ Auto-Scaling        : Triggers at 70% CPU, scales 1-4 tasks
+```
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+---
 
-## Learn More
+## 📁 Files Created
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+### Infrastructure
+```
+📄 cloudformation-template.yaml
+   • VPC with public/private subnets (2 AZs)
+   • Application Load Balancer
+   • ECS Fargate cluster with auto-scaling
+   • RDS PostgreSQL Multi-AZ database
+   • CloudWatch logs and monitoring
+   • Auto-scaling policies (1-4 tasks)
+```
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+### CI/CD Pipelines
+```
+📄 .github/workflows/build.yml
+   • Triggers on: push, pull_request
+   • Steps: Test → Build → Push to ECR
+   
+📄 .github/workflows/deploy.yml
+   • Triggers on: push to main
+   • Steps: Update ECS → Wait → Verify
+```
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+### Application
+```
+📄 Dockerfile
+   • Multi-stage build
+   • Node.js 18 Alpine
+   • Health check included
+   
+📄 src/app/api/health/route.ts
+   • ALB health check endpoint
+```
 
-## How do I deploy this?
+### Documentation
+```
+📄 DEPLOYMENT_GUIDE.md
+   • Quick start (6 steps)
+   • Architecture & scaling
+   • Operations & monitoring
+   
+📄 GITHUB_ACTIONS_SETUP.md
+   • Secure OIDC setup
+   • IAM role configuration
+```
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+---
+
+## 🚀 Quick Start (15 minutes)
+
+### 1. Create ECR Repository
+```powershell
+aws ecr create-repository --repository-name scheme-app --region ap-south-1
+```
+
+### 2. Setup GitHub Actions
+Follow `GITHUB_ACTIONS_SETUP.md` to create IAM role and add `AWS_ROLE_TO_ASSUME` secret.
+
+### 3. Deploy Infrastructure
+```powershell
+aws cloudformation create-stack `
+  --stack-name scheme-app-production `
+  --template-body file://cloudformation-template.yaml `
+  --parameters `
+    ParameterKey=DockerImageUri,ParameterValue=YOUR_ECR_IMAGE `
+    ParameterKey=DatabasePassword,ParameterValue=YourPassword123 `
+  --region ap-south-1 `
+  --capabilities CAPABILITY_NAMED_IAM
+```
+
+### 4. Deploy Application
+```powershell
+git push origin main  # Automatic build & deploy via GitHub Actions
+```
+
+### 5. Verify
+```powershell
+$alb = aws cloudformation describe-stacks --stack-name scheme-app-production `
+  --query 'Stacks[0].Outputs[0].OutputValue' --output text
+curl "http://$alb/api/health"
+```
+
+---
+
+## 📈 Architecture
+
+```
+Users → ALB → ECS Tasks (1-4 auto-scaled) → RDS Multi-AZ PostgreSQL
+```
+
+**Auto-scaling:** 
+- 1 task @ <50% CPU
+- 2 tasks @ 50-70% CPU  
+- 3 tasks @ 70-85% CPU
+- 4 tasks @ >85% CPU
+
+---
+
+## 💰 Estimated Costs
+
+| Component | Monthly |
+|-----------|---------|
+| ALB | ~$16 |
+| ECS (avg 2-3 tasks) | ~$50 |
+| RDS Multi-AZ | ~$40 |
+| Logs & Monitoring | ~$3 |
+| **Total** | **~$109/month** |
+
+For 2-month campaign: ~$220
+
+---
+
+## 🔒 Security Features
+
+✅ VPC isolation (database in private subnets)  
+✅ RDS encryption at rest  
+✅ Non-root container user  
+✅ OIDC for GitHub Actions (no AWS keys)  
+✅ Least privilege IAM roles  
+✅ Health checks with auto-restart
+
+---
+
+## 📝 Common Operations
+
+```powershell
+# View application logs
+aws logs tail /ecs/scheme-app --follow
+
+# Scale manually
+aws ecs update-service --cluster scheme-app-cluster --service scheme-app-service --desired-count 3
+
+# Deploy new version
+aws ecs update-service --cluster scheme-app-cluster --service scheme-app-service --force-new-deployment
+
+# Cleanup after 2 months
+aws cloudformation delete-stack --stack-name scheme-app-production --region ap-south-1
+```
+
+---
+
+## 📚 Documentation
+
+- **DEPLOYMENT_GUIDE.md** - Complete setup instructions, architecture, operations
+- **GITHUB_ACTIONS_SETUP.md** - IAM and OIDC configuration for secure GitHub Actions
+
+---
+
+## ✅ Pre-Deployment Checklist
+
+- [ ] AWS account configured
+- [ ] AWS CLI installed
+- [ ] Docker installed
+- [ ] ECR repository created
+- [ ] IAM role created (GITHUB_ACTIONS_SETUP.md)
+- [ ] `AWS_ROLE_TO_ASSUME` secret added to GitHub
+- [ ] Database password ready
+
+---
+
+## 🎯 Next Steps
+
+1. Read `DEPLOYMENT_GUIDE.md` (Quick Start section)
+2. Complete `GITHUB_ACTIONS_SETUP.md`
+3. Deploy CloudFormation stack
+4. Push code to main branch
+5. Monitor with CloudWatch
+6. Cleanup after 2 months
+
+---
+
+**🚀 Start with DEPLOYMENT_GUIDE.md!**
+
+*Production infrastructure for Rajasthan | 2-month campaigns | 100-10,000 req/day | Auto-scaling*

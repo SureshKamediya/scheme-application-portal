@@ -120,7 +120,7 @@ export function ApplicationForm({
 
           setStatus({
             type: "success",
-            message: "Application submitted and payment proof uploaded successfully!",
+            message: `Application submitted and payment proof uploaded successfully! Your application number is ${application.application_number}`,
           });
 
           console.log("S3 Upload Result:", uploadResult);
@@ -128,20 +128,23 @@ export function ApplicationForm({
           console.error("File upload error:", uploadError);
           setStatus({
             type: "success",
-            message: "Application submitted successfully! (File upload pending)",
+            message: `Application submitted successfully! (Payment Proof file upload pending) Your application number is ${application.application_number}`,
           });
         }
       } else {
         setStatus({
           type: "success",
-          message: "Application submitted successfully!",
+          message: `Application submitted successfully! Your application number is ${application.application_number}`,
         });
       }
 
-      // Redirect after success
+      // Redirect to application lookup with auto-filled fields
       setTimeout(() => {
-        window.location.href = "/";
-      }, 2000);
+        const params = new URLSearchParams();
+        params.set("mobile", state.mobile_number);
+        params.set("appNum", String(application.application_number));
+        window.location.href = `/application-lookup?${params.toString()}`;
+      }, 2500);
     },
     onError: (error) => {
       let message = "Failed to submit application";
