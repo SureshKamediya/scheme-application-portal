@@ -1,0 +1,45 @@
+name: CI - Build Check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      # IMPORTANT: These must be configured as GitHub Secrets for the CI job.
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Introspect Schema and Generate Prisma Client
+        run: |
+          echo "--- Running Prisma DB Pull (Introspection) ---"
+          npx prisma db pull
+          echo "--- Running Prisma Generate Client ---"
+          npx prisma generate
+
+      - name: Run Next.js Build
+        run: npm run build
