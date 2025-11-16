@@ -84,13 +84,20 @@ export const otpRouter = createTRPCRouter({
 
       const success = otpRecord.code === otp;
 
+      // 1. Get the raw header value
+      const xForwardedFor = ctx.headers.get("x-forwarded-for");
+
+      // 2. Safely extract the first IP address from the comma-separated list.
+      //    If the header is null/empty, fall back to "0.0.0.0" as a placeholder.
+      const clientIp = xForwardedFor?.split(',')[0]?.trim() ?? "0.0.0.0";
+
       await ctx.db.otp_attempt.create({
         data: {
           id: randomUUID(),
           otp_id: otpRecord.id,
           identifier: mobile_number,
           attempt_type: "VERIFY",
-          ip_address: ctx.headers.get("x-forwarded-for") ?? "0.0.0.0",
+          ip_address: clientIp,
           user_agent: ctx.headers.get("user-agent") ?? null,
           timestamp: new Date(),
           success,
