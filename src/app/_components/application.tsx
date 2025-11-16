@@ -113,6 +113,7 @@ export function ApplicationForm({
           // Upload to S3 with real applicationNumber
           const uploadResult = await uploadPaymentProof.mutateAsync({
             applicationId: application.application_number,
+            schemeId: state.scheme_id,
             filename: uploadedFile.name,
             fileBuffer: fileBuffer,
             mimeType: uploadedFile.file.type,

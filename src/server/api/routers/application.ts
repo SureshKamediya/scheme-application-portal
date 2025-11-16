@@ -213,6 +213,7 @@ export const applicationRouter = createTRPCRouter({
     .input(
       z.object({
         applicationId: z.number().int("Application ID must be an integer"),
+        schemeId: z.number().int("Scheme ID must be an integer"),
         filename: z.string().max(255, "Filename too long"),
         fileBuffer: z.string().describe("File content as base64 string"),
         mimeType: z.string().max(50, "MIME type too long"),
@@ -242,7 +243,7 @@ export const applicationRouter = createTRPCRouter({
         }
 
         // Generate S3 key
-        const s3Key = generateS3Key(input.applicationId, input.filename);
+        const s3Key = generateS3Key(input.applicationId, input.filename, input.schemeId);
 
         // Upload to S3
         const s3Url = await uploadToS3(s3Key, buffer, input.mimeType);
