@@ -2,7 +2,7 @@ import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
 
-console.log("📌 Amplify Build — DATABASE_URL exists:", process.env.DATABASE_URL ? "YES" : "NO");
+console.log("Check — DATABASE_URL exists:", process.env.DATABASE_URL ? "YES" : "NO");
 export const env = createEnv({
   /**
    * Specify your server-side environment variables schema here. This way you can ensure the app

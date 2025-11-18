@@ -364,7 +364,7 @@ export function ApplicationForm({
             </div>
 
             <div>
-              <label className="block text-sm">Email</label>
+              <label className="block text-sm"><span className="text-red-500">*</span> Email</label>
               <input
                 name="email"
                 type="email"
@@ -501,11 +501,11 @@ export function ApplicationForm({
                   let regFees = "";
                   
                   if (income === "0-3 lakh") {
-                    category = "EWS";
-                    regFees = "20000.00";
-                  } else if (income === "3-6 lakh") {
                     category = "LIG";
                     regFees = "10000.00";
+                  } else if (income === "3-6 lakh") {
+                    category = "EWS";
+                    regFees = "20000.00";
                   }
                   
                   setState((s) => ({
@@ -648,7 +648,7 @@ export function ApplicationForm({
 
       {step === 2 && (
         <section className="space-y-4">
-          <div className="text-sm text-gray-700 mb-2">
+          <div className="text-sm text-gray-700 mb-4">
             Please provide your bank account details for refund purposes. Ensure that the information is accurate to avoid any delays in processing refunds.
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
