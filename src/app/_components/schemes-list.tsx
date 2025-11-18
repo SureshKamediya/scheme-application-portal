@@ -123,6 +123,11 @@ export function SchemesList() {
                       Closes: {new Date(scheme.application_close_date).toLocaleDateString()}
                     </p>
                   )}
+                  {scheme.lottery_result_date && (
+                    <p>
+                      Lottery Result Date: {new Date(scheme.lottery_result_date).toLocaleDateString()}
+                    </p>
+                  )}
                 </div>
 
                 {/* View Details Link */}

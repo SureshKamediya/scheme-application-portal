@@ -35,13 +35,16 @@ type FormState = {
   refund_bank_branch_address: string;
   refund_bank_ifsc: string;
   scheme_id: number;
+  scheme_name: string;
 };
 
 export function ApplicationForm({
   initialSchemeId = 1,
-  initialMobileNumber = "1234567890",
+  initialSchemeName = "Default-Scheme",
+  initialMobileNumber = "1234567890"
 }: {
   initialSchemeId?: number;
+  initialSchemeName?: string;
   initialMobileNumber?: string;
 }) {
   const [state, setState] = useState<FormState>({
@@ -75,6 +78,7 @@ export function ApplicationForm({
     refund_bank_branch_address: "",
     refund_bank_ifsc: "",
     scheme_id: initialSchemeId,
+    scheme_name: initialSchemeName
   });
 
   const [status, setStatus] = useState<{
@@ -113,7 +117,7 @@ export function ApplicationForm({
           // Upload to S3 with real applicationNumber
           const uploadResult = await uploadPaymentProof.mutateAsync({
             applicationId: application.application_number,
-            schemeId: state.scheme_id,
+            schemeName: state.scheme_name,
             filename: uploadedFile.name,
             fileBuffer: fileBuffer,
             mimeType: uploadedFile.file.type,
@@ -135,7 +139,7 @@ export function ApplicationForm({
       } else {
         setStatus({
           type: "success",
-          message: `Application submitted successfully! Your application number is ${application.application_number}`,
+          message: `Application submitted successfully without payment proof file! Your application number is ${application.application_number}`,
         });
       }
 
@@ -144,6 +148,8 @@ export function ApplicationForm({
         const params = new URLSearchParams();
         params.set("mobile", state.mobile_number);
         params.set("appNum", String(application.application_number));
+        params.set("schemeName", state.scheme_name);
+        params.set("schemeId", String(state.scheme_id));
         window.location.href = `/application-lookup?${params.toString()}`;
       }, 2500);
     },
@@ -203,6 +209,7 @@ export function ApplicationForm({
       if (!state.father_or_husband_name.trim()) return "Father/Husband name is required";
       if (!state.dob) return "Date of birth is required";
       if (state.mobile_number.length !== 10) return "Mobile number must be 10 digits";
+      if (!state.id_type.trim()) return "Email is required";
       if (!state.id_type.trim()) return "ID type is required";
       if (!state.id_number.trim()) return "ID number is required";
       if (!state.pan_number.trim()) return "PAN number is required";
@@ -218,6 +225,7 @@ export function ApplicationForm({
       if (!state.dd_id_or_transaction_id.trim()) return "DD/Transaction ID is required";
       if (!state.dd_date_or_transaction_date) return "DD/Transaction date is required";
       if (!state.dd_amount || Number(state.dd_amount) <= 0) return "Enter a valid payment amount";
+      if(Number(state.dd_amount) !== Number(state.total_payable_amount)) return `Payment amount must be ₹${state.total_payable_amount}`;
       if (!state.payee_account_holder_name.trim()) return "Payee account holder name is required";
       if (!state.payee_bank_name.trim()) return "Payee bank name is required";
       if (!state.payment_proof.trim()) return "Payment proof is required";
@@ -311,8 +319,8 @@ export function ApplicationForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Scheme ID</label>
-          <p className="mt-1 text-sm">{state.scheme_id}</p>
+          <label className="block text-sm font-medium text-gray-700">Scheme Name</label>
+          <p className="mt-1 text-sm">{state.scheme_name}</p>
         </div>
       </div>
 
@@ -364,6 +372,7 @@ export function ApplicationForm({
                 onChange={onChange}
                 className="w-full border rounded px-3 py-2"
                 placeholder="you@example.com"
+                required
               />
             </div>
 
@@ -491,12 +500,12 @@ export function ApplicationForm({
                   let category = "";
                   let regFees = "";
                   
-                  if (income === "0-3") {
-                    category = "LIG";
-                    regFees = "10000.00";
-                  } else if (income === "3-6") {
+                  if (income === "0-3 lakh") {
                     category = "EWS";
                     regFees = "20000.00";
+                  } else if (income === "3-6 lakh") {
+                    category = "LIG";
+                    regFees = "10000.00";
                   }
                   
                   setState((s) => ({
@@ -511,8 +520,8 @@ export function ApplicationForm({
                 className="w-full border rounded px-3 py-2"
               >
                 <option value="">Select</option>
-                <option value="0-3">0 to 3 lakh</option>
-                <option value="3-6">3 to 6 lakh</option>
+                <option value="0-3 lakh">0 to 3 lakh</option>
+                <option value="3-6 lakh">3 to 6 lakh</option>
               </select>
             </div>
 
@@ -591,7 +600,7 @@ export function ApplicationForm({
             </div>
 
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> Payee account holder name</label>
+              <label className="block text-sm"><span className="text-red-500">*</span> Payer account holder name</label>
               <input
                 name="payee_account_holder_name"
                 value={state.payee_account_holder_name}
@@ -602,7 +611,7 @@ export function ApplicationForm({
             </div>
 
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> Payee bank name</label>
+              <label className="block text-sm"><span className="text-red-500">*</span> Payer bank name</label>
               <input
                 name="payee_bank_name"
                 value={state.payee_bank_name}
@@ -639,9 +648,12 @@ export function ApplicationForm({
 
       {step === 2 && (
         <section className="space-y-4">
+          <div className="text-sm text-gray-700 mb-2">
+            Please provide your bank account details for refund purposes. Ensure that the information is accurate to avoid any delays in processing refunds.
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> Refund account holder name</label>
+              <label className="block text-sm"><span className="text-red-500">*</span> Account holder name</label>
               <input
                 name="refund_account_holder_name"
                 value={state.refund_account_holder_name}
@@ -652,7 +664,7 @@ export function ApplicationForm({
             </div>
 
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> Refund account number</label>
+              <label className="block text-sm"><span className="text-red-500">*</span> Account number</label>
               <input
                 name="refund_account_number"
                 value={state.refund_account_number}
@@ -663,7 +675,7 @@ export function ApplicationForm({
             </div>
 
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> Refund bank name</label>
+              <label className="block text-sm"><span className="text-red-500">*</span> Bank name</label>
               <input
                 name="refund_bank_name"
                 value={state.refund_bank_name}
@@ -674,7 +686,7 @@ export function ApplicationForm({
             </div>
 
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> Refund bank branch address</label>
+              <label className="block text-sm"><span className="text-red-500">*</span> Bank branch address</label>
               <input
                 name="refund_bank_branch_address"
                 value={state.refund_bank_branch_address}
@@ -685,7 +697,7 @@ export function ApplicationForm({
             </div>
 
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> Refund bank IFSC</label>
+              <label className="block text-sm"><span className="text-red-500">*</span> Bank IFSC</label>
               <input
                 name="refund_bank_ifsc"
                 value={state.refund_bank_ifsc}

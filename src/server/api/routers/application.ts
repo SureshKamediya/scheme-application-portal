@@ -213,7 +213,7 @@ export const applicationRouter = createTRPCRouter({
     .input(
       z.object({
         applicationId: z.number().int("Application ID must be an integer"),
-        schemeId: z.number().int("Scheme ID must be an integer"),
+        schemeName: z.string().max(255, "Scheme name too long"),
         filename: z.string().max(255, "Filename too long"),
         fileBuffer: z.string().describe("File content as base64 string"),
         mimeType: z.string().max(50, "MIME type too long"),
@@ -243,7 +243,7 @@ export const applicationRouter = createTRPCRouter({
         }
 
         // Generate S3 key
-        const s3Key = generateS3Key(input.applicationId, input.filename, input.schemeId);
+        const s3Key = generateS3Key(input.applicationId, input.filename, input.schemeName);
 
         // Upload to S3
         const s3Url = await uploadToS3(s3Key, buffer, input.mimeType);
@@ -282,14 +282,15 @@ export const applicationRouter = createTRPCRouter({
     }),
 
   /**
-   * Get application by mobile number and application number
+   * Get application by mobile number and application number and scheme name
    * Used for application lookup/verification
    */
-  getByMobileAndNumber: publicProcedure
+  getByMobileAndApplicationNumberAndSchemeId: publicProcedure
     .input(
       z.object({
         mobile_number: z.string().length(10, "Mobile number must be 10 digits"),
         application_number: z.number().int("Application number must be an integer"),
+        scheme_id: z.number().int("Scheme ID must be an integer"),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -298,6 +299,7 @@ export const applicationRouter = createTRPCRouter({
           where: {
             mobile_number: input.mobile_number,
             application_number: input.application_number,
+            scheme_id: input.scheme_id,
           },
           include: {
             scheme_scheme: true,
@@ -367,11 +369,18 @@ export const applicationRouter = createTRPCRouter({
    * Returns presigned S3 URL if available, or stored URL
    */
   downloadPdf: publicProcedure
-    .input(z.number().int("Application ID must be an integer"))
+    .input(
+      z.object({
+        mobile_number: z.string().length(10, "Mobile number must be 10 digits"),
+        application_number: z.number().int("Application number must be an integer"),
+        scheme_id: z.number().int("Scheme ID must be an integer"),
+        application_id: z.number().int("Application ID must be an integer"),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       try {
         const application = await ctx.db.scheme_application.findUnique({
-          where: { id: input },
+          where: { id: input.application_id },
         });
 
         if (!application) {
@@ -382,7 +391,7 @@ export const applicationRouter = createTRPCRouter({
         }
 
         // Return the payment proof URL if available
-        if (!application.payment_proof) {
+        if (!application.application_pdf) {
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Application PDF not available for download",
@@ -390,8 +399,8 @@ export const applicationRouter = createTRPCRouter({
         }
 
         return {
-          downloadUrl: application.payment_proof,
-          filename: `application_${application.application_number}.pdf`,
+          downloadUrl: application.application_pdf,
+          filename: `mobile_${application.mobile_number}_scheme_${application.scheme_id}_application_${application.application_number}.pdf`,
         };
       } catch (error) {
         if (error instanceof TRPCError) {

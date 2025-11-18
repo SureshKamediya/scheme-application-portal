@@ -89,9 +89,9 @@ export function formatFileSize(bytes: number): string {
 export function generateS3Key(
   applicationId: number | string,
   originalFilename: string,
-  schemeId: number | string
+  schemeName: string
 ): string {
   const timestamp = Date.now();
   const ext = originalFilename.split(".").pop() ?? "bin";
-  return `applications/${schemeId}/${applicationId}/payment_proof_${timestamp}.${ext}`;
+  return `applications/${schemeName}/${applicationId}/payment_proof_${timestamp}.${ext}`;
 }

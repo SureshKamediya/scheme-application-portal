@@ -57,8 +57,31 @@ export function ApplicationDetails({
     },
   });
 
-  const handleDownloadPdf = () => {
-    downloadPdf.mutate(applicationId);
+  const handleDownloadPdf = async () => {
+    const schemeId = application?.scheme_scheme?.id;
+
+    if (!schemeId) {
+      setStatus({
+        type: "error",
+        message: "Scheme id not found for this application",
+      });
+      return;
+    }
+
+    // Download PDF - Can do with applicaiton id too
+    try {
+      await downloadPdf.mutateAsync({
+        application_number: application.application_number,
+        mobile_number: application.mobile_number,
+        scheme_id: Number(schemeId),
+        application_id: applicationId,
+      });
+    } catch (error) {
+      setStatus({
+        type: "error",
+        message: error instanceof Error ? error.message : "Failed to download PDF",
+      });
+    }
   };
 
   return (

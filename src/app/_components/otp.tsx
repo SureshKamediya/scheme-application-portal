@@ -10,11 +10,10 @@ interface OTPFormProps {
 }
 
 export function OTPForm({
-  schemeId: initialSchemeId = 1,
-  schemeName = "Select a Scheme",
+  schemeId  = 1,
+  schemeName = "Default-Scheme",
 }: OTPFormProps = {}) {
   const [mobileNumber, setMobileNumber] = useState("");
-  const [schemeId, setSchemeId] = useState<number>(initialSchemeId);
   const [otp, setOtp] = useState("");
   const [status, setStatus] = useState<{
     type: "success" | "error" | "info";
@@ -109,6 +108,7 @@ export function OTPForm({
     return (
       <ApplicationForm
         initialSchemeId={schemeId}
+        initialSchemeName={schemeName}
         initialMobileNumber={mobileNumber}
       />
     );
@@ -167,22 +167,7 @@ export function OTPForm({
               <label className="block text-sm font-medium text-gray-700">
                 <span className="text-red-500">*</span> Scheme
               </label>
-              {initialSchemeId && initialSchemeId !== 1 ? (
-                <div className="mt-1 w-full border rounded px-3 py-2 bg-gray-50 text-gray-700 flex items-center">
-                  <span className="font-medium">{schemeName}</span>
-                </div>
-              ) : (
-                <select
-                  value={schemeId}
-                  onChange={(e) => setSchemeId(Number(e.target.value))}
-                  disabled={generateOtp.isPending}
-                  className="mt-1 w-full border rounded px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
-                  required
-                >
-                  <option value={1}>Scheme-1</option>
-                  <option value={2}>Scheme-2</option>
-                </select>
-              )}
+              <p>{schemeName}</p>
             </div>
           </div>
         </section>
