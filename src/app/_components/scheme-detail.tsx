@@ -63,17 +63,19 @@ export function SchemeDetail({ schemeId }: { schemeId: number }) {
 
       {/* Header */}
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <p className="text-sm text-gray-600 mb-2">{scheme.company}</p>
-            <h1 className="text-3xl font-bold text-gray-900">{scheme.name}</h1>
+            <p className="text-sm text-gray-600 mb-1">{scheme.company}</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{scheme.name}</h1>
           </div>
+
+          {/* Status Badge */}
           {isApplicationOpen ? (
-            <span className="inline-flex items-center rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-800">
+            <span className="self-start sm:self-auto inline-flex items-center rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-800">
               ✓ Applications Open
             </span>
           ) : (
-            <span className="inline-flex items-center rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-800">
+            <span className="self-start sm:self-auto inline-flex items-center rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-800">
               ✗ Applications Closed
             </span>
           )}
@@ -83,7 +85,7 @@ export function SchemeDetail({ schemeId }: { schemeId: number }) {
         <button
           onClick={() => setShowApplyForm(true)}
           disabled={!isApplicationOpen}
-          className={`mt-4 px-6 py-3 rounded-lg font-medium transition-colors ${
+          className={`w-full sm:w-auto px-6 py-3 rounded-lg font-medium transition ${
             isApplicationOpen
               ? "bg-blue-600 text-white hover:bg-blue-700"
               : "bg-gray-300 text-gray-600 cursor-not-allowed"
@@ -92,6 +94,7 @@ export function SchemeDetail({ schemeId }: { schemeId: number }) {
           {isApplicationOpen ? "Apply Now" : "Applications Closed"}
         </button>
       </div>
+
 
       {/* Main Content */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

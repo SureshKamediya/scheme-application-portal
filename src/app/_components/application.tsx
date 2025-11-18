@@ -38,6 +38,8 @@ type FormState = {
   scheme_name: string;
 };
 
+type ValidationErrors = Record<string, string>;
+
 export function ApplicationForm({
   initialSchemeId = 1,
   initialSchemeName = "Default-Scheme",
@@ -85,16 +87,16 @@ export function ApplicationForm({
     type: "success" | "error" | "info";
     message: string;
   } | null>(null);
-  const [step, setStep] = useState<number>(0); // 0: personal, 1: payment, 2: refund
+  const [step, setStep] = useState<number>(0);
   const [uploadedFile, setUploadedFile] = useState<{
     name: string;
     size: string;
     file: File;
   } | null>(null);
+  const [errors, setErrors] = useState<ValidationErrors>({});
 
   const createApplication = api.application.create.useMutation({
     onSuccess: async (application) => {
-      // Application created successfully, now upload file to S3 if we have one
       if (uploadedFile) {
         try {
           setStatus({
@@ -102,7 +104,6 @@ export function ApplicationForm({
             message: "Uploading payment proof to cloud storage...",
           });
 
-          // Convert file to base64
           const fileBuffer = await new Promise<string>((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => {
@@ -114,10 +115,10 @@ export function ApplicationForm({
             reader.readAsDataURL(uploadedFile.file);
           });
 
-          // Upload to S3 with real applicationNumber
           const uploadResult = await uploadPaymentProof.mutateAsync({
             applicationId: application.application_number,
             schemeName: state.scheme_name,
+            schemeId: state.scheme_id,
             filename: uploadedFile.name,
             fileBuffer: fileBuffer,
             mimeType: uploadedFile.file.type,
@@ -143,7 +144,6 @@ export function ApplicationForm({
         });
       }
 
-      // Redirect to application lookup with auto-filled fields
       setTimeout(() => {
         const params = new URLSearchParams();
         params.set("mobile", state.mobile_number);
@@ -177,18 +177,12 @@ export function ApplicationForm({
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file
       const error = validateFile(file);
       if (error) {
-        setStatus({
-          type: "error",
-          message: error,
-        });
+        setErrors((prev) => ({ ...prev, payment_proof: error }));
         return;
       }
 
-      // Store file object and display file info
-      // File will be uploaded after application is created with applicationNumber
       setState((s) => ({ ...s, payment_proof: file.name }));
       setUploadedFile({
         name: file.name,
@@ -196,6 +190,7 @@ export function ApplicationForm({
         file: file,
       });
 
+      setErrors((prev) => ({ ...prev, payment_proof: "" }));
       setStatus({
         type: "success",
         message: "Payment proof file selected. Will be uploaded after application submission.",
@@ -203,62 +198,175 @@ export function ApplicationForm({
     }
   };
 
-  const validateStep = (currentStep: number) => {
+  const validateStep = (currentStep: number): ValidationErrors => {
+    const newErrors: ValidationErrors = {};
+    
+    const onlyAlpha = /^[A-Za-z\s]+$/;
+    const onlyAlphanumeric = /^[A-Za-z0-9\s]+$/;
+    const mobileRegex = /^\d{10}$/;
+    const pincodeRegex = /^\d{6}$/;
+    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
     if (currentStep === 0) {
-      if (!state.applicant_name.trim()) return "Applicant name is required";
-      if (!state.father_or_husband_name.trim()) return "Father/Husband name is required";
-      if (!state.dob) return "Date of birth is required";
-      if (state.mobile_number.length !== 10) return "Mobile number must be 10 digits";
-      if (!state.id_type.trim()) return "Email is required";
-      if (!state.id_type.trim()) return "ID type is required";
-      if (!state.id_number.trim()) return "ID number is required";
-      if (!state.pan_number.trim()) return "PAN number is required";
-      if (!state.permanent_address.trim()) return "Permanent address is required";
-      if (!state.permanent_address_pincode.trim()) return "Permanent address pincode is required";
-      if (!state.postal_address.trim()) return "Postal address is required";
-      if (!state.postal_address_pincode.trim()) return "Postal address pincode is required";
+      if (!state.applicant_name.trim()) {
+        newErrors.applicant_name = "Applicant name is required";
+      } else if (!onlyAlpha.test(state.applicant_name)) {
+        newErrors.applicant_name = "Applicant name should contain only letters";
+      }
+
+      if (!state.father_or_husband_name.trim()) {
+        newErrors.father_or_husband_name = "Father/Husband name is required";
+      } else if (!onlyAlpha.test(state.father_or_husband_name)) {
+        newErrors.father_or_husband_name = "Father/Husband name should contain only letters";
+      }
+
+      if (!state.dob) {
+        newErrors.dob = "Date of birth is required";
+      }
+
+      if (!mobileRegex.test(state.mobile_number)) {
+        newErrors.mobile_number = "Mobile number must be 10 digits";
+      }
+
+      if (!state.email.trim()) {
+        newErrors.email = "Email is required";
+      } else if (!emailRegex.test(state.email)) {
+        newErrors.email = "Please enter a valid email address";
+      }
+
+      if (!state.id_type.trim()) {
+        newErrors.id_type = "ID type is required";
+      }
+
+      if (!state.id_number.trim()) {
+        newErrors.id_number = "ID number is required";
+      } else if (!onlyAlphanumeric.test(state.id_number)) {
+        newErrors.id_number = "ID number should be alphanumeric";
+      } else if(state.id_number.trim().length > 20){
+        newErrors.id_number = "ID number is too long-max 20 characters allowed";
+      }
+
+      if (!state.pan_number.trim()) {
+        newErrors.pan_number = "PAN number is required";
+      } else if (!panRegex.test(state.pan_number.toUpperCase())) {
+        newErrors.pan_number = "Enter a valid PAN number (e.g., ABCDE1234F)";
+      }
+
+      if (!state.permanent_address.trim()) {
+        newErrors.permanent_address = "Permanent address is required";
+      }
+
+      if(!state.permanent_address_pincode.trim()) {
+        newErrors.permanent_address_pincode = "Permanent address pincode is required";
+      } else if (!pincodeRegex.test(state.permanent_address_pincode)) {
+        newErrors.permanent_address_pincode = "Permanent address pincode must be 6 digits";
+      }
+
+      if (!state.postal_address.trim()) {
+        newErrors.postal_address = "Postal address is required";
+      }
+
+      if(!state.postal_address_pincode.trim()) {  
+        newErrors.postal_address_pincode = "Postal address pincode is required";
+      } else if (!pincodeRegex.test(state.postal_address_pincode)) {
+        newErrors.postal_address_pincode = "Postal address pincode must be 6 digits";
+      }
     }
 
     if (currentStep === 1) {
-      if (!state.annual_income.trim()) return "Annual income is required";
-      if (!state.payment_mode.trim()) return "Payment mode is required";
-      if (!state.dd_id_or_transaction_id.trim()) return "DD/Transaction ID is required";
-      if (!state.dd_date_or_transaction_date) return "DD/Transaction date is required";
-      if (!state.dd_amount || Number(state.dd_amount) <= 0) return "Enter a valid payment amount";
-      if(Number(state.dd_amount) !== Number(state.total_payable_amount)) return `Payment amount must be ₹${state.total_payable_amount}`;
-      if (!state.payee_account_holder_name.trim()) return "Payee account holder name is required";
-      if (!state.payee_bank_name.trim()) return "Payee bank name is required";
-      if (!state.payment_proof.trim()) return "Payment proof is required";
+      if (!state.annual_income.trim()) {
+        newErrors.annual_income = "Annual income is required";
+      }
+
+      if (!state.payment_mode.trim()) {
+        newErrors.payment_mode = "Payment mode is required";
+      }
+
+      if (!state.dd_id_or_transaction_id.trim()) {
+        newErrors.dd_id_or_transaction_id = "DD/Transaction ID is required";
+      } else if (!onlyAlphanumeric.test(state.dd_id_or_transaction_id)) {
+        newErrors.dd_id_or_transaction_id = "DD/Transaction ID should be alphanumeric";
+      }
+
+      if (!state.dd_date_or_transaction_date) {
+        newErrors.dd_date_or_transaction_date = "DD/Transaction date is required";
+      }
+
+      if (!state.dd_amount || Number(state.dd_amount) <= 0) {
+        newErrors.dd_amount = "Enter a valid payment amount";
+      } else if (Number(state.dd_amount) !== Number(state.total_payable_amount)) {
+        newErrors.dd_amount = `Payment amount must be ₹${state.total_payable_amount}`;
+      }
+
+      if (!state.payee_account_holder_name.trim()) {
+        newErrors.payee_account_holder_name = "Payer account holder name is required";
+      } else if (!onlyAlpha.test(state.payee_account_holder_name)) {
+        newErrors.payee_account_holder_name = "Payer account holder name should contain only letters";
+      }
+
+      if (!state.payee_bank_name.trim()) {
+        newErrors.payee_bank_name = "Payer bank name is required";
+      } else if (!onlyAlpha.test(state.payee_bank_name)) {
+        newErrors.payee_bank_name = "Payer bank name should contain only letters";
+      }
+
+      if (!state.payment_proof.trim()) {
+        newErrors.payment_proof = "Payment proof is required";
+      }
     }
 
     if (currentStep === 2) {
-      if (!state.refund_account_holder_name.trim()) return "Refund account holder name is required";
-      if (!state.refund_account_number.trim()) return "Refund account number is required";
-      if (!state.refund_bank_name.trim()) return "Refund bank name is required";
-      if (!state.refund_bank_branch_address.trim()) return "Refund bank branch address is required";
-      if (!state.refund_bank_ifsc.trim()) return "Refund bank IFSC is required";
+      if (!state.refund_account_holder_name.trim()) {
+        newErrors.refund_account_holder_name = "Refund account holder name is required";
+      } else if (!onlyAlpha.test(state.refund_account_holder_name)) {
+        newErrors.refund_account_holder_name = "Refund account holder name should contain only letters";
+      }
+
+      if (!state.refund_account_number.trim()) {
+        newErrors.refund_account_number = "Refund account number is required";
+      } else if (!onlyAlphanumeric.test(state.refund_account_number)) {
+        newErrors.refund_account_number = "Refund account number should be alphanumeric";
+      }
+
+      if (!state.refund_bank_name.trim()) {
+        newErrors.refund_bank_name = "Refund bank name is required";
+      } else if (!onlyAlpha.test(state.refund_bank_name)) {
+        newErrors.refund_bank_name = "Refund bank name should contain only letters";
+      }
+
+      if (!state.refund_bank_branch_address.trim()) {
+        newErrors.refund_bank_branch_address = "Refund bank branch address is required";
+      }
+
+      if (!state.refund_bank_ifsc.trim()) {
+        newErrors.refund_bank_ifsc = "Refund bank IFSC is required";
+      } else if (!onlyAlphanumeric.test(state.refund_bank_ifsc)) {
+        newErrors.refund_bank_ifsc = "Refund bank IFSC should be alphanumeric";
+      } else if(state.refund_bank_ifsc.trim().length > 11){
+        newErrors.refund_bank_ifsc = "Refund bank IFSC is too long-max 11 characters allowed";
+      }
     }
 
-    return null;
+    return newErrors;
   };
 
   const handleNext = (e?: React.FormEvent) => {
     e?.preventDefault();
     setStatus(null);
-    const err = validateStep(step);
-    if (err) {
-      setStatus({
-        type: "error",
-        message: err,
-      });
-      return;
+    
+    const newErrors = validateStep(step);
+    setErrors(newErrors);
+    
+    if (Object.keys(newErrors).length === 0) {
+      if (step < 2) setStep((s) => s + 1);
     }
-    if (step < 2) setStep((s) => s + 1);
   };
 
   const handleBack = (e?: React.FormEvent) => {
     e?.preventDefault();
     setStatus(null);
+    setErrors({});
     if (step > 0) setStep((s) => s - 1);
   };
 
@@ -267,19 +375,29 @@ export function ApplicationForm({
     setStatus(null);
 
     // Validate all steps
+    let allErrors: ValidationErrors = {};
     for (let i = 0; i <= 2; i++) {
-      const err = validateStep(i);
-      if (err) {
-        setStatus({
-          type: "error",
-          message: `Step ${i + 1}: ${err}`,
-        });
-        setStep(i);
-        return;
-      }
+      const stepErrors = validateStep(i);
+      allErrors = { ...allErrors, ...stepErrors };
     }
 
-    // Convert string values to appropriate types for Decimal fields
+    if (Object.keys(allErrors).length > 0) {
+      setErrors(allErrors);
+      // Find first step with errors
+      for (let i = 0; i <= 2; i++) {
+        const stepErrors = validateStep(i);
+        if (Object.keys(stepErrors).length > 0) {
+          setStep(i);
+          setStatus({
+            type: "error",
+            message: `Please fix the errors in Step ${i + 1}`,
+          });
+          return;
+        }
+      }
+      return;
+    }
+
     const applicationData = {
       ...state,
       registration_fees: state.registration_fees || "0.00",
@@ -291,7 +409,6 @@ export function ApplicationForm({
     try {
       await createApplication.mutateAsync(applicationData);
     } catch (error) {
-      // Error is already handled by onError callback
       console.error("Application submission error:", error);
     }
   };
@@ -299,91 +416,98 @@ export function ApplicationForm({
   const steps = ["Personal", "Payment", "Refund"];
 
   return (
-    <form onSubmit={onSubmit} className="max-w-3xl mx-auto space-y-6 p-4 sm:p-6">
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-lg font-medium">Application Form</div>
-        <div className="text-sm text-gray-500">Step {step + 1} of {steps.length}: {steps[step]}</div>
+    <form onSubmit={onSubmit} className="w-full max-w-3xl mx-auto space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+        <div className="text-base sm:text-lg font-medium">Application Form</div>
+        <div className="text-xs sm:text-sm text-gray-500">Step {step + 1} of {steps.length}: {steps[step]}</div>
       </div>
 
       <div className="w-full bg-gray-200 rounded h-2">
         <div
-          className="bg-blue-600 h-2 rounded"
+          className="bg-blue-600 h-2 rounded transition-all duration-300"
           style={{ width: `${((step + 1) / steps.length) * 100}%` }}
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Mobile</label>
-          <p className="mt-1 text-sm">{state.mobile_number}</p>
+          <label className="block text-xs sm:text-sm font-medium text-gray-700">Mobile</label>
+          <p className="mt-1 text-xs sm:text-sm">{state.mobile_number}</p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Scheme Name</label>
-          <p className="mt-1 text-sm">{state.scheme_name}</p>
+          <label className="block text-xs sm:text-sm font-medium text-gray-700">Scheme Name</label>
+          <p className="mt-1 text-xs sm:text-sm">{state.scheme_name}</p>
         </div>
       </div>
 
       {step === 0 && (
-        <section className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <section className="space-y-3 sm:space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> Applicant name</label>
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Applicant name</label>
               <input
                 name="applicant_name"
                 value={state.applicant_name}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
                 placeholder="Full name"
-                required
               />
+              {errors.applicant_name && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.applicant_name}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> Father / Husband name</label>
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Father / Husband name</label>
               <input
                 name="father_or_husband_name"
                 value={state.father_or_husband_name}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
                 placeholder="Father or Husband name"
-                required
               />
+              {errors.father_or_husband_name && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.father_or_husband_name}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> DOB</label>
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> DOB</label>
               <input
                 name="dob"
                 type="date"
                 value={state.dob}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
-                required
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
               />
+              {errors.dob && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.dob}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> Email</label>
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Email</label>
               <input
                 name="email"
                 type="email"
                 value={state.email}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
                 placeholder="you@example.com"
-                required
               />
+              {errors.email && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.email}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> ID type</label>
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> ID type</label>
               <select
                 name="id_type"
                 value={state.id_type}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
-                required
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
               >
                 <option value="">Select</option>
                 <option value="aadhaar">Aadhaar</option>
@@ -391,110 +515,124 @@ export function ApplicationForm({
                 <option value="passport">Passport</option>
                 <option value="driving">Driving License</option>
               </select>
+              {errors.id_type && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.id_type}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> ID number</label>
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> ID number</label>
               <input
                 name="id_number"
                 value={state.id_number}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
                 placeholder="ID number"
-                required
               />
+              {errors.id_number && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.id_number}</p>
+              )}
             </div>
 
-            <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> PAN number</label>
+            <div className="sm:col-span-2">
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> PAN number</label>
               <input
                 name="pan_number"
                 value={state.pan_number}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
                 placeholder="PAN number"
-                required
               />
+              {errors.pan_number && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.pan_number}</p>
+              )}
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-sm"><span className="text-red-500">*</span> Permanent address</label>
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Permanent address</label>
               <textarea
                 name="permanent_address"
                 value={state.permanent_address}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
                 rows={2}
-                required
               />
+              {errors.permanent_address && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.permanent_address}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> Permanent address pincode</label>
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Permanent address pincode</label>
               <input
                 name="permanent_address_pincode"
                 value={state.permanent_address_pincode}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
-                required
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
               />
+              {errors.permanent_address_pincode && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.permanent_address_pincode}</p>
+              )}
             </div>
 
             <div className="sm:col-span-2">
-              <label className="flex items-center text-sm">
-              <input
-                type="checkbox"
-                checked={state.postal_address === state.permanent_address && state.postal_address_pincode === state.permanent_address_pincode}
-                onChange={(e) => {
-                if (e.target.checked) {
-                  setState((s) => ({
-                  ...s,
-                  postal_address: s.permanent_address,
-                  postal_address_pincode: s.permanent_address_pincode,
-                  }));
-                }
-                }}
-                className="mr-2"
-              />
-              Postal address is same as permanent address
+              <label className="flex items-center text-xs sm:text-sm">
+                <input
+                  type="checkbox"
+                  checked={state.postal_address === state.permanent_address && state.postal_address_pincode === state.permanent_address_pincode}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setState((s) => ({
+                        ...s,
+                        postal_address: s.permanent_address,
+                        postal_address_pincode: s.permanent_address_pincode,
+                      }));
+                    }
+                  }}
+                  className="mr-2"
+                />
+                Postal address is same as permanent address
               </label>
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-sm"><span className="text-red-500">*</span> Postal address</label>
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Postal address</label>
               <textarea
-              name="postal_address"
-              value={state.postal_address}
-              onChange={onChange}
-              className="w-full border rounded px-3 py-2"
-              rows={2}
-              required
+                name="postal_address"
+                value={state.postal_address}
+                onChange={onChange}
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
+                rows={2}
               />
+              {errors.postal_address && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.postal_address}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> Postal address pincode</label>
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Postal address pincode</label>
               <input
-              name="postal_address_pincode"
-              value={state.postal_address_pincode}
-              onChange={onChange}
-              className="w-full border rounded px-3 py-2"
-              required
+                name="postal_address_pincode"
+                value={state.postal_address_pincode}
+                onChange={onChange}
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
               />
+              {errors.postal_address_pincode && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.postal_address_pincode}</p>
+              )}
             </div>
           </div>
         </section>
       )}
 
       {step === 1 && (
-        <section className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <section className="space-y-3 sm:space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> Annual income</label>
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Annual income</label>
               <select
                 name="annual_income"
                 value={state.annual_income}
-                required
                 onChange={(e) => {
                   const income = e.target.value;
                   let category = "";
@@ -517,43 +655,46 @@ export function ApplicationForm({
                     total_payable_amount: regFees ? String(Number(regFees) + 500.00) : "",
                   }));
                 }}
-                className="w-full border rounded px-3 py-2"
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
               >
                 <option value="">Select</option>
                 <option value="0-3 lakh">0 to 3 lakh</option>
                 <option value="3-6 lakh">3 to 6 lakh</option>
               </select>
+              {errors.annual_income && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.annual_income}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm">Plot category</label>
-              <p className="mt-1 text-sm">{state.plot_category || "-"}</p>
+              <label className="block text-xs sm:text-sm mb-1">Plot category</label>
+              <p className="mt-1 text-xs sm:text-sm">{state.plot_category || "-"}</p>
             </div>
 
             <div>
-              <label className="block text-sm">Registration fees</label>
-              <p className="mt-1 text-sm">₹{state.registration_fees || "-"}</p>
+              <label className="block text-xs sm:text-sm mb-1">Registration fees</label>
+              <p className="mt-1 text-xs sm:text-sm">₹{state.registration_fees || "-"}</p>
             </div>
 
             <div>
-              <label className="block text-sm">Processing fees</label>
-              <p className="mt-1 text-sm">₹{state.processing_fees || "-"}</p>
+              <label className="block text-xs sm:text-sm mb-1">Processing fees</label>
+              <p className="mt-1 text-xs sm:text-sm">₹{state.processing_fees || "-"}</p>
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-sm">Total payable amount</label>
-              <p className="mt-1 text-sm font-semibold">₹{state.total_payable_amount || "-"}</p>
+              <label className="block text-xs sm:text-sm mb-1">Total payable amount</label>
+              <p className="mt-1 text-xs sm:text-sm font-semibold">₹{state.total_payable_amount || "-"}</p>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> Payment mode</label>
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Payment mode</label>
               <select
                 name="payment_mode"
                 value={state.payment_mode}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
-                required
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
               >
                 <option value="">Select</option>
                 <option value="dd">DD</option>
@@ -561,80 +702,95 @@ export function ApplicationForm({
                 <option value="upi">UPI</option>
                 <option value="card">Card</option>
               </select>
+              {errors.payment_mode && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.payment_mode}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> DD / Transaction ID</label>
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> DD / Transaction ID</label>
               <input
                 name="dd_id_or_transaction_id"
                 value={state.dd_id_or_transaction_id}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
-                required
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
               />
+              {errors.dd_id_or_transaction_id && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.dd_id_or_transaction_id}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> DD / Transaction date</label>
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> DD / Transaction date</label>
               <input
                 name="dd_date_or_transaction_date"
                 type="date"
                 value={state.dd_date_or_transaction_date}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
-                required
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
               />
+              {errors.dd_date_or_transaction_date && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.dd_date_or_transaction_date}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> Amount</label>
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Amount</label>
               <input
                 name="dd_amount"
                 type="number"
                 step="0.01"
                 value={state.dd_amount}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
-                required
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
               />
+              {errors.dd_amount && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.dd_amount}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> Payer account holder name</label>
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Payer account holder name</label>
               <input
                 name="payee_account_holder_name"
                 value={state.payee_account_holder_name}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
-                required
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
               />
+              {errors.payee_account_holder_name && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.payee_account_holder_name}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> Payer bank name</label>
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Payer bank name</label>
               <input
                 name="payee_bank_name"
                 value={state.payee_bank_name}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
-                required
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
               />
+              {errors.payee_bank_name && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.payee_bank_name}</p>
+              )}
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-sm"><span className="text-red-500">*</span> Payment proof</label>
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Payment proof</label>
               <div className="mt-2">
                 <input
                   type="file"
                   onChange={onFileChange}
-                  required
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  className="block w-full text-xs sm:text-sm text-gray-500 file:mr-3 sm:file:mr-4 file:py-1.5 sm:file:py-2 file:px-3 sm:file:px-4 file:rounded file:border-0 file:text-xs sm:file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                   accept=".pdf,.jpg,.jpeg,.png"
                 />
               </div>
+              {errors.payment_proof && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.payment_proof}</p>
+              )}
               {uploadedFile && (
-                <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded">
-                  <div className="text-sm text-green-800">
+                <div className="mt-2 p-2 sm:p-3 bg-green-50 border border-green-200 rounded">
+                  <div className="text-xs sm:text-sm text-green-800">
                     <div className="font-medium">✓ File uploaded</div>
                     <div className="mt-1">Name: {uploadedFile.name}</div>
                     <div>Size: {uploadedFile.size}</div>
@@ -647,75 +803,85 @@ export function ApplicationForm({
       )}
 
       {step === 2 && (
-        <section className="space-y-4">
-          <div className="text-sm text-gray-700 mb-4">
+        <section className="space-y-3 sm:space-y-4">
+          <div className="text-xs sm:text-sm text-gray-700 mb-3 sm:mb-4">
             Please provide your bank account details for refund purposes. Ensure that the information is accurate to avoid any delays in processing refunds.
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> Account holder name</label>
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Account holder name</label>
               <input
                 name="refund_account_holder_name"
                 value={state.refund_account_holder_name}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
-                required
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
               />
+              {errors.refund_account_holder_name && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.refund_account_holder_name}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> Account number</label>
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Account number</label>
               <input
                 name="refund_account_number"
                 value={state.refund_account_number}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
-                required
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
               />
+              {errors.refund_account_number && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.refund_account_number}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> Bank name</label>
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Bank name</label>
               <input
                 name="refund_bank_name"
                 value={state.refund_bank_name}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
-                required
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
               />
+              {errors.refund_bank_name && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.refund_bank_name}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> Bank branch address</label>
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Bank branch address</label>
               <input
                 name="refund_bank_branch_address"
                 value={state.refund_bank_branch_address}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
-                required
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
               />
+              {errors.refund_bank_branch_address && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.refund_bank_branch_address}</p>
+              )}
             </div>
 
-            <div>
-              <label className="block text-sm"><span className="text-red-500">*</span> Bank IFSC</label>
+            <div className="sm:col-span-2">
+              <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Bank IFSC</label>
               <input
                 name="refund_bank_ifsc"
                 value={state.refund_bank_ifsc}
                 onChange={onChange}
-                className="w-full border rounded px-3 py-2"
-                required
+                className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
               />
+              {errors.refund_bank_ifsc && (
+                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.refund_bank_ifsc}</p>
+              )}
             </div>
           </div>
         </section>
       )}
 
-      <div className="flex items-center justify-between space-x-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
         <div>
           {step > 0 && (
             <button
               onClick={handleBack}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+              className="w-full sm:w-auto px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm font-medium transition-colors"
               type="button"
             >
               Back
@@ -723,11 +889,11 @@ export function ApplicationForm({
           )}
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
           {step < 2 && (
             <button
               onClick={handleNext}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium transition-colors"
               type="button"
             >
               Next
@@ -737,7 +903,7 @@ export function ApplicationForm({
           {step === 2 && (
             <button
               type="submit"
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm font-medium transition-colors"
             >
               Submit
             </button>
@@ -747,7 +913,7 @@ export function ApplicationForm({
 
       {status && (
         <div
-          className={`rounded-md p-3 text-sm font-medium ${
+          className={`rounded-md p-2 sm:p-3 text-xs sm:text-sm font-medium ${
             status.type === "success"
               ? "bg-green-100 text-green-800"
               : status.type === "error"

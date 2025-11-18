@@ -103,6 +103,16 @@ export function OTPForm({
     });
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (step === 0) {
+      await handleGenerateOtp();
+    } else if (step === 1) {
+      await handleVerifyOtp();
+    }
+  };
+
   // Step 3: Show application form after OTP verification
   if (step === 3) {
     return (
@@ -115,7 +125,7 @@ export function OTPForm({
   }
 
   return (
-    <form className="max-w-3xl mx-auto space-y-6 p-4 sm:p-6">
+    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-6 p-4 sm:p-6">
       <div className="flex items-center justify-between mb-2">
         <div className="text-lg font-medium">OTP Verification</div>
         <div className="text-sm text-gray-500">Step {step + 1} of 2</div>
@@ -123,7 +133,7 @@ export function OTPForm({
 
       <div className="w-full bg-gray-200 rounded h-2">
         <div
-          className="bg-blue-600 h-2 rounded"
+          className="bg-blue-600 h-2 rounded transition-all duration-300"
           style={{ width: `${((step + 1) / 2) * 100}%` }}
         />
       </div>
@@ -167,7 +177,7 @@ export function OTPForm({
               <label className="block text-sm font-medium text-gray-700">
                 <span className="text-red-500">*</span> Scheme
               </label>
-              <p className="mt-1 w-full border rounded px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500  disabled:bg-gray-100">{schemeName}</p>
+              <p className="mt-1 w-full border rounded px-3 py-2 bg-gray-50">{schemeName}</p>
             </div>
           </div>
         </section>
@@ -190,6 +200,7 @@ export function OTPForm({
                 disabled={verifyOtp.isPending}
                 className="mt-1 w-full border rounded px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
                 required
+                autoFocus
               />
             </div>
           </div>
@@ -218,26 +229,22 @@ export function OTPForm({
         <div className="flex items-center space-x-2">
           {step === 0 && (
             <button
-              onClick={handleGenerateOtp}
+              type="submit"
               disabled={generateOtp.isPending}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
-              type="button"
             >
               {generateOtp.isPending ? "Sending..." : "Generate OTP"}
             </button>
           )}
 
           {step === 1 && (
-            <>
-              <button
-                onClick={handleVerifyOtp}
-                disabled={verifyOtp.isPending}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
-                type="button"
-              >
-                {verifyOtp.isPending ? "Verifying..." : "Verify OTP"}
-              </button>
-            </>
+            <button
+              type="submit"
+              disabled={verifyOtp.isPending}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
+            >
+              {verifyOtp.isPending ? "Verifying..." : "Verify OTP"}
+            </button>
           )}
         </div>
       </div>
