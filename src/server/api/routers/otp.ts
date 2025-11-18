@@ -34,7 +34,8 @@ export const otpRouter = createTRPCRouter({
       });
       if (otpCount >= 5) throw new Error("Too many OTP requests. Try later.");
 
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      //const code = Math.floor(100000 + Math.random() * 900000).toString();
+      const code = "123456"; // For testing purposes
       const expires = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
 
       const otpRecord = await ctx.db.oTP_otp.create({
