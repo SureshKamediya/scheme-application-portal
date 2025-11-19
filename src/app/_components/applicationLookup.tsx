@@ -47,9 +47,10 @@ export function ApplicationLookup({
     },
     onError: (error: unknown) => {
       const err = error as ErrorResponse;
+      console.log("Error fetching application:", err);
       setStatus({
         type: "error",
-        message: err.message! ?? "Application not found",
+        message: "Application not found",
       });
     },
   });
@@ -89,6 +90,14 @@ export function ApplicationLookup({
       </div>
 
       <div className="space-y-4">
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            <span className="text-red-500">*</span> Scheme Name
+          </label>
+          <p className="mt-1 w-full border rounded px-3 py-2 bg-gray-50">{initialSchemeName}</p>
+        </div>
+        
         <div>
           <label className="block text-sm font-medium text-gray-700">
             <span className="text-red-500">*</span> Mobile Number
@@ -118,13 +127,6 @@ export function ApplicationLookup({
             className="mt-1 w-full border rounded px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
             required
           />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            <span className="text-red-500">*</span> Scheme Name
-          </label>
-          <p className="mt-1 w-full border rounded px-3 py-2 bg-gray-50">{initialSchemeName}</p>
         </div>
       </div>
 
