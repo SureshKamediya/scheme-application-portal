@@ -13,18 +13,21 @@ let s3Client: unknown = null;
  */
 async function getS3Client() {
   if (!s3Client) {
-    if (!env.AWS_ACCESS_KEY_ID || !env.AWS_SECRET_ACCESS_KEY) {
-      throw new Error("AWS credentials not configured");
-    }
-
     const { S3Client } = await import("@aws-sdk/client-s3");
-    s3Client = new S3Client({
-      region: env.AWS_REGION,
-      credentials: {
-        accessKeyId: env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-      },
-    });
+
+    if (env.AWS_ACCESS_KEY_ID && env.AWS_SECRET_ACCESS_KEY) {
+      console.log("Using explicit access keys from environment variables.");
+      s3Client = new S3Client({
+        region: env.AWS_REGION,
+        credentials: {
+          accessKeyId: env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+        },
+      });
+    } else {
+      console.log("Using default credential provider chain (IAM Role).");
+      s3Client = new S3Client({ region: env.AWS_REGION });
+    }
   }
   return s3Client;
 }
@@ -34,8 +37,7 @@ async function getS3Client() {
  */
 export function isS3Configured(): boolean {
   return !!(
-    env.AWS_ACCESS_KEY_ID &&
-    env.AWS_SECRET_ACCESS_KEY &&
+    env.AWS_REGION &&
     env.AWS_S3_BUCKET_NAME
   );
 }

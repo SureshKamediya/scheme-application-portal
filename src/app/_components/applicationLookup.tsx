@@ -1,8 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { api } from "~/trpc/react";
+
+interface ApplicationLookupProps {
+  initialMobileNumber: string;
+  initialApplicationNumber: string;
+  initialSchemeName: string;
+  initialSchemeId: number;
+}
 
 interface ApplicationResponse {
   id: number;
@@ -14,40 +21,19 @@ interface ErrorResponse {
   [key: string]: unknown;
 }
 
-export function ApplicationLookup() {
-  const [mobileNumber, setMobileNumber] = useState("");
-  const [applicationNumber, setApplicationNumber] = useState("");
-  const [schemeName, setSchemeName] = useState("");
-  const [schemeId, setSchemeId] = useState<number | null>(null);
+export function ApplicationLookup({
+  initialMobileNumber,
+  initialApplicationNumber,
+  initialSchemeName,
+  initialSchemeId,
+}: ApplicationLookupProps) {
+  // Initialize state directly from props
+  const [mobileNumber, setMobileNumber] = useState(initialMobileNumber);
+  const [applicationNumber, setApplicationNumber] = useState(initialApplicationNumber);
   const [status, setStatus] = useState<{
     type: "success" | "error" | "info";
     message: string;
   } | null>(null);
-
-  // Auto-fill from query parameters
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const mobile = params.get("mobile");
-    const appNum = params.get("appNum");
-    const scheme = params.get("schemeName");
-    const schemeIdParam = params.get("schemeId");
-
-    if (schemeIdParam) {
-      const id = parseInt(schemeIdParam, 10);
-      setSchemeId(id);
-    }
-
-    if (mobile) {
-      setMobileNumber(mobile);
-    }
-    if (appNum) {
-      setApplicationNumber(appNum);
-    }
-    if (scheme) {
-      setSchemeName(scheme);
-    }
-  }, []);
-
   
   const getApplication = api.application.getByMobileAndApplicationNumberAndSchemeId?.useMutation({
     onSuccess: (application: unknown) => {
@@ -57,7 +43,7 @@ export function ApplicationLookup() {
         message: "Application found!",
       });
       // Redirect to application details page
-      window.location.href = `/application/${app.id}?mobile=${mobileNumber}&schemeName=${schemeName}&applicationNum=${applicationNumber}`;
+      window.location.href = `/application/${app.id}?mobile=${mobileNumber}&schemeName=${initialSchemeName}&applicationNumber=${applicationNumber}`;
     },
     onError: (error: unknown) => {
       const err = error as ErrorResponse;
@@ -91,7 +77,7 @@ export function ApplicationLookup() {
     void getApplication?.mutateAsync({
       mobile_number: mobileNumber,
       application_number: parseInt(applicationNumber),
-      scheme_id: schemeId!,
+      scheme_id: initialSchemeId,
     });
   };
 
@@ -138,15 +124,7 @@ export function ApplicationLookup() {
           <label className="block text-sm font-medium text-gray-700">
             <span className="text-red-500">*</span> Scheme Name
           </label>
-          <input
-            type="text"
-            value={schemeName}
-            onChange={(e) => setSchemeName(e.target.value)}
-            placeholder="Enter your scheme name"
-            disabled={getApplication?.isPending ?? false}
-            className="mt-1 w-full border rounded px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
-            required
-          />
+          <p className="mt-1 w-full border rounded px-3 py-2 bg-gray-50">{initialSchemeName}</p>
         </div>
       </div>
 
