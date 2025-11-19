@@ -263,7 +263,7 @@ exports.Prisma.Scheme_schemefilesScalarFieldEnum = {
   name: 'name',
   file_choice: 'file_choice',
   file: 'file',
-  Scheme_id: 'Scheme_id'
+  scheme_id: 'scheme_id'
 };
 
 exports.Prisma.OTP_otpScalarFieldEnum = {

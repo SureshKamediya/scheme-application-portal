@@ -654,10 +654,10 @@ export function ApplicationForm({
                       let regFees = "";
                       
                       if (income === "0-3 lakh") {
-                        category = "LIG";
+                        category = "EWS";
                         regFees = "10000.00";
                       } else if (income === "3-6 lakh") {
-                        category = "EWS";
+                        category = "LIG";
                         regFees = "20000.00";
                       }
                       

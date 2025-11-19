@@ -16247,12 +16247,12 @@ export namespace Prisma {
 
   export type Scheme_schemefilesAvgAggregateOutputType = {
     id: number | null
-    Scheme_id: number | null
+    scheme_id: number | null
   }
 
   export type Scheme_schemefilesSumAggregateOutputType = {
     id: bigint | null
-    Scheme_id: bigint | null
+    scheme_id: bigint | null
   }
 
   export type Scheme_schemefilesMinAggregateOutputType = {
@@ -16260,7 +16260,7 @@ export namespace Prisma {
     name: string | null
     file_choice: string | null
     file: string | null
-    Scheme_id: bigint | null
+    scheme_id: bigint | null
   }
 
   export type Scheme_schemefilesMaxAggregateOutputType = {
@@ -16268,7 +16268,7 @@ export namespace Prisma {
     name: string | null
     file_choice: string | null
     file: string | null
-    Scheme_id: bigint | null
+    scheme_id: bigint | null
   }
 
   export type Scheme_schemefilesCountAggregateOutputType = {
@@ -16276,19 +16276,19 @@ export namespace Prisma {
     name: number
     file_choice: number
     file: number
-    Scheme_id: number
+    scheme_id: number
     _all: number
   }
 
 
   export type Scheme_schemefilesAvgAggregateInputType = {
     id?: true
-    Scheme_id?: true
+    scheme_id?: true
   }
 
   export type Scheme_schemefilesSumAggregateInputType = {
     id?: true
-    Scheme_id?: true
+    scheme_id?: true
   }
 
   export type Scheme_schemefilesMinAggregateInputType = {
@@ -16296,7 +16296,7 @@ export namespace Prisma {
     name?: true
     file_choice?: true
     file?: true
-    Scheme_id?: true
+    scheme_id?: true
   }
 
   export type Scheme_schemefilesMaxAggregateInputType = {
@@ -16304,7 +16304,7 @@ export namespace Prisma {
     name?: true
     file_choice?: true
     file?: true
-    Scheme_id?: true
+    scheme_id?: true
   }
 
   export type Scheme_schemefilesCountAggregateInputType = {
@@ -16312,7 +16312,7 @@ export namespace Prisma {
     name?: true
     file_choice?: true
     file?: true
-    Scheme_id?: true
+    scheme_id?: true
     _all?: true
   }
 
@@ -16407,7 +16407,7 @@ export namespace Prisma {
     name: string | null
     file_choice: string
     file: string
-    Scheme_id: bigint
+    scheme_id: bigint
     _count: Scheme_schemefilesCountAggregateOutputType | null
     _avg: Scheme_schemefilesAvgAggregateOutputType | null
     _sum: Scheme_schemefilesSumAggregateOutputType | null
@@ -16434,7 +16434,7 @@ export namespace Prisma {
     name?: boolean
     file_choice?: boolean
     file?: boolean
-    Scheme_id?: boolean
+    scheme_id?: boolean
     scheme_scheme?: boolean | scheme_schemeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["scheme_schemefiles"]>
 
@@ -16443,7 +16443,7 @@ export namespace Prisma {
     name?: boolean
     file_choice?: boolean
     file?: boolean
-    Scheme_id?: boolean
+    scheme_id?: boolean
     scheme_scheme?: boolean | scheme_schemeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["scheme_schemefiles"]>
 
@@ -16452,7 +16452,7 @@ export namespace Prisma {
     name?: boolean
     file_choice?: boolean
     file?: boolean
-    Scheme_id?: boolean
+    scheme_id?: boolean
     scheme_scheme?: boolean | scheme_schemeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["scheme_schemefiles"]>
 
@@ -16461,10 +16461,10 @@ export namespace Prisma {
     name?: boolean
     file_choice?: boolean
     file?: boolean
-    Scheme_id?: boolean
+    scheme_id?: boolean
   }
 
-  export type scheme_schemefilesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "file_choice" | "file" | "Scheme_id", ExtArgs["result"]["scheme_schemefiles"]>
+  export type scheme_schemefilesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "file_choice" | "file" | "scheme_id", ExtArgs["result"]["scheme_schemefiles"]>
   export type scheme_schemefilesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     scheme_scheme?: boolean | scheme_schemeDefaultArgs<ExtArgs>
   }
@@ -16485,7 +16485,7 @@ export namespace Prisma {
       name: string | null
       file_choice: string
       file: string
-      Scheme_id: bigint
+      scheme_id: bigint
     }, ExtArgs["result"]["scheme_schemefiles"]>
     composites: {}
   }
@@ -16914,7 +16914,7 @@ export namespace Prisma {
     readonly name: FieldRef<"scheme_schemefiles", 'String'>
     readonly file_choice: FieldRef<"scheme_schemefiles", 'String'>
     readonly file: FieldRef<"scheme_schemefiles", 'String'>
-    readonly Scheme_id: FieldRef<"scheme_schemefiles", 'BigInt'>
+    readonly scheme_id: FieldRef<"scheme_schemefiles", 'BigInt'>
   }
     
 
@@ -19742,7 +19742,7 @@ export namespace Prisma {
     name: 'name',
     file_choice: 'file_choice',
     file: 'file',
-    Scheme_id: 'Scheme_id'
+    scheme_id: 'scheme_id'
   };
 
   export type Scheme_schemefilesScalarFieldEnum = (typeof Scheme_schemefilesScalarFieldEnum)[keyof typeof Scheme_schemefilesScalarFieldEnum]
@@ -20857,7 +20857,7 @@ export namespace Prisma {
     name?: StringNullableFilter<"scheme_schemefiles"> | string | null
     file_choice?: StringFilter<"scheme_schemefiles"> | string
     file?: StringFilter<"scheme_schemefiles"> | string
-    Scheme_id?: BigIntFilter<"scheme_schemefiles"> | bigint | number
+    scheme_id?: BigIntFilter<"scheme_schemefiles"> | bigint | number
     scheme_scheme?: XOR<Scheme_schemeScalarRelationFilter, scheme_schemeWhereInput>
   }
 
@@ -20866,28 +20866,29 @@ export namespace Prisma {
     name?: SortOrderInput | SortOrder
     file_choice?: SortOrder
     file?: SortOrder
-    Scheme_id?: SortOrder
+    scheme_id?: SortOrder
     scheme_scheme?: scheme_schemeOrderByWithRelationInput
   }
 
   export type scheme_schemefilesWhereUniqueInput = Prisma.AtLeast<{
     id?: bigint | number
-    name?: string
+    scheme_id_name?: scheme_schemefilesScheme_idNameCompoundUniqueInput
     AND?: scheme_schemefilesWhereInput | scheme_schemefilesWhereInput[]
     OR?: scheme_schemefilesWhereInput[]
     NOT?: scheme_schemefilesWhereInput | scheme_schemefilesWhereInput[]
+    name?: StringNullableFilter<"scheme_schemefiles"> | string | null
     file_choice?: StringFilter<"scheme_schemefiles"> | string
     file?: StringFilter<"scheme_schemefiles"> | string
-    Scheme_id?: BigIntFilter<"scheme_schemefiles"> | bigint | number
+    scheme_id?: BigIntFilter<"scheme_schemefiles"> | bigint | number
     scheme_scheme?: XOR<Scheme_schemeScalarRelationFilter, scheme_schemeWhereInput>
-  }, "id" | "name">
+  }, "id" | "scheme_id_name">
 
   export type scheme_schemefilesOrderByWithAggregationInput = {
     id?: SortOrder
     name?: SortOrderInput | SortOrder
     file_choice?: SortOrder
     file?: SortOrder
-    Scheme_id?: SortOrder
+    scheme_id?: SortOrder
     _count?: scheme_schemefilesCountOrderByAggregateInput
     _avg?: scheme_schemefilesAvgOrderByAggregateInput
     _max?: scheme_schemefilesMaxOrderByAggregateInput
@@ -20903,7 +20904,7 @@ export namespace Prisma {
     name?: StringNullableWithAggregatesFilter<"scheme_schemefiles"> | string | null
     file_choice?: StringWithAggregatesFilter<"scheme_schemefiles"> | string
     file?: StringWithAggregatesFilter<"scheme_schemefiles"> | string
-    Scheme_id?: BigIntWithAggregatesFilter<"scheme_schemefiles"> | bigint | number
+    scheme_id?: BigIntWithAggregatesFilter<"scheme_schemefiles"> | bigint | number
   }
 
   export type OTP_otpWhereInput = {
@@ -22037,7 +22038,7 @@ export namespace Prisma {
     name?: string | null
     file_choice: string
     file: string
-    Scheme_id: bigint | number
+    scheme_id: bigint | number
   }
 
   export type scheme_schemefilesUpdateInput = {
@@ -22053,7 +22054,7 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     file_choice?: StringFieldUpdateOperationsInput | string
     file?: StringFieldUpdateOperationsInput | string
-    Scheme_id?: BigIntFieldUpdateOperationsInput | bigint | number
+    scheme_id?: BigIntFieldUpdateOperationsInput | bigint | number
   }
 
   export type scheme_schemefilesCreateManyInput = {
@@ -22061,7 +22062,7 @@ export namespace Prisma {
     name?: string | null
     file_choice: string
     file: string
-    Scheme_id: bigint | number
+    scheme_id: bigint | number
   }
 
   export type scheme_schemefilesUpdateManyMutationInput = {
@@ -22076,7 +22077,7 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     file_choice?: StringFieldUpdateOperationsInput | string
     file?: StringFieldUpdateOperationsInput | string
-    Scheme_id?: BigIntFieldUpdateOperationsInput | bigint | number
+    scheme_id?: BigIntFieldUpdateOperationsInput | bigint | number
   }
 
   export type OTP_otpCreateInput = {
@@ -23149,17 +23150,22 @@ export namespace Prisma {
     application_number_start?: SortOrder
   }
 
+  export type scheme_schemefilesScheme_idNameCompoundUniqueInput = {
+    scheme_id: bigint | number
+    name: string
+  }
+
   export type scheme_schemefilesCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
     file_choice?: SortOrder
     file?: SortOrder
-    Scheme_id?: SortOrder
+    scheme_id?: SortOrder
   }
 
   export type scheme_schemefilesAvgOrderByAggregateInput = {
     id?: SortOrder
-    Scheme_id?: SortOrder
+    scheme_id?: SortOrder
   }
 
   export type scheme_schemefilesMaxOrderByAggregateInput = {
@@ -23167,7 +23173,7 @@ export namespace Prisma {
     name?: SortOrder
     file_choice?: SortOrder
     file?: SortOrder
-    Scheme_id?: SortOrder
+    scheme_id?: SortOrder
   }
 
   export type scheme_schemefilesMinOrderByAggregateInput = {
@@ -23175,12 +23181,12 @@ export namespace Prisma {
     name?: SortOrder
     file_choice?: SortOrder
     file?: SortOrder
-    Scheme_id?: SortOrder
+    scheme_id?: SortOrder
   }
 
   export type scheme_schemefilesSumOrderByAggregateInput = {
     id?: SortOrder
-    Scheme_id?: SortOrder
+    scheme_id?: SortOrder
   }
 
   export type UuidFilter<$PrismaModel = never> = {
@@ -25609,7 +25615,7 @@ export namespace Prisma {
     name?: StringNullableFilter<"scheme_schemefiles"> | string | null
     file_choice?: StringFilter<"scheme_schemefiles"> | string
     file?: StringFilter<"scheme_schemefiles"> | string
-    Scheme_id?: BigIntFilter<"scheme_schemefiles"> | bigint | number
+    scheme_id?: BigIntFilter<"scheme_schemefiles"> | bigint | number
   }
 
   export type scheme_schemeCreateWithoutScheme_schemefilesInput = {

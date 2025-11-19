@@ -209,14 +209,16 @@ model scheme_scheme {
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model scheme_schemefiles {
   id            BigInt        @id @default(autoincrement())
-  name          String?       @unique @db.VarChar(255)
+  name          String?       @db.VarChar(255)
   file_choice   String        @db.VarChar(100)
   file          String        @db.VarChar(100)
-  Scheme_id     BigInt
-  scheme_scheme scheme_scheme @relation(fields: [Scheme_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "scheme_schemefiles_Scheme_id_a78d5a1f_fk_scheme_scheme_id")
+  scheme_id     BigInt
+  scheme_scheme scheme_scheme @relation(fields: [scheme_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "scheme_schemefiles_scheme_id_940bca16_fk_scheme_scheme_id")
 
+  @@unique([scheme_id, name], map: "scheme_schemefiles_scheme_id_name_94e7b97e_uniq")
   @@index([name], map: "scheme_schemefiles_name_d6fdc055_like")
-  @@index([Scheme_id], map: "scheme_schemefiles_parent_id_5480ae01")
+  @@index([scheme_id], map: "scheme_schemefiles_parent_id_5480ae01")
+  @@index([name], map: "scheme_schemefiles_name_d6fdc055")
 }
 
 model OTP_otp {
