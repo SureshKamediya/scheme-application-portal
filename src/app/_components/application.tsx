@@ -152,12 +152,14 @@ export function ApplicationForm({
         });
       }
 
-      setSubmittedApplicationData({
-        mobile_number: state.mobile_number,
-        application_number: String(application.application_number),
-        scheme_name: state.scheme_name,
-        scheme_id: Number(state.scheme_id),
-    });
+      setTimeout(() => {
+        setSubmittedApplicationData({
+          mobile_number: state.mobile_number,
+          application_number: String(application.application_number),
+          scheme_name: state.scheme_name,
+          scheme_id: Number(state.scheme_id),
+        });
+      }, 2000);
     },
     onError: (error) => {
       let message = "Failed to submit application";

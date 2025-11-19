@@ -12,7 +12,7 @@ let s3Client: unknown = null;
  * Get or create S3 client
  */
 async function getS3Client() {
-  if (!s3Client) {
+  //if (!s3Client) {
     const { S3Client } = await import("@aws-sdk/client-s3");
 
     if (env.AWS_ACCESS_KEY_ID && env.AWS_SECRET_ACCESS_KEY) {
@@ -28,7 +28,7 @@ async function getS3Client() {
       console.log("Using default credential provider chain (IAM Role).");
       s3Client = new S3Client({ region: env.AWS_REGION });
     }
-  }
+  //}
   return s3Client;
 }
 
