@@ -12,23 +12,28 @@ let s3Client: unknown = null;
  * Get or create S3 client
  */
 async function getS3Client() {
-  //if (!s3Client) {
-    const { S3Client } = await import("@aws-sdk/client-s3");
+  const { S3Client } = await import("@aws-sdk/client-s3");
 
-    if (env.AWS_ACCESS_KEY_ID && env.AWS_SECRET_ACCESS_KEY) {
-      console.log("Using explicit access keys from environment variables.");
-      s3Client = new S3Client({
-        region: env.AWS_REGION,
-        credentials: {
-          accessKeyId: env.AWS_ACCESS_KEY_ID,
-          secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-        },
-      });
-    } else {
-      console.log("Using default credential provider chain (IAM Role).");
-      s3Client = new S3Client({ region: env.AWS_REGION });
-    }
-  //}
+  console.log("=== S3 Client Configuration Debug ===");
+  console.log("AWS_REGION:", env.AWS_REGION);
+  console.log("AWS_ACCESS_KEY_ID exists:", !!env.AWS_ACCESS_KEY_ID);
+  console.log("AWS_SECRET_ACCESS_KEY exists:", !!env.AWS_SECRET_ACCESS_KEY);
+  console.log("AWS_S3_BUCKET_NAME:", env.AWS_S3_BUCKET_NAME);
+
+  if (env.AWS_ACCESS_KEY_ID && env.AWS_SECRET_ACCESS_KEY) {
+    console.log("Using explicit access keys from environment variables.");
+    s3Client = new S3Client({
+      region: env.AWS_REGION,
+      credentials: {
+        accessKeyId: env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+      },
+    });
+  } else {
+    console.log("Using default credential provider chain (IAM Role).");
+    s3Client = new S3Client({ region: env.AWS_REGION });
+  }
+  
   return s3Client;
 }
 
@@ -55,14 +60,22 @@ export async function uploadToS3(
   body: Buffer | Uint8Array,
   contentType: string
 ): Promise<string | null> {
+  console.log("=== uploadToS3 called ===");
+  console.log("Key:", key);
+  console.log("ContentType:", contentType);
+  console.log("Body size:", body.length);
+
   if (!isS3Configured()) {
     console.warn("AWS S3 not configured, file will not be uploaded");
     return null;
   }
 
   try {
+    console.log("Getting S3 client...");
     const { PutObjectCommand } = await import("@aws-sdk/client-s3");
     const client = await getS3Client();
+    
+    console.log("Creating PutObjectCommand...");
     const command = new PutObjectCommand({
       Bucket: env.AWS_S3_BUCKET_NAME!,
       Key: key,
@@ -70,14 +83,18 @@ export async function uploadToS3(
       ContentType: contentType,
     });
 
+    console.log("Sending command to S3...");
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     await (client as any).send(command);
-
-    // Construct and return the S3 URL
+    
     const s3Url = `https://${env.AWS_S3_BUCKET_NAME}.s3.${env.AWS_REGION}.amazonaws.com/${key}`;
+    console.log("Upload successful! URL:", s3Url);
     return s3Url;
   } catch (error) {
-    console.error("Error uploading file to S3:", error);
+    console.error("=== S3 Upload Error ===");
+    console.error("Error type:", error?.constructor?.name);
+    console.error("Error message:", error instanceof Error ? error.message : String(error));
+    console.error("Full error:", JSON.stringify(error, null, 2));
     throw new Error("Failed to upload file to S3");
   }
 }

@@ -223,6 +223,7 @@ export const applicationRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       try {
         // Validate file type
+        console.log("Validating file MIME type:", input.mimeType);
         const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png"];
         if (!allowedMimeTypes.includes(input.mimeType)) {
           throw new TRPCError({
@@ -242,10 +243,11 @@ export const applicationRouter = createTRPCRouter({
             message: "File size exceeds 5MB limit",
           });
         }
-
+        console.log("File buffer size (bytes):", buffer.length);
         // Generate S3 key
         const s3Key = generateS3Key(input.applicationId, input.filename, input.schemeId);
 
+        console.log("Uploading payment proof to S3 with key:", s3Key);
         // Upload to S3
         const s3Url = await uploadToS3(s3Key, buffer, input.mimeType);
 
