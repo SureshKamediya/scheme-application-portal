@@ -14,14 +14,14 @@ let s3Client: unknown = null;
 async function getS3Client() {
   const { S3Client } = await import("@aws-sdk/client-s3");
 
-  console.log("=== S3 Client Configuration Debug ===");
-  console.log("AWS_REGION:", env.AWS_REGION);
-  console.log("AWS_ACCESS_KEY_ID exists:", !!env.AWS_ACCESS_KEY_ID);
-  console.log("AWS_SECRET_ACCESS_KEY exists:", !!env.AWS_SECRET_ACCESS_KEY);
-  console.log("AWS_S3_BUCKET_NAME:", env.AWS_S3_BUCKET_NAME);
+  process.stderr.write("=== S3 Client Configuration Debug ===\n");
+  process.stderr.write(`AWS_REGION: ${env.AWS_REGION}\n`);
+  process.stderr.write(`AWS_ACCESS_KEY_ID exists: ${!!env.AWS_ACCESS_KEY_ID}\n`);
+  process.stderr.write(`AWS_SECRET_ACCESS_KEY exists: ${!!env.AWS_SECRET_ACCESS_KEY}\n`);
+  process.stderr.write(`AWS_S3_BUCKET_NAME: ${env.AWS_S3_BUCKET_NAME}\n`);
 
   if (env.AWS_ACCESS_KEY_ID && env.AWS_SECRET_ACCESS_KEY) {
-    console.log("Using explicit access keys from environment variables.");
+    process.stderr.write("Using explicit access keys from environment variables.\n");
     s3Client = new S3Client({
       region: env.AWS_REGION,
       credentials: {
@@ -30,7 +30,7 @@ async function getS3Client() {
       },
     });
   } else {
-    console.log("Using default credential provider chain (IAM Role).");
+    process.stderr.write("Using default credential provider chain (IAM Role).\n");
     s3Client = new S3Client({ region: env.AWS_REGION });
   }
   
@@ -55,27 +55,27 @@ export function isS3Configured(): boolean {
  * @returns S3 URL or null if not configured
  */
 /* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any */
+
 export async function uploadToS3(
   key: string,
   body: Buffer | Uint8Array,
   contentType: string
 ): Promise<string | null> {
-  console.log("=== uploadToS3 called ===");
-  console.log("Key:", key);
-  console.log("ContentType:", contentType);
-  console.log("Body size:", body.length);
-
+  
+  // Force stderr output
+  process.stderr.write(`\n[S3-UPLOAD] Starting upload: ${key}\n`);
+  
   if (!isS3Configured()) {
-    console.warn("AWS S3 not configured, file will not be uploaded");
+    process.stderr.write(`[S3-UPLOAD] Not configured\n`);
     return null;
   }
 
   try {
-    console.log("Getting S3 client...");
     const { PutObjectCommand } = await import("@aws-sdk/client-s3");
     const client = await getS3Client();
     
-    console.log("Creating PutObjectCommand...");
+    process.stderr.write(`[S3-UPLOAD] Sending to S3...\n`);
+    
     const command = new PutObjectCommand({
       Bucket: env.AWS_S3_BUCKET_NAME!,
       Key: key,
@@ -83,21 +83,20 @@ export async function uploadToS3(
       ContentType: contentType,
     });
 
-    console.log("Sending command to S3...");
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     await (client as any).send(command);
     
     const s3Url = `https://${env.AWS_S3_BUCKET_NAME}.s3.${env.AWS_REGION}.amazonaws.com/${key}`;
-    console.log("Upload successful! URL:", s3Url);
+    
+    process.stderr.write(`[S3-UPLOAD] SUCCESS: ${s3Url}\n`);
     return s3Url;
+    
   } catch (error) {
-    console.error("=== S3 Upload Error ===");
-    console.error("Error type:", error?.constructor?.name);
-    console.error("Error message:", error instanceof Error ? error.message : String(error));
-    console.error("Full error:", JSON.stringify(error, null, 2));
-    throw new Error("Failed to upload file to S3");
+    process.stderr.write(`[S3-UPLOAD] ERROR: ${JSON.stringify(error)}\n`);
+    throw error;
   }
 }
+
 
 /**
  * Delete file from S3
