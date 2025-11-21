@@ -1,8 +1,10 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { uploadToS3 } from "~/server/utils/s3";
+import { uploadToS3, getPresignedUrl } from "~/server/utils/s3";
 import { generateS3Key } from "~/utils/fileUpload";
+import { invokePdfGenerator } from "~/server/utils/lambda";
+import type { PdfPayload } from "~/types/pdfPayload";
 
 /**
  * Input mirrors the prisma `scheme_application` fields used here.
@@ -17,20 +19,28 @@ const ApplicationInput = z.object({
     .optional()
     .or(z.literal(""))
     .default(""),
-  dob: z.string().refine((date) => !isNaN(Date.parse(date)), "Invalid date format"),
+  dob: z
+    .string()
+    .refine((date) => !isNaN(Date.parse(date)), "Invalid date format"),
   id_type: z
     .string()
     .max(20, "ID type max 20 characters")
     .optional()
     .or(z.literal(""))
     .default(""),
-  id_number: z.string().max(20, "ID number max 20 characters").optional().or(z.literal("")).default(""),
-  pan_number: z.string().max(10, "PAN number max 10 characters").optional().or(z.literal("")).default(""),
-  permanent_address: z
+  id_number: z
     .string()
+    .max(20, "ID number max 20 characters")
     .optional()
     .or(z.literal(""))
     .default(""),
+  pan_number: z
+    .string()
+    .max(10, "PAN number max 10 characters")
+    .optional()
+    .or(z.literal(""))
+    .default(""),
+  permanent_address: z.string().optional().or(z.literal("")).default(""),
   permanent_address_pincode: z
     .string()
     .max(6, "Pincode max 6 characters")
@@ -44,20 +54,47 @@ const ApplicationInput = z.object({
     .optional()
     .or(z.literal(""))
     .default(""),
-  email: z.string().email("Invalid email").optional().or(z.literal("")).default(""),
+  email: z
+    .string()
+    .email("Invalid email")
+    .optional()
+    .or(z.literal(""))
+    .default(""),
   annual_income: z.string().optional().or(z.literal("")).default(""),
-  plot_category: z.string().max(10, "Plot category max 10 characters").optional().or(z.literal("")).default(""),
-  registration_fees: z.string().optional().or(z.literal("0.00")).default("0.00"),
+  plot_category: z
+    .string()
+    .max(10, "Plot category max 10 characters")
+    .optional()
+    .or(z.literal(""))
+    .default(""),
+  registration_fees: z
+    .string()
+    .optional()
+    .or(z.literal("0.00"))
+    .default("0.00"),
   processing_fees: z.string().optional().or(z.literal("0.00")).default("0.00"),
-  total_payable_amount: z.string().optional().or(z.literal("0.00")).default("0.00"),
-  payment_mode: z.string().max(10, "Payment mode max 10 characters").optional().or(z.literal("")).default(""),
+  total_payable_amount: z
+    .string()
+    .optional()
+    .or(z.literal("0.00"))
+    .default("0.00"),
+  payment_mode: z
+    .string()
+    .max(10, "Payment mode max 10 characters")
+    .optional()
+    .or(z.literal(""))
+    .default(""),
   dd_id_or_transaction_id: z
     .string()
     .max(100, "Transaction ID max 100 characters")
     .optional()
     .or(z.literal(""))
     .default(""),
-  dd_date_or_transaction_date: z.string().optional().or(z.literal("")).default(""),
+  dd_date_or_transaction_date: z
+    .string()
+    .optional()
+    .or(z.literal(""))
+    .default(""),
   dd_amount: z.string().optional().or(z.literal("0.00")).default("0.00"),
   payee_account_holder_name: z
     .string()
@@ -71,8 +108,18 @@ const ApplicationInput = z.object({
     .optional()
     .or(z.literal(""))
     .default(""),
-  payment_proof: z.string().max(100, "Payment proof max 100 characters").optional().or(z.literal("")).default(""),
-  payment_status: z.string().max(20, "Payment status max 20 characters").optional().or(z.literal("pending")).default("pending"),
+  payment_proof: z
+    .string()
+    .max(100, "Payment proof max 100 characters")
+    .optional()
+    .or(z.literal(""))
+    .default(""),
+  payment_status: z
+    .string()
+    .max(20, "Payment status max 20 characters")
+    .optional()
+    .or(z.literal("pending"))
+    .default("pending"),
   refund_account_holder_name: z
     .string()
     .max(200, "Refund account holder name max 200 characters")
@@ -91,7 +138,11 @@ const ApplicationInput = z.object({
     .optional()
     .or(z.literal(""))
     .default(""),
-  refund_bank_branch_address: z.string().optional().or(z.literal("")).default(""),
+  refund_bank_branch_address: z
+    .string()
+    .optional()
+    .or(z.literal(""))
+    .default(""),
   refund_bank_ifsc: z
     .string()
     .max(11, "IFSC max 11 characters")
@@ -131,7 +182,8 @@ export const applicationRouter = createTRPCRouter({
         if (existingApp) {
           throw new TRPCError({
             code: "CONFLICT",
-            message: "An application already exists for this mobile number and scheme",
+            message:
+              "An application already exists for this mobile number and scheme",
           });
         }
 
@@ -142,7 +194,10 @@ export const applicationRouter = createTRPCRouter({
             select: { id: true, next_application_number: true },
           });
 
-          if (!schemeData?.id || typeof schemeData.next_application_number !== "number") {
+          if (
+            !schemeData?.id ||
+            typeof schemeData.next_application_number !== "number"
+          ) {
             throw new TRPCError({
               code: "INTERNAL_SERVER_ERROR",
               message: "Failed to retrieve scheme data",
@@ -199,7 +254,10 @@ export const applicationRouter = createTRPCRouter({
 
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error instanceof Error ? error.message : "Failed to create application",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to create application",
         });
       }
     }),
@@ -218,7 +276,7 @@ export const applicationRouter = createTRPCRouter({
         filename: z.string().max(255, "Filename too long"),
         fileBuffer: z.string().describe("File content as base64 string"),
         mimeType: z.string().max(50, "MIME type too long"),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       try {
@@ -228,7 +286,8 @@ export const applicationRouter = createTRPCRouter({
         if (!allowedMimeTypes.includes(input.mimeType)) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: "File type not allowed. Only PDF, JPEG, and PNG are supported.",
+            message:
+              "File type not allowed. Only PDF, JPEG, and PNG are supported.",
           });
         }
 
@@ -245,7 +304,11 @@ export const applicationRouter = createTRPCRouter({
         }
         console.log("File buffer size (bytes):", buffer.length);
         // Generate S3 key
-        const s3Key = generateS3Key(input.applicationId, input.filename, input.schemeId);
+        const s3Key = generateS3Key(
+          input.applicationId,
+          input.filename,
+          input.schemeId,
+        );
 
         console.log("Uploading payment proof to S3 with key:", s3Key);
         // Upload to S3
@@ -253,7 +316,9 @@ export const applicationRouter = createTRPCRouter({
 
         if (!s3Url) {
           // S3 not configured, return filename as fallback
-          console.warn("S3 not configured, returning filename as payment_proof");
+          console.warn(
+            "S3 not configured, returning filename as payment_proof",
+          );
           return {
             success: true,
             url: input.filename,
@@ -279,7 +344,10 @@ export const applicationRouter = createTRPCRouter({
 
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error instanceof Error ? error.message : "Failed to upload payment proof",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to upload payment proof",
         });
       }
     }),
@@ -292,9 +360,11 @@ export const applicationRouter = createTRPCRouter({
     .input(
       z.object({
         mobile_number: z.string().length(10, "Mobile number must be 10 digits"),
-        application_number: z.number().int("Application number must be an integer"),
+        application_number: z
+          .number()
+          .int("Application number must be an integer"),
         scheme_id: z.number().int("Scheme ID must be an integer"),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -326,7 +396,10 @@ export const applicationRouter = createTRPCRouter({
 
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error instanceof Error ? error.message : "Failed to fetch application",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to fetch application",
         });
       }
     }),
@@ -362,28 +435,33 @@ export const applicationRouter = createTRPCRouter({
 
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error instanceof Error ? error.message : "Failed to fetch application",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to fetch application",
         });
       }
     }),
 
   /**
    * Download application PDF
-   * Returns presigned S3 URL if available, or stored URL
+   * Returns presigned S3 URL for the stored PDF file
    */
   downloadPdf: publicProcedure
     .input(
       z.object({
         mobile_number: z.string().length(10, "Mobile number must be 10 digits"),
-        application_number: z.number().int("Application number must be an integer"),
+        application_number: z
+          .number()
+          .int("Application number must be an integer"),
         scheme_id: z.number().int("Scheme ID must be an integer"),
         application_id: z.number().int("Application ID must be an integer"),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       try {
         const application = await ctx.db.scheme_application.findUnique({
-          where: { id: input.application_id },
+          where: { id: BigInt(input.application_id) },
         });
 
         if (!application) {
@@ -393,7 +471,7 @@ export const applicationRouter = createTRPCRouter({
           });
         }
 
-        // Return the payment proof URL if available
+        // Check if PDF has been generated and stored
         if (!application.application_pdf) {
           throw new TRPCError({
             code: "NOT_FOUND",
@@ -401,9 +479,22 @@ export const applicationRouter = createTRPCRouter({
           });
         }
 
+        // Get presigned URL from S3 for the stored file key
+        const presignedUrl = await getPresignedUrl(
+          application.application_pdf,
+          3600, // 1 hour expiration
+        );
+
+        if (!presignedUrl) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to generate presigned URL",
+          });
+        }
+
         return {
-          downloadUrl: application.application_pdf,
-          filename: `mobile_${application.mobile_number}_scheme_${application.scheme_id}_application_${application.application_number}.pdf`,
+          downloadUrl: presignedUrl,
+          filename: `application_${application.application_number}.pdf`,
         };
       } catch (error) {
         if (error instanceof TRPCError) {
@@ -414,7 +505,123 @@ export const applicationRouter = createTRPCRouter({
 
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: error instanceof Error ? error.message : "Failed to generate download link",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to generate download link",
+        });
+      }
+    }),
+
+  generatePdf: publicProcedure
+    .input(
+      ApplicationInput.extend({
+        application_id: z
+          .number()
+          .int("Application ID must be an integer")
+          .optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // Determine application ID from input or query database
+        let applicationId = input.application_id;
+
+        if (!applicationId) {
+          // Query database to find the application
+          const application = await ctx.db.scheme_application.findFirst({
+            where: {
+              mobile_number: input.mobile_number,
+              scheme_id: BigInt(input.scheme_id),
+            },
+            select: { id: true },
+          });
+
+          if (!application) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "Application not found",
+            });
+          }
+
+          applicationId = Number(application.id);
+        }
+
+        // Enrich payload with scheme data
+        const scheme = await ctx.db.scheme_scheme.findUnique({
+          where: { id: input.scheme_id },
+        });
+
+        const payload: PdfPayload = {
+          scheme_company: scheme?.company,
+          scheme_id: input.scheme_id,
+          scheme_name: scheme?.name ?? "",
+          scheme_address: scheme?.address ?? "",
+          applicant_name: input.applicant_name,
+          father_or_husband_name: input.father_or_husband_name,
+          dob: input.dob,
+          mobile_number: input.mobile_number,
+          id_type: input.id_type,
+          id_number: input.id_number,
+          pan_number: input.pan_number,
+          permanent_address: input.permanent_address,
+          permanent_address_pincode: input.permanent_address_pincode,
+          postal_address: input.postal_address,
+          postal_address_pincode: input.postal_address_pincode,
+          annual_income: input.annual_income,
+          plot_category: input.plot_category,
+          registration_fees:
+            parseFloat(String(input.registration_fees || 0)) || 0,
+          processing_fees: parseFloat(String(input.processing_fees || 0)) || 0,
+          total_payable_amount:
+            parseFloat(String(input.total_payable_amount || 0)) || 0,
+          payment_mode: input.payment_mode,
+          payment_status: input.payment_status,
+          dd_id_or_transaction_id: input.dd_id_or_transaction_id,
+          dd_date_or_transaction_date: input.dd_date_or_transaction_date,
+          dd_amount: parseFloat(String(input.dd_amount || 0)) || 0,
+          payee_account_holder_name: input.payee_account_holder_name,
+          payee_bank_name: input.payee_bank_name,
+          refund_account_holder: input.refund_account_holder_name,
+          refund_account_number: input.refund_account_number,
+          refund_bank_name: input.refund_bank_name,
+          refund_bank_ifsc: input.refund_bank_ifsc,
+          print_date: new Date().toISOString().split("T")[0],
+        };
+
+        // Invoke Lambda to generate PDF
+        const lambdaResult = await invokePdfGenerator(payload);
+
+        if (!lambdaResult.success || !lambdaResult.file_key) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Lambda failed to generate PDF",
+          });
+        }
+
+        // Update application with the S3 file key path
+        await ctx.db.scheme_application.update({
+          where: { id: BigInt(applicationId) },
+          data: { application_pdf: lambdaResult.file_key },
+        });
+
+        return {
+          success: true,
+          file_key: lambdaResult.file_key,
+          bucket: lambdaResult.bucket,
+          message: "PDF generated successfully",
+        };
+      } catch (error: unknown) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+
+        console.error("PDF generation error:", error);
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error instanceof Error ? error.message : "PDF generation failed",
         });
       }
     }),

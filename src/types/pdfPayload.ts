@@ -1,0 +1,37 @@
+export interface PdfPayload {
+  scheme_company?: string;
+  scheme_id?: number;
+  scheme_name?: string;
+  scheme_address?: string;
+  application_number?: number;
+  application_submission_date?: string;
+  applicant_name?: string;
+  father_or_husband_name?: string;
+  dob?: string;
+  mobile_number?: string;
+  id_type?: string;
+  id_number?: string;
+  pan_number?: string;
+  permanent_address?: string;
+  permanent_address_pincode?: string;
+  postal_address?: string;
+  postal_address_pincode?: string;
+  annual_income?: string | number;
+  plot_category?: string;
+  registration_fees?: number;
+  processing_fees?: number;
+  total_payable_amount?: number;
+  payment_mode?: string;
+  payment_status?: string;
+  dd_id_or_transaction_id?: string;
+  dd_date_or_transaction_date?: string;
+  dd_amount?: number;
+  payee_account_holder_name?: string;
+  payee_bank_name?: string;
+  refund_account_holder?: string;
+  refund_account_number?: string;
+  refund_bank_name?: string;
+  refund_bank_ifsc?: string;
+  refund_bank_branch_address?: string;
+  print_date?: string;
+}

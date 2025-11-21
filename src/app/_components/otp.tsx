@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "~/trpc/react";
 import { ApplicationForm } from "./application";
 
@@ -10,16 +10,64 @@ interface OTPFormProps {
 }
 
 export function OTPForm({
-  schemeId  = 1,
+  schemeId = 1,
   schemeName = "Default-Scheme",
 }: OTPFormProps = {}) {
   const [mobileNumber, setMobileNumber] = useState("");
   const [otp, setOtp] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsUrl, setTermsUrl] = useState<string | null>(null);
+  const [loadingTerms, setLoadingTerms] = useState(false);
   const [status, setStatus] = useState<{
     type: "success" | "error" | "info";
     message: string;
   } | null>(null);
   const [step, setStep] = useState<0 | 1 | 2 | 3>(0); // 0: input, 1: verify, 2: verified, 3: application
+
+  // Fetch terms and conditions document on mount
+  useEffect(() => {
+    const fetchTermsUrl = async () => {
+      if (!schemeId) return;
+
+      setLoadingTerms(true);
+      try {
+        // Query scheme to get T&C document
+        const scheme = await (api.scheme.getById as any).query({
+          schemeId,
+        });
+
+        if (
+          scheme?.scheme_schemefiles &&
+          scheme.scheme_schemefiles.length > 0
+        ) {
+          // Find T&C document
+          const termsDoc = scheme.scheme_schemefiles.find(
+            (file: any) =>
+              file.file_choice?.toLowerCase().includes("terms") ||
+              file.name?.toLowerCase().includes("terms"),
+          );
+
+          if (termsDoc) {
+            // Get presigned URL for T&C
+            const result = await (api.scheme.getDocumentUrl as any).query({
+              schemeId,
+              documentId: Number(termsDoc.id),
+            });
+
+            if (result.success && result.url) {
+              setTermsUrl(result.url);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching terms URL:", err);
+      } finally {
+        setLoadingTerms(false);
+      }
+    };
+
+    fetchTermsUrl().catch(console.error);
+  }, [schemeId]);
 
   const generateOtp = api.otp.generate.useMutation({
     onSuccess: () => {
@@ -82,6 +130,14 @@ export function OTPForm({
       return;
     }
 
+    if (!termsAccepted) {
+      setStatus({
+        type: "error",
+        message: "Please accept the Terms and Conditions to proceed",
+      });
+      return;
+    }
+
     await generateOtp.mutateAsync({
       mobile_number: mobileNumber,
       scheme_id: schemeId,
@@ -105,7 +161,7 @@ export function OTPForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (step === 0) {
       await handleGenerateOtp();
     } else if (step === 1) {
@@ -125,15 +181,18 @@ export function OTPForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-6 p-4 sm:p-6">
-      <div className="flex items-center justify-between mb-2">
+    <form
+      onSubmit={handleSubmit}
+      className="mx-auto max-w-3xl space-y-6 p-4 sm:p-6"
+    >
+      <div className="mb-2 flex items-center justify-between">
         <div className="text-lg font-medium">OTP Verification</div>
         <div className="text-sm text-gray-500">Step {step + 1} of 2</div>
       </div>
 
-      <div className="w-full bg-gray-200 rounded h-2">
+      <div className="h-2 w-full rounded bg-gray-200">
         <div
-          className="bg-blue-600 h-2 rounded transition-all duration-300"
+          className="h-2 rounded bg-blue-600 transition-all duration-300"
           style={{ width: `${((step + 1) / 2) * 100}%` }}
         />
       </div>
@@ -156,7 +215,7 @@ export function OTPForm({
       {/* Step 0: Enter mobile and scheme */}
       {step === 0 && (
         <section className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 <span className="text-red-500">*</span> Mobile Number
@@ -168,7 +227,7 @@ export function OTPForm({
                 placeholder="Enter 10-digit mobile number"
                 maxLength={10}
                 disabled={generateOtp.isPending}
-                className="mt-1 w-full border rounded px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
+                className="mt-1 w-full rounded border px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:bg-gray-100"
                 required
               />
             </div>
@@ -177,8 +236,47 @@ export function OTPForm({
               <label className="block text-sm font-medium text-gray-700">
                 <span className="text-red-500">*</span> Scheme
               </label>
-              <p className="mt-1 w-full border rounded px-3 py-2 bg-gray-50">{schemeName}</p>
+              <p className="mt-1 w-full rounded border bg-gray-50 px-3 py-2">
+                {schemeName}
+              </p>
             </div>
+          </div>
+
+          {/* Terms and Conditions Checkbox */}
+          <div className="space-y-3 rounded-lg bg-gray-50 p-4">
+            <label className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                disabled={generateOtp.isPending || loadingTerms}
+                className="mt-1 cursor-pointer disabled:opacity-60"
+              />
+              <div className="flex-1">
+                <div className="text-sm text-gray-700">
+                  I have read and accept the{" "}
+                  {termsUrl ? (
+                    <a
+                      href={termsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                    >
+                      Terms and Conditions
+                    </a>
+                  ) : (
+                    <span className="font-medium text-gray-600">
+                      Terms and Conditions
+                    </span>
+                  )}
+                </div>
+                {loadingTerms && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    Loading document...
+                  </p>
+                )}
+              </div>
+            </label>
           </div>
         </section>
       )}
@@ -198,7 +296,7 @@ export function OTPForm({
                 placeholder="Enter 6-digit OTP"
                 maxLength={6}
                 disabled={verifyOtp.isPending}
-                className="mt-1 w-full border rounded px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
+                className="mt-1 w-full rounded border px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:bg-gray-100"
                 required
                 autoFocus
               />
@@ -218,7 +316,7 @@ export function OTPForm({
                 setStatus(null);
               }}
               disabled={verifyOtp.isPending}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:bg-gray-300 disabled:opacity-60"
+              className="rounded bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 disabled:bg-gray-300 disabled:opacity-60"
               type="button"
             >
               Back
@@ -230,8 +328,8 @@ export function OTPForm({
           {step === 0 && (
             <button
               type="submit"
-              disabled={generateOtp.isPending}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
+              disabled={generateOtp.isPending || !termsAccepted || loadingTerms}
+              className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400"
             >
               {generateOtp.isPending ? "Sending..." : "Generate OTP"}
             </button>
@@ -241,7 +339,7 @@ export function OTPForm({
             <button
               type="submit"
               disabled={verifyOtp.isPending}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
+              className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400"
             >
               {verifyOtp.isPending ? "Verifying..." : "Verify OTP"}
             </button>

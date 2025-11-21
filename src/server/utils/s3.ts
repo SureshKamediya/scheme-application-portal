@@ -5,104 +5,106 @@
  */
 
 import { env } from "~/env";
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+  DeleteObjectCommand,
+} from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-let s3Client: unknown = null;
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION || "ap-south-1",
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+  },
+});
+
+const bucketName = process.env.AWS_S3_BUCKET_NAME || "";
 
 /**
- * Get or create S3 client
+ * Upload file to S3
+ * @param key - S3 object key (path)
+ * @param buffer - File content as Buffer
+ * @param contentType - MIME type
+ * @returns Presigned URL or null if S3 not configured
  */
-async function getS3Client() {
-  const { S3Client } = await import("@aws-sdk/client-s3");
-
-  process.stderr.write("=== S3 Client Configuration Debug ===\n");
-  process.stderr.write(`AWS_REGION: ${env.AWS_REGION}\n`);
-  process.stderr.write(`AWS_ACCESS_KEY_ID exists: ${!!env.AWS_ACCESS_KEY_ID}\n`);
-  process.stderr.write(`AWS_SECRET_ACCESS_KEY exists: ${!!env.AWS_SECRET_ACCESS_KEY}\n`);
-  process.stderr.write(`AWS_S3_BUCKET_NAME: ${env.AWS_S3_BUCKET_NAME}\n`);
-
-  if (env.AWS_ACCESS_KEY_ID && env.AWS_SECRET_ACCESS_KEY) {
-    process.stderr.write("Using explicit access keys from environment variables.\n");
-    s3Client = new S3Client({
-      region: env.AWS_REGION,
-      credentials: {
-        accessKeyId: env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-      },
-    });
-  } else {
-    process.stderr.write("Using default credential provider chain (IAM Role).\n");
-    s3Client = new S3Client({ region: env.AWS_REGION });
+export async function uploadToS3(
+  key: string,
+  buffer: Buffer,
+  contentType: string,
+): Promise<string | null> {
+  if (!bucketName) {
+    console.warn("AWS_S3_BUCKET_NAME not configured, skipping S3 upload");
+    return null;
   }
-  
-  return s3Client;
+
+  try {
+    const command = new PutObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+      Body: buffer,
+      ContentType: contentType,
+    });
+
+    await s3Client.send(command);
+
+    console.log(`File uploaded to S3: s3://${bucketName}/${key}`);
+
+    // Return presigned URL for the uploaded file
+    return await getPresignedUrl(key, 3600);
+  } catch (error) {
+    console.error("S3 upload error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get presigned URL for S3 object
+ * @param key - S3 object key (path)
+ * @param expirationSeconds - URL expiration time in seconds (default: 3600)
+ * @returns Presigned URL or null if S3 not configured
+ */
+export async function getPresignedUrl(
+  key: string,
+  expirationSeconds: number = 3600,
+): Promise<string | null> {
+  if (!bucketName) {
+    console.warn(
+      "AWS_S3_BUCKET_NAME not configured, cannot generate presigned URL",
+    );
+    return null;
+  }
+
+  try {
+    const command = new GetObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+    });
+
+    const url = await getSignedUrl(s3Client, command, {
+      expiresIn: expirationSeconds,
+    });
+
+    return url;
+  } catch (error) {
+    console.error("Error generating presigned URL:", error);
+    throw error;
+  }
 }
 
 /**
  * Check if AWS S3 is configured
  */
 export function isS3Configured(): boolean {
-  return !!(
-    env.AWS_REGION &&
-    env.AWS_S3_BUCKET_NAME
-  );
+  return !!(env.AWS_REGION && env.AWS_S3_BUCKET_NAME);
 }
-
-/**
- * Upload file to S3
- * @param key - S3 object key (path)
- * @param body - File content (Buffer or Uint8Array)
- * @param contentType - MIME type
- * @returns S3 URL or null if not configured
- */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any */
-
-export async function uploadToS3(
-  key: string,
-  body: Buffer | Uint8Array,
-  contentType: string
-): Promise<string | null> {
-  
-  // Force stderr output
-  process.stderr.write(`\n[S3-UPLOAD] Starting upload: ${key}\n`);
-  
-  if (!isS3Configured()) {
-    process.stderr.write(`[S3-UPLOAD] Not configured\n`);
-    return null;
-  }
-
-  try {
-    const { PutObjectCommand } = await import("@aws-sdk/client-s3");
-    const client = await getS3Client();
-    
-    process.stderr.write(`[S3-UPLOAD] Sending to S3...\n`);
-    
-    const command = new PutObjectCommand({
-      Bucket: env.AWS_S3_BUCKET_NAME!,
-      Key: key,
-      Body: body,
-      ContentType: contentType,
-    });
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    await (client as any).send(command);
-    
-    const s3Url = `https://${env.AWS_S3_BUCKET_NAME}.s3.${env.AWS_REGION}.amazonaws.com/${key}`;
-    
-    process.stderr.write(`[S3-UPLOAD] SUCCESS: ${s3Url}\n`);
-    return s3Url;
-    
-  } catch (error) {
-    process.stderr.write(`[S3-UPLOAD] ERROR: ${JSON.stringify(error)}\n`);
-    throw error;
-  }
-}
-
 
 /**
  * Delete file from S3
  * @param key - S3 object key (path)
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any */
 export async function deleteFromS3(key: string): Promise<void> {
   if (!isS3Configured()) {
     console.warn("AWS S3 not configured");
@@ -110,51 +112,15 @@ export async function deleteFromS3(key: string): Promise<void> {
   }
 
   try {
-    const { DeleteObjectCommand } = await import("@aws-sdk/client-s3");
-    const client = await getS3Client();
     const command = new DeleteObjectCommand({
       Bucket: env.AWS_S3_BUCKET_NAME!,
       Key: key,
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    await (client as any).send(command);
+    await s3Client.send(command);
   } catch (error) {
     console.error("Error deleting file from S3:", error);
     throw new Error("Failed to delete file from S3");
-  }
-}
-
-/**
- * Generate presigned URL for downloading file from S3
- * @param key - S3 object key (path)
- * @param expiresIn - URL expiration in seconds (default: 1 hour)
- * @returns Presigned URL
- */
-export async function getPresignedUrl(
-  key: string,
-  expiresIn = 3600
-): Promise<string | null> {
-  if (!isS3Configured()) {
-    console.warn("AWS S3 not configured");
-    return null;
-  }
-
-  try {
-    const { GetObjectCommand } = await import("@aws-sdk/client-s3");
-    const { getSignedUrl } = await import("@aws-sdk/s3-request-presigner");
-    const client = await getS3Client();
-    const command = new GetObjectCommand({
-      Bucket: env.AWS_S3_BUCKET_NAME!,
-      Key: key,
-    });
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    const url = await getSignedUrl(client as any, command, { expiresIn });
-    return url;
-  } catch (error) {
-    console.error("Error generating presigned URL:", error);
-    throw new Error("Failed to generate presigned URL");
   }
 }
 
@@ -171,6 +137,8 @@ export function extractKeyFromUrl(url: string): string {
   }
   // Fallback: try to extract from URL path
   const urlObj = new URL(url);
-  const pathname = urlObj.pathname.startsWith("/") ? urlObj.pathname.slice(1) : urlObj.pathname;
+  const pathname = urlObj.pathname.startsWith("/")
+    ? urlObj.pathname.slice(1)
+    : urlObj.pathname;
   return pathname;
 }
