@@ -9,6 +9,21 @@ interface OTPFormProps {
   schemeName?: string;
 }
 
+interface SchemeFile {
+  id: bigint;
+  file_choice: string;
+  name: string | null;
+}
+
+interface SchemeData {
+  scheme_schemefiles?: SchemeFile[];
+}
+
+interface DocumentUrlResult {
+  success: boolean;
+  url?: string;
+}
+
 export function OTPForm({
   schemeId = 1,
   schemeName = "Default-Scheme",
@@ -32,24 +47,33 @@ export function OTPForm({
       setLoadingTerms(true);
       try {
         // Query scheme to get T&C document
-        const scheme = await (api.scheme.getById as any).query({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        const scheme = await (
+          api.scheme.getById as unknown as (input: {
+            schemeId: number;
+          }) => Promise<SchemeData | null>
+        )({
           schemeId,
         });
 
-        if (
-          scheme?.scheme_schemefiles &&
-          scheme.scheme_schemefiles.length > 0
-        ) {
+        const files = scheme?.scheme_schemefiles ?? [];
+        if (files.length > 0) {
           // Find T&C document
-          const termsDoc = scheme.scheme_schemefiles.find(
-            (file: any) =>
-              file.file_choice?.toLowerCase().includes("terms") ||
+          const termsDoc = files.find(
+            (file: SchemeFile) =>
+              file.file_choice.toLowerCase().includes("terms") ||
               file.name?.toLowerCase().includes("terms"),
           );
 
           if (termsDoc) {
             // Get presigned URL for T&C
-            const result = await (api.scheme.getDocumentUrl as any).query({
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+            const result = await (
+              api.scheme.getDocumentUrl as unknown as (input: {
+                schemeId: number;
+                documentId: number;
+              }) => Promise<DocumentUrlResult>
+            )({
               schemeId,
               documentId: Number(termsDoc.id),
             });
@@ -66,7 +90,7 @@ export function OTPForm({
       }
     };
 
-    fetchTermsUrl().catch(console.error);
+    void fetchTermsUrl();
   }, [schemeId]);
 
   const generateOtp = api.otp.generate.useMutation({

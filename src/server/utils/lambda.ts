@@ -36,15 +36,15 @@ export async function invokePdfGenerator(
   payload: PdfPayload,
 ): Promise<ExtractedPdfData> {
   const client = new LambdaClient({
-    region: process.env.AWS_REGION || "ap-south-1",
+    region: process.env.AWS_REGION ?? "ap-south-1",
     credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
     },
   });
 
   const functionName =
-    process.env.LAMBDA_FUNCTION_NAME ||
+    process.env.LAMBDA_FUNCTION_NAME ??
     "application_acknowledgement_pdf_generator_2";
 
   try {
@@ -90,12 +90,7 @@ export async function invokePdfGenerator(
       throw new Error("Failed to parse Lambda PDF generation response");
     }
 
-    if (
-      !parsedBody ||
-      !parsedBody.responce ||
-      !parsedBody.responce.body ||
-      !parsedBody.responce.body.file_key
-    ) {
+    if (!parsedBody?.responce?.body?.file_key) {
       console.error("Invalid Lambda response structure:", parsedBody);
       throw new Error(
         "Lambda returned invalid response structure - missing file_key",

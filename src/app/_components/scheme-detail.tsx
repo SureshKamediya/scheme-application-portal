@@ -14,6 +14,11 @@ interface DocumentWithUrl {
   url?: string | null;
 }
 
+interface DocumentUrlResult {
+  success: boolean;
+  url?: string;
+}
+
 export function SchemeDetail({ schemeId }: { schemeId: number }) {
   const [submittedApplicationData, setSubmittedApplicationData] = useState<{
     mobile_number: string;
@@ -37,16 +42,19 @@ export function SchemeDetail({ schemeId }: { schemeId: number }) {
   // Fetch presigned URLs when scheme data loads
   useEffect(() => {
     const fetchDocumentUrls = async () => {
-      if (
-        scheme?.scheme_schemefiles &&
-        scheme.scheme_schemefiles.length > 0 &&
-        documentsWithUrls.length === 0
-      ) {
+      const files = scheme?.scheme_schemefiles ?? [];
+      if (files.length > 0 && documentsWithUrls.length === 0) {
         const docsWithUrls = await Promise.all(
-          scheme.scheme_schemefiles.map(async (file) => {
+          files.map(async (file: DocumentWithUrl) => {
             try {
               // Use tRPC client directly to query presigned URL
-              const result = await (api.scheme.getDocumentUrl as any).query({
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+              const result = await (
+                api.scheme.getDocumentUrl as unknown as (input: {
+                  schemeId: number;
+                  documentId: number;
+                }) => Promise<DocumentUrlResult>
+              )({
                 schemeId,
                 documentId: Number(file.id),
               });
@@ -67,7 +75,7 @@ export function SchemeDetail({ schemeId }: { schemeId: number }) {
       }
     };
 
-    fetchDocumentUrls().catch(console.error);
+    void fetchDocumentUrls();
   }, [scheme?.scheme_schemefiles, schemeId, documentsWithUrls.length]);
 
   const [showApplyForm, setShowApplyForm] = useState(false);

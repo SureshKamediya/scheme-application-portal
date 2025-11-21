@@ -14,14 +14,14 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || "ap-south-1",
+  region: process.env.AWS_REGION ?? "ap-south-1",
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
   },
 });
 
-const bucketName = process.env.AWS_S3_BUCKET_NAME || "";
+const bucketName = process.env.AWS_S3_BUCKET_NAME ?? "";
 
 /**
  * Upload file to S3
@@ -68,7 +68,7 @@ export async function uploadToS3(
  */
 export async function getPresignedUrl(
   key: string,
-  expirationSeconds: number = 3600,
+  expirationSeconds = 3600,
 ): Promise<string | null> {
   if (!bucketName) {
     console.warn(
@@ -98,7 +98,7 @@ export async function getPresignedUrl(
  * Check if AWS S3 is configured
  */
 export function isS3Configured(): boolean {
-  return !!(env.AWS_REGION && env.AWS_S3_BUCKET_NAME);
+  return Boolean(env.AWS_REGION && env.AWS_S3_BUCKET_NAME);
 }
 
 /**
