@@ -55,6 +55,8 @@ export async function invokePdfGenerator(
 
     const result = await client.send(command);
 
+    console.log(`Lambda invoked: ${functionName}, StatusCode: ${result.StatusCode}, Result: ${JSON.stringify(result)}`);
+
     // Parse the nested JSON response from Lambda
     let parsedBody: LambdaResponseBody | null = null;
 
@@ -68,6 +70,7 @@ export async function invokePdfGenerator(
       }
 
       if (typeof payloadData === "string") {
+        console.log("Parsing Lambda payload string:", payloadData);
         payloadData = JSON.parse(payloadData);
       }
 
@@ -83,7 +86,7 @@ export async function invokePdfGenerator(
           bodyContent = JSON.parse(bodyContent);
         }
 
-        parsedBody = payloadData as unknown as LambdaResponseBody;
+        parsedBody = bodyContent as LambdaResponseBody;
       }
     } catch (parseError) {
       console.error("Error parsing Lambda response:", parseError);

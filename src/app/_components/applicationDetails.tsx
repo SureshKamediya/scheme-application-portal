@@ -54,6 +54,7 @@ export function ApplicationDetails({
 
     try {
       // 1) Try to get stored PDF url from server
+      console.log("Attempting to download existing PDF...");
       const { downloadUrl } = await downloadPdfMutation.mutateAsync({
         mobile_number: application.mobile_number,
         application_number: application.application_number,
@@ -84,6 +85,7 @@ export function ApplicationDetails({
     }
 
     // 2) If not available, ask server to generate
+    console.log("PDF not found, requesting generation...");
     try {
       setStatus({
         type: "info",
@@ -154,6 +156,7 @@ export function ApplicationDetails({
       await generatePdfMutation.mutateAsync(generatePayload);
 
       // 3) Retry download after generation (Lambda uploads to S3)
+      console.log("PDF generated, attempting to download...");
       setStatus({
         type: "info",
         message: "PDF generated, downloading...",
@@ -175,6 +178,7 @@ export function ApplicationDetails({
         return;
       }
 
+      console.error("PDF download URL missing after generation");
       // final fallback
       setStatus({
         type: "error",
@@ -266,7 +270,7 @@ export function ApplicationDetails({
             <p className="font-medium">{application.annual_income ?? "N/A"}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Submission Date</p>
+            <p className="text-sm text-gray-600">Applciaiton Submission Date</p>
             <p className="font-medium">
               {application.application_submission_date
                 ? new Date(
@@ -286,7 +290,7 @@ export function ApplicationDetails({
             <p className="text-sm text-gray-600">Payment Mode</p>
             <p className="font-medium">{application.payment_mode ?? "N/A"}</p>
           </div>
-          <div>
+          {/* <div>
             <p className="text-sm text-gray-600">Payment Status</p>
             <p
               className={`font-medium ${
@@ -297,7 +301,7 @@ export function ApplicationDetails({
             >
               {application.payment_status ?? "N/A"}
             </p>
-          </div>
+          </div> */}
           <div>
             <p className="text-sm text-gray-600">Registration Fees</p>
             <p className="font-medium">

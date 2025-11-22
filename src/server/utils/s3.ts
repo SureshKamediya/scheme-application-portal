@@ -76,7 +76,7 @@ export async function getPresignedUrl(
     );
     return null;
   }
-
+  console.log(`Generating presigned URL for s3://${bucketName}/${key}`);
   try {
     const command = new GetObjectCommand({
       Bucket: bucketName,
@@ -86,7 +86,7 @@ export async function getPresignedUrl(
     const url = await getSignedUrl(s3Client, command, {
       expiresIn: expirationSeconds,
     });
-
+    console.log(`Presigned URL generated: ${url}`);
     return url;
   } catch (error) {
     console.error("Error generating presigned URL:", error);
