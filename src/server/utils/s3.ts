@@ -13,13 +13,23 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION ?? "ap-south-1",
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
-  },
-});
+let s3Client: S3Client = null as unknown as S3Client;
+
+if(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+  console.log("AWS credentials found in environment variables. Using explicit credentials provider.");
+  s3Client = new S3Client({
+    region: process.env.AWS_REGION ?? "ap-south-1",
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    },
+  });
+} else{
+  console.warn("AWS credentials not found in environment variables. Using default credentials provider.");
+  s3Client = new S3Client({
+    region: process.env.AWS_REGION ?? "ap-south-1",
+  });
+}
 
 const bucketName = process.env.AWS_S3_BUCKET_NAME ?? "";
 

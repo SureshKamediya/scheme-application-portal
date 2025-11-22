@@ -26,6 +26,24 @@ export interface ExtractedPdfData {
   bucket: string;
 }
 
+let lambdaClient: LambdaClient = null as unknown as LambdaClient;
+
+if(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+  console.log("AWS credentials found in environment variables. Using explicit credentials provider.");
+  lambdaClient = new LambdaClient({
+    region: process.env.AWS_REGION ?? "ap-south-1",
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    },
+  });
+} else{
+  console.warn("AWS credentials not found in environment variables. Using default credentials provider.");
+  lambdaClient = new LambdaClient({
+    region: process.env.AWS_REGION ?? "ap-south-1",
+  });
+}
+
 /**
  * invokePdfGenerator - wrapper to invoke the PDF generator Lambda.
  * Uses AWS SDK v3 LambdaClient.
@@ -35,14 +53,6 @@ export interface ExtractedPdfData {
 export async function invokePdfGenerator(
   payload: PdfPayload,
 ): Promise<ExtractedPdfData> {
-  const client = new LambdaClient({
-    region: process.env.AWS_REGION ?? "ap-south-1",
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
-    },
-  });
-
   const functionName =
     process.env.LAMBDA_FUNCTION_NAME ??
     "application_acknowledgement_pdf_generator_2";
@@ -53,7 +63,7 @@ export async function invokePdfGenerator(
       Payload: JSON.stringify(payload),
     });
 
-    const result = await client.send(command);
+    const result = await lambdaClient.send(command);
 
     console.log(`Lambda invoked: ${functionName}, StatusCode: ${result.StatusCode}, Result: ${JSON.stringify(result)}`);
 
@@ -106,6 +116,6 @@ export async function invokePdfGenerator(
       bucket: parsedBody.responce.body.bucket,
     };
   } finally {
-    client.destroy();
+    lambdaClient.destroy();
   }
 }
