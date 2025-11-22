@@ -1,97 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { api } from "~/trpc/react";
 import { ApplicationForm } from "./application";
 
 interface OTPFormProps {
   schemeId?: number;
   schemeName?: string;
-}
-
-interface SchemeFile {
-  id: bigint;
-  file_choice: string;
-  name: string | null;
-}
-
-interface SchemeData {
-  scheme_schemefiles?: SchemeFile[];
-}
-
-interface DocumentUrlResult {
-  success: boolean;
-  url?: string;
+  termsAndConditionsFileName?: string;
 }
 
 export function OTPForm({
   schemeId = 1,
   schemeName = "Default-Scheme",
+  termsAndConditionsFileName = ""
 }: OTPFormProps = {}) {
   const [mobileNumber, setMobileNumber] = useState("");
   const [otp, setOtp] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [termsUrl, setTermsUrl] = useState<string | null>(null);
-  const [loadingTerms, setLoadingTerms] = useState(false);
   const [status, setStatus] = useState<{
     type: "success" | "error" | "info";
     message: string;
   } | null>(null);
   const [step, setStep] = useState<0 | 1 | 2 | 3>(0); // 0: input, 1: verify, 2: verified, 3: application
-
-  // Fetch terms and conditions document on mount
-  useEffect(() => {
-    const fetchTermsUrl = async () => {
-      if (!schemeId) return;
-
-      setLoadingTerms(true);
-      try {
-        // Query scheme to get T&C document
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        const scheme = await (
-          api.scheme.getById as unknown as (input: {
-            schemeId: number;
-          }) => Promise<SchemeData | null>
-        )({
-          schemeId,
-        });
-
-        const files = scheme?.scheme_schemefiles ?? [];
-        if (files.length > 0) {
-          // Find T&C document
-          const termsDoc = files.find(
-            (file: SchemeFile) =>
-              file.file_choice.toLowerCase().includes("terms") ||
-              file.name?.toLowerCase().includes("terms"),
-          );
-
-          if (termsDoc) {
-            // Get presigned URL for T&C
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            const result = await (
-              api.scheme.getDocumentUrl as unknown as (input: {
-                schemeId: number;
-                documentId: number;
-              }) => Promise<DocumentUrlResult>
-            )({
-              schemeId,
-              documentId: Number(termsDoc.id),
-            });
-
-            if (result.success && result.url) {
-              setTermsUrl(result.url);
-            }
-          }
-        }
-      } catch (err) {
-        console.error("Error fetching terms URL:", err);
-      } finally {
-        setLoadingTerms(false);
-      }
-    };
-
-    void fetchTermsUrl();
-  }, [schemeId]);
 
   const generateOtp = api.otp.generate.useMutation({
     onSuccess: () => {
@@ -273,15 +204,15 @@ export function OTPForm({
                 type="checkbox"
                 checked={termsAccepted}
                 onChange={(e) => setTermsAccepted(e.target.checked)}
-                disabled={generateOtp.isPending || loadingTerms}
+                disabled={generateOtp.isPending}
                 className="mt-1 cursor-pointer disabled:opacity-60"
               />
               <div className="flex-1">
                 <div className="text-sm text-gray-700">
                   I have read and accept the{" "}
-                  {termsUrl ? (
+                  {termsAndConditionsFileName ? (
                     <a
-                      href={termsUrl}
+                      href={termsAndConditionsFileName}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
@@ -294,11 +225,6 @@ export function OTPForm({
                     </span>
                   )}
                 </div>
-                {loadingTerms && (
-                  <p className="mt-1 text-xs text-gray-500">
-                    Loading document...
-                  </p>
-                )}
               </div>
             </label>
           </div>
@@ -352,7 +278,7 @@ export function OTPForm({
           {step === 0 && (
             <button
               type="submit"
-              disabled={generateOtp.isPending || !termsAccepted || loadingTerms}
+              disabled={generateOtp.isPending || !termsAccepted }
               className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400"
             >
               {generateOtp.isPending ? "Sending..." : "Generate OTP"}
