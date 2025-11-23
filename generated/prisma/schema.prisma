@@ -173,13 +173,15 @@ model scheme_application {
   created_at                      DateTime      @db.Timestamptz(6)
   updated_at                      DateTime      @db.Timestamptz(6)
   scheme_id                       BigInt
-  application_number              Int           @unique
+  application_number              Int
   aadhar_number                   String        @db.VarChar(12)
   sub_category                    String        @db.VarChar(100)
   scheme_scheme                   scheme_scheme @relation(fields: [scheme_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "scheme_application_scheme_id_9ba561fc_fk_scheme_scheme_id")
 
   @@unique([scheme_id, mobile_number], map: "scheme_application_scheme_id_mobile_number_e06b8860_uniq")
+  @@unique([scheme_id, application_number], map: "scheme_application_scheme_id_application_number_02984c63_uniq")
   @@index([scheme_id], map: "scheme_application_scheme_id_9ba561fc")
+  @@index([application_number], map: "scheme_application_application_number_60278761")
 }
 
 model scheme_scheme {

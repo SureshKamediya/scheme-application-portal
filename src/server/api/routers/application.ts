@@ -593,12 +593,20 @@ export const applicationRouter = createTRPCRouter({
           dd_id_or_transaction_id: input.dd_id_or_transaction_id,
           dd_date_or_transaction_date: input.dd_date_or_transaction_date,
           dd_amount: parseFloat(String(input.dd_amount_or_transaction_amount || 0)) || 0,
+          dd_amount_or_transaction_amount: parseFloat(String(input.dd_amount_or_transaction_amount || 0)) || 0,
           payee_account_holder_name: input.payer_account_holder_name, // have to change names in pdf payload
           payee_bank_name: input.payer_bank_name,
           refund_account_holder: input.applicant_account_holder_name,
           refund_account_number: input.applicant_account_number,
           refund_bank_name: input.applicant_bank_name,
           refund_bank_ifsc: input.applicant_bank_ifsc,
+          payer_account_holder_name: input.applicant_account_holder_name,
+          payer_bank_name: input.applicant_bank_name,
+          applicant_account_holder_name: input.applicant_account_holder_name,
+          applicant_account_number: input.applicant_account_number,
+          applicant_bank_name: input.applicant_bank_name,
+          applicant_bank_ifsc: input.applicant_bank_ifsc,
+          applicant_bank_branch_address: input.applicant_bank_branch_address,
           print_date: new Date().toISOString().split("T")[0],
         };
 

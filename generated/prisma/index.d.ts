@@ -20605,8 +20605,8 @@ export namespace Prisma {
 
   export type scheme_applicationWhereUniqueInput = Prisma.AtLeast<{
     id?: bigint | number
-    application_number?: number
     scheme_id_mobile_number?: scheme_applicationScheme_idMobile_numberCompoundUniqueInput
+    scheme_id_application_number?: scheme_applicationScheme_idApplication_numberCompoundUniqueInput
     AND?: scheme_applicationWhereInput | scheme_applicationWhereInput[]
     OR?: scheme_applicationWhereInput[]
     NOT?: scheme_applicationWhereInput | scheme_applicationWhereInput[]
@@ -20647,10 +20647,11 @@ export namespace Prisma {
     created_at?: DateTimeFilter<"scheme_application"> | Date | string
     updated_at?: DateTimeFilter<"scheme_application"> | Date | string
     scheme_id?: BigIntFilter<"scheme_application"> | bigint | number
+    application_number?: IntFilter<"scheme_application"> | number
     aadhar_number?: StringFilter<"scheme_application"> | string
     sub_category?: StringFilter<"scheme_application"> | string
     scheme_scheme?: XOR<Scheme_schemeScalarRelationFilter, scheme_schemeWhereInput>
-  }, "id" | "application_number" | "scheme_id_mobile_number">
+  }, "id" | "scheme_id_mobile_number" | "scheme_id_application_number">
 
   export type scheme_applicationOrderByWithAggregationInput = {
     id?: SortOrder
@@ -22911,6 +22912,11 @@ export namespace Prisma {
   export type scheme_applicationScheme_idMobile_numberCompoundUniqueInput = {
     scheme_id: bigint | number
     mobile_number: string
+  }
+
+  export type scheme_applicationScheme_idApplication_numberCompoundUniqueInput = {
+    scheme_id: bigint | number
+    application_number: number
   }
 
   export type scheme_applicationCountOrderByAggregateInput = {
