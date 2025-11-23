@@ -31,13 +31,15 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 //   });
 // }
 
-const s3Client = new S3Client({
+function getS3Client(): S3Client {
+  return new S3Client({
   region: process.env.AWS_REGION ?? "ap-south-1",
     credentials: {
       accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
     },
-});
+  });
+}
 
 const bucketName = process.env.AWS_S3_BUCKET_NAME ?? "";
 
@@ -66,7 +68,7 @@ export async function uploadToS3(
       ContentType: contentType,
     });
 
-    await s3Client.send(command);
+    await getS3Client().send(command);
 
     console.log(`File uploaded to S3: s3://${bucketName}/${key}`);
 
@@ -101,7 +103,7 @@ export async function getPresignedUrl(
       Key: key,
     });
 
-    const url = await getSignedUrl(s3Client, command, {
+    const url = await getSignedUrl(getS3Client(), command, {
       expiresIn: expirationSeconds,
     });
     console.log(`Presigned URL generated: ${url}`);
@@ -135,7 +137,7 @@ export async function deleteFromS3(key: string): Promise<void> {
       Key: key,
     });
 
-    await s3Client.send(command);
+    await getS3Client().send(command);
   } catch (error) {
     console.error("Error deleting file from S3:", error);
     throw new Error("Failed to delete file from S3");
