@@ -15,6 +15,9 @@ interface SchemeFile {
 
 type SchemeFileArray = SchemeFile[] | undefined;
 
+const S3_BUCKET = "scheme-application-files";
+const S3_REGION = "ap-south-1";
+
 export function SchemeDetail({ schemeId }: { schemeId: number }) {
   const [submittedApplicationData, setSubmittedApplicationData] = useState<{
     mobile_number: string;
@@ -47,8 +50,6 @@ export function SchemeDetail({ schemeId }: { schemeId: number }) {
         }
       );
 
-      const S3_BUCKET = process.env.NEXT_PUBLIC_AWS_S3_BUCKET_NAME;
-      const S3_REGION = process.env.NEXT_PUBLIC_AWS_REGION;
       const hasFileAndEnv = termsDoc?.file && S3_BUCKET && S3_REGION;   
       if (hasFileAndEnv) {
         const s3BaseUrl = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/`;
@@ -296,9 +297,6 @@ export function SchemeDetail({ schemeId }: { schemeId: number }) {
                   </h2>
                   <div className="space-y-3">
                     {scheme.scheme_schemefiles.map((file: SchemeFile) => {
-                      
-                      const S3_BUCKET = process.env.NEXT_PUBLIC_AWS_S3_BUCKET_NAME;
-                      const S3_REGION = process.env.NEXT_PUBLIC_AWS_REGION;
                       
                       let fullS3Url = "";
 

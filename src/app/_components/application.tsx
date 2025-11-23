@@ -531,8 +531,8 @@ export function ApplicationForm({
                     <option value="">Select</option>
                     <option value="aadhaar">Pan Card</option>
                     <option value="voter">Voter ID</option>
-                    <option value="passport">Passport</option>
                     <option value="driving">Driving License</option>
+                    <option value="rationCard">Ration Card</option>
                   </select>
                   {errors.id_type && (
                     <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.id_type}</p>
@@ -692,12 +692,28 @@ export function ApplicationForm({
 
                 <div>
                   <label className="block text-xs sm:text-sm mb-1">Sub category</label>
-                  <input
+                  <select
                     name="sub_category"
                     value={state.sub_category}
                     onChange={onChange}
                     className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
-                  />
+                  >
+                    <option value="">Select</option>
+                    <option value="unReserved">Un-Reserved</option>
+                    <option value="unReservedDestituteAndLandlessSingle">Un-Reserved(Destitute & Landless Single)</option>
+                    <option value="unReservedHandicapped">Un-Reserved Handicapped</option>
+                    <option value="governmentEmployees">Government Employees</option>
+                    <option value="journalist">Journalist</option>
+                    <option value="otherSoldiers">Other Soldiers(including ex-servicemen)</option>
+                    <option value="scheduledCaste">Scheduled Caste</option>
+                    <option value="scheduledTribe">Scheduled Tribe</option>
+                    <option value="soldierHandicapped">Soldier Handicapped</option>
+                    <option value="soldierWidowAndDependent">Soldier(Widow & Dependent)</option>
+                    <option value="transgender">Transgender</option>
+                  </select>
+                  {errors.id_type && (
+                    <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.id_type}</p>
+                  )}
                   {errors.sub_category && (
                     <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.sub_category}</p>
                   )}
