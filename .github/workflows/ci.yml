@@ -42,4 +42,4 @@ jobs:
       #     npx prisma generate
 
       - name: Run Next.js Build
-        run: npm run build
+        run: SKIP_ENV_VALIDATION=1 npm run build

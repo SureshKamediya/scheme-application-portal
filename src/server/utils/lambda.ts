@@ -26,23 +26,27 @@ export interface ExtractedPdfData {
   bucket: string;
 }
 
-let lambdaClient: LambdaClient = null as unknown as LambdaClient;
+// let lambdaClient: LambdaClient = null as unknown as LambdaClient;
 
-if(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
-  console.log("AWS credentials found in environment variables. Using explicit credentials provider.");
-  lambdaClient = new LambdaClient({
-    region: process.env.AWS_REGION ?? "ap-south-1",
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    },
-  });
-} else{
-  console.warn("AWS credentials not found in environment variables. Using default credentials provider.");
-  lambdaClient = new LambdaClient({
-    region: process.env.AWS_REGION ?? "ap-south-1",
-  });
-}
+// if(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+//   console.log("AWS credentials found in environment variables. Using explicit credentials provider.");
+//   lambdaClient = new LambdaClient({
+//     region: process.env.AWS_REGION ?? "ap-south-1",
+//     credentials: {
+//       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+//       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+//     },
+//   });
+// } else{
+//   console.warn("AWS credentials not found in environment variables. Using default credentials provider.");
+//   lambdaClient = new LambdaClient({
+//     region: process.env.AWS_REGION ?? "ap-south-1",
+//   });
+// }
+
+const lambdaClient = new LambdaClient({
+  region: process.env.AWS_REGION ?? "ap-south-1",
+});
 
 /**
  * invokePdfGenerator - wrapper to invoke the PDF generator Lambda.
