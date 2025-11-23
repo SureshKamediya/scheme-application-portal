@@ -54,7 +54,7 @@ export const schemeRouter = createTRPCRouter({
           successful_applicants_publish_date: true,
           Lig_plot_count: true,
           ews_plot_count: true,
-          reserved_rate: true,
+          reserved_price: true,
           scheme_schemefiles: {
             select: {
               id: true,

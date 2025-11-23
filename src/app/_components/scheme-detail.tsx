@@ -197,10 +197,10 @@ export function SchemeDetail({ schemeId }: { schemeId: number }) {
                       <p className="text-gray-900">{scheme.phone}</p>
                     </div>
                   )}
-                  {scheme.reserved_rate !== undefined && (
+                  {scheme.reserved_price !== undefined && (
                     <div>
-                      <p className="text-sm text-gray-600">Reserved Rate (%)</p>
-                      <p className="text-gray-900">{scheme.reserved_rate}%</p>
+                      <p className="text-sm text-gray-600">Reserved Price</p>
+                      <p className="text-gray-900">{scheme.reserved_price}</p>
                     </div>
                   )}
                 </div>

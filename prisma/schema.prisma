@@ -135,47 +135,48 @@ model django_session {
 
 /// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
 model scheme_application {
-  id                          BigInt        @id @default(autoincrement())
-  mobile_number               String        @db.VarChar(10)
-  applicant_name              String        @db.VarChar(200)
-  father_or_husband_name      String        @db.VarChar(200)
-  dob                         DateTime      @db.Date
-  id_type                     String        @db.VarChar(20)
-  id_number                   String        @db.VarChar(20)
-  pan_number                  String        @db.VarChar(10)
-  permanent_address           String
-  permanent_address_pincode   String        @db.VarChar(6)
-  postal_address              String
-  postal_address_pincode      String        @db.VarChar(6)
-  email                       String        @db.VarChar(254)
-  annual_income               String        @db.VarChar(20)
-  plot_category               String        @db.VarChar(10)
-  registration_fees           Decimal       @db.Decimal(10, 2)
-  processing_fees             Decimal       @db.Decimal(10, 2)
-  total_payable_amount        Decimal       @db.Decimal(10, 2)
-  payment_mode                String        @db.VarChar(10)
-  dd_id_or_transaction_id     String        @db.VarChar(100)
-  dd_date_or_transaction_date DateTime      @db.Date
-  dd_amount                   Decimal       @db.Decimal(10, 2)
-  payee_account_holder_name   String        @db.VarChar(200)
-  payee_bank_name             String        @db.VarChar(200)
-  payment_proof               String        @db.VarChar(100)
-  payment_status              String        @db.VarChar(20)
-  refund_account_holder_name  String        @db.VarChar(200)
-  refund_account_number       String        @db.VarChar(20)
-  refund_bank_name            String        @db.VarChar(200)
-  refund_bank_branch_address  String
-  refund_bank_ifsc            String        @db.VarChar(11)
-  application_submission_date DateTime      @db.Timestamptz(6)
-  application_status          String        @db.VarChar(20)
-  rejection_remark            String
-  lottery_status              String        @db.VarChar(20)
-  application_pdf             String?       @db.VarChar(100)
-  created_at                  DateTime      @db.Timestamptz(6)
-  updated_at                  DateTime      @db.Timestamptz(6)
-  scheme_id                   BigInt
-  application_number          Int           @unique
-  scheme_scheme               scheme_scheme @relation(fields: [scheme_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "scheme_application_scheme_id_9ba561fc_fk_scheme_scheme_id")
+  id                              BigInt        @id @default(autoincrement())
+  mobile_number                   String        @db.VarChar(10)
+  applicant_name                  String        @db.VarChar(200)
+  father_or_husband_name          String        @db.VarChar(200)
+  dob                             DateTime      @db.Date
+  id_type                         String        @db.VarChar(20)
+  id_number                       String        @db.VarChar(20)
+  permanent_address               String
+  permanent_address_pincode       String        @db.VarChar(6)
+  postal_address                  String
+  postal_address_pincode          String        @db.VarChar(6)
+  email                           String        @db.VarChar(254)
+  annual_income                   String        @db.VarChar(20)
+  plot_category                   String        @db.VarChar(10)
+  registration_fees               Decimal       @db.Decimal(10, 2)
+  processing_fees                 Decimal       @db.Decimal(10, 2)
+  total_payable_amount            Decimal       @db.Decimal(10, 2)
+  payment_mode                    String        @db.VarChar(10)
+  dd_id_or_transaction_id         String        @db.VarChar(100)
+  dd_date_or_transaction_date     DateTime      @db.Date
+  dd_amount_or_transaction_amount Decimal       @db.Decimal(10, 2)
+  payer_account_holder_name       String        @db.VarChar(200)
+  payer_bank_name                 String        @db.VarChar(200)
+  payment_proof                   String        @db.VarChar(100)
+  payment_status                  String        @db.VarChar(20)
+  applicant_account_holder_name   String        @db.VarChar(200)
+  applicant_account_number        String        @db.VarChar(20)
+  applicant_bank_name             String        @db.VarChar(200)
+  applicant_bank_branch_address   String
+  applicant_bank_ifsc             String        @db.VarChar(11)
+  application_submission_date     DateTime      @db.Timestamptz(6)
+  application_status              String        @db.VarChar(20)
+  rejection_remark                String
+  lottery_status                  String        @db.VarChar(20)
+  application_pdf                 String?       @db.VarChar(100)
+  created_at                      DateTime      @db.Timestamptz(6)
+  updated_at                      DateTime      @db.Timestamptz(6)
+  scheme_id                       BigInt
+  application_number              Int           @unique
+  aadhar_number                   String        @db.VarChar(12)
+  sub_category                    String        @db.VarChar(100)
+  scheme_scheme                   scheme_scheme @relation(fields: [scheme_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "scheme_application_scheme_id_9ba561fc_fk_scheme_scheme_id")
 
   @@unique([scheme_id, mobile_number], map: "scheme_application_scheme_id_mobile_number_e06b8860_uniq")
   @@index([scheme_id], map: "scheme_application_scheme_id_9ba561fc")
@@ -196,9 +197,9 @@ model scheme_scheme {
   company                            String               @db.VarChar(100)
   Lig_plot_count                     Int
   ews_plot_count                     Int
-  reserved_rate                      Int
   next_application_number            Int
   application_number_start           Int
+  reserved_price                     Int
   scheme_application                 scheme_application[]
   scheme_schemefiles                 scheme_schemefiles[]
 

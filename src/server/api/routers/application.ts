@@ -34,12 +34,9 @@ const ApplicationInput = z.object({
     .optional()
     .or(z.literal(""))
     .default(""),
-  pan_number: z
+  aadhar_number: z
     .string()
-    .max(10, "PAN number max 10 characters")
-    .optional()
-    .or(z.literal(""))
-    .default(""),
+    .length(12, "Aadhar number must be 12 digits"),
   permanent_address: z.string().optional().or(z.literal("")).default(""),
   permanent_address_pincode: z
     .string()
@@ -64,6 +61,12 @@ const ApplicationInput = z.object({
   plot_category: z
     .string()
     .max(10, "Plot category max 10 characters")
+    .optional()
+    .or(z.literal(""))
+    .default(""),
+  sub_category: z
+    .string()
+    .max(100, "Sub-category max 100 characters")
     .optional()
     .or(z.literal(""))
     .default(""),
@@ -95,14 +98,14 @@ const ApplicationInput = z.object({
     .optional()
     .or(z.literal(""))
     .default(""),
-  dd_amount: z.string().optional().or(z.literal("0.00")).default("0.00"),
-  payee_account_holder_name: z
+  dd_amount_or_transaction_amount: z.string().optional().or(z.literal("0.00")).default("0.00"),
+  payer_account_holder_name: z
     .string()
-    .max(200, "Payee name max 200 characters")
+    .max(200, "Payer name max 200 characters")
     .optional()
     .or(z.literal(""))
     .default(""),
-  payee_bank_name: z
+  payer_bank_name: z
     .string()
     .max(200, "Bank name max 200 characters")
     .optional()
@@ -120,30 +123,30 @@ const ApplicationInput = z.object({
     .optional()
     .or(z.literal("pending"))
     .default("pending"),
-  refund_account_holder_name: z
+  applicant_account_holder_name: z
     .string()
-    .max(200, "Refund account holder name max 200 characters")
+    .max(200, "Applicant account holder name max 200 characters")
     .optional()
     .or(z.literal(""))
     .default(""),
-  refund_account_number: z
+  applicant_account_number: z
     .string()
-    .max(20, "Refund account number max 20 characters")
+    .max(20, "Applicant account number max 20 characters")
     .optional()
     .or(z.literal(""))
     .default(""),
-  refund_bank_name: z
+  applicant_bank_name: z
     .string()
-    .max(200, "Refund bank name max 200 characters")
+    .max(200, "Applicant bank name max 200 characters")
     .optional()
     .or(z.literal(""))
     .default(""),
-  refund_bank_branch_address: z
+  applicant_bank_branch_address: z
     .string()
     .optional()
     .or(z.literal(""))
     .default(""),
-  refund_bank_ifsc: z
+  applicant_bank_ifsc: z
     .string()
     .max(11, "IFSC max 11 characters")
     .optional()
@@ -151,6 +154,13 @@ const ApplicationInput = z.object({
     .default(""),
   scheme_id: z.number().int("Scheme ID must be an integer"),
   // optional fields the server will set
+  application_submission_date: z.string().optional(),
+  application_number: z.number().int().optional(),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
+  lottery_status: z.string().optional(),
+  rejection_remark: z.string().optional(),
+  application_status: z.string().optional(),
   application_pdf: z.string().optional(),
 });
 
@@ -270,7 +280,7 @@ export const applicationRouter = createTRPCRouter({
   uploadPaymentProof: publicProcedure
     .input(
       z.object({
-        applicationId: z.number().int("Application ID must be an integer"),
+        applicationNumber: z.number().int("Application number must be an integer"),
         schemeName: z.string().max(255, "Scheme name too long"),
         schemeId: z.number().int("Scheme ID must be an integer"),
         filename: z.string().max(255, "Filename too long"),
@@ -282,12 +292,12 @@ export const applicationRouter = createTRPCRouter({
       try {
         // Validate file type
         console.log("Validating file MIME type:", input.mimeType);
-        const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png"];
+        const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png","image/jpg"];
         if (!allowedMimeTypes.includes(input.mimeType)) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message:
-              "File type not allowed. Only PDF, JPEG, and PNG are supported.",
+              "File type not allowed. Only PDF, JPEG, JPG, and PNG are supported.",
           });
         }
 
@@ -305,7 +315,7 @@ export const applicationRouter = createTRPCRouter({
         console.log("File buffer size (bytes):", buffer.length);
         // Generate S3 key
         const s3Key = generateS3Key(
-          input.applicationId,
+          input.applicationNumber,
           input.filename,
           input.schemeId,
         );
@@ -559,17 +569,17 @@ export const applicationRouter = createTRPCRouter({
           scheme_name: scheme?.name ?? "",
           scheme_address: scheme?.address ?? "",
           application_number: applicationId,
-          application_submission_date: new Date().toISOString().split("T")[0],
+          application_submission_date: input.application_submission_date,
           applicant_name: input.applicant_name,
           father_or_husband_name: input.father_or_husband_name,
           dob: input.dob,
           mobile_number: input.mobile_number,
           id_type: input.id_type,
           id_number: input.id_number,
-          pan_number: input.pan_number,
-          permanent_address: input.permanent_address,
+          pan_number: "ABCDE1234F", // PAN not collected currently, have to replace with aadhar number
+          permanent_address: "abcd", // temporary placeholder
           permanent_address_pincode: input.permanent_address_pincode,
-          postal_address: input.postal_address,
+          postal_address: "abcd", // temporary placeholder
           postal_address_pincode: input.postal_address_pincode,
           annual_income: input.annual_income,
           plot_category: input.plot_category,
@@ -582,13 +592,13 @@ export const applicationRouter = createTRPCRouter({
           payment_status: input.payment_status,
           dd_id_or_transaction_id: input.dd_id_or_transaction_id,
           dd_date_or_transaction_date: input.dd_date_or_transaction_date,
-          dd_amount: parseFloat(String(input.dd_amount || 0)) || 0,
-          payee_account_holder_name: input.payee_account_holder_name,
-          payee_bank_name: input.payee_bank_name,
-          refund_account_holder: input.refund_account_holder_name,
-          refund_account_number: input.refund_account_number,
-          refund_bank_name: input.refund_bank_name,
-          refund_bank_ifsc: input.refund_bank_ifsc,
+          dd_amount: parseFloat(String(input.dd_amount_or_transaction_amount || 0)) || 0,
+          payee_account_holder_name: input.payer_account_holder_name, // have to change names in pdf payload
+          payee_bank_name: input.payer_bank_name,
+          refund_account_holder: input.applicant_account_holder_name,
+          refund_account_number: input.applicant_account_number,
+          refund_bank_name: input.applicant_bank_name,
+          refund_bank_ifsc: input.applicant_bank_ifsc,
           print_date: new Date().toISOString().split("T")[0],
         };
 

@@ -203,7 +203,6 @@ exports.Prisma.Scheme_applicationScalarFieldEnum = {
   dob: 'dob',
   id_type: 'id_type',
   id_number: 'id_number',
-  pan_number: 'pan_number',
   permanent_address: 'permanent_address',
   permanent_address_pincode: 'permanent_address_pincode',
   postal_address: 'postal_address',
@@ -217,16 +216,16 @@ exports.Prisma.Scheme_applicationScalarFieldEnum = {
   payment_mode: 'payment_mode',
   dd_id_or_transaction_id: 'dd_id_or_transaction_id',
   dd_date_or_transaction_date: 'dd_date_or_transaction_date',
-  dd_amount: 'dd_amount',
-  payee_account_holder_name: 'payee_account_holder_name',
-  payee_bank_name: 'payee_bank_name',
+  dd_amount_or_transaction_amount: 'dd_amount_or_transaction_amount',
+  payer_account_holder_name: 'payer_account_holder_name',
+  payer_bank_name: 'payer_bank_name',
   payment_proof: 'payment_proof',
   payment_status: 'payment_status',
-  refund_account_holder_name: 'refund_account_holder_name',
-  refund_account_number: 'refund_account_number',
-  refund_bank_name: 'refund_bank_name',
-  refund_bank_branch_address: 'refund_bank_branch_address',
-  refund_bank_ifsc: 'refund_bank_ifsc',
+  applicant_account_holder_name: 'applicant_account_holder_name',
+  applicant_account_number: 'applicant_account_number',
+  applicant_bank_name: 'applicant_bank_name',
+  applicant_bank_branch_address: 'applicant_bank_branch_address',
+  applicant_bank_ifsc: 'applicant_bank_ifsc',
   application_submission_date: 'application_submission_date',
   application_status: 'application_status',
   rejection_remark: 'rejection_remark',
@@ -235,7 +234,9 @@ exports.Prisma.Scheme_applicationScalarFieldEnum = {
   created_at: 'created_at',
   updated_at: 'updated_at',
   scheme_id: 'scheme_id',
-  application_number: 'application_number'
+  application_number: 'application_number',
+  aadhar_number: 'aadhar_number',
+  sub_category: 'sub_category'
 };
 
 exports.Prisma.Scheme_schemeScalarFieldEnum = {
@@ -253,9 +254,9 @@ exports.Prisma.Scheme_schemeScalarFieldEnum = {
   company: 'company',
   Lig_plot_count: 'Lig_plot_count',
   ews_plot_count: 'ews_plot_count',
-  reserved_rate: 'reserved_rate',
   next_application_number: 'next_application_number',
-  application_number_start: 'application_number_start'
+  application_number_start: 'application_number_start',
+  reserved_price: 'reserved_price'
 };
 
 exports.Prisma.Scheme_schemefilesScalarFieldEnum = {

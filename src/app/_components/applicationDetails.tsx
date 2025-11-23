@@ -120,7 +120,7 @@ export function ApplicationDetails({
         dob: dobString,
         id_type: fullApplication.id_type || "",
         id_number: fullApplication.id_number || "",
-        pan_number: fullApplication.pan_number || "",
+        aadhar_number: fullApplication.aadhar_number || "",
         permanent_address: fullApplication.permanent_address || "",
         permanent_address_pincode:
           fullApplication.permanent_address_pincode || "",
@@ -137,18 +137,18 @@ export function ApplicationDetails({
         payment_mode: fullApplication.payment_mode || "",
         dd_id_or_transaction_id: fullApplication.dd_id_or_transaction_id || "",
         dd_date_or_transaction_date: ddDateString,
-        dd_amount: fullApplication.dd_amount?.toString() || "0.00",
-        payee_account_holder_name:
-          fullApplication.payee_account_holder_name || "",
-        payee_bank_name: fullApplication.payee_bank_name || "",
+        dd_amount_or_transaction_amount: fullApplication.dd_amount_or_transaction_amount?.toString() || "0.00",
+        payer_account_holder_name:
+          fullApplication.payer_account_holder_name || "",
+        payer_bank_name: fullApplication.payer_bank_name || "",
         payment_status: fullApplication.payment_status || "pending",
-        refund_account_holder_name:
-          fullApplication.refund_account_holder_name || "",
-        refund_account_number: fullApplication.refund_account_number || "",
-        refund_bank_name: fullApplication.refund_bank_name || "",
-        refund_bank_branch_address:
-          fullApplication.refund_bank_branch_address || "",
-        refund_bank_ifsc: fullApplication.refund_bank_ifsc || "",
+        applicant_account_holder_name:
+          fullApplication.applicant_account_holder_name || "",
+        applicant_account_number: fullApplication.applicant_account_number || "",
+        applicant_bank_name: fullApplication.applicant_bank_name || "",
+        applicant_bank_branch_address:
+          fullApplication.applicant_bank_branch_address || "",
+        applicant_bank_ifsc: fullApplication.applicant_bank_ifsc || "",
         scheme_id: Number(fullApplication.scheme_id),
         application_id: applicationId,
       };
