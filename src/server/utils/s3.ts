@@ -7,6 +7,7 @@
 import { env } from "~/env";
 import {
   S3Client,
+  type S3ClientConfig,
   PutObjectCommand,
   GetObjectCommand,
   DeleteObjectCommand,
@@ -32,16 +33,25 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 // }
 
 function getS3Client(): S3Client {
-  return new S3Client({
-  region: process.env.AWS_REGION ?? "ap-south-1",
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
-    },
-  });
-}
+  const config: S3ClientConfig = {
+    region: process.env.AWS_REGION ?? "ap-south-1",
+  };
 
-const bucketName = process.env.AWS_S3_BUCKET_NAME ?? "";
+  const accessKey = process.env.AWS_ACCESS_KEY_ID;
+  const secretKey = process.env.AWS_SECRET_ACCESS_KEY;
+
+  if (accessKey && secretKey) {
+    console.log("Using explicit AWS credentials for S3 client.");
+    config.credentials = {
+      accessKeyId: accessKey,
+      secretAccessKey: secretKey,
+    };
+  }
+  // If keys are missing, the 'credentials' property is omitted,
+  // allowing the SDK to fall back to the IAM role (the next step in the chain).
+
+  return new S3Client(config);
+}
 
 /**
  * Upload file to S3
@@ -55,6 +65,8 @@ export async function uploadToS3(
   buffer: Buffer,
   contentType: string,
 ): Promise<string | null> {
+  const bucketName = process.env.AWS_S3_BUCKET_NAME ?? "scheme-application-files";
+
   if (!bucketName) {
     console.warn("AWS_S3_BUCKET_NAME not configured, skipping S3 upload");
     return null;
@@ -90,6 +102,8 @@ export async function getPresignedUrl(
   key: string,
   expirationSeconds = 3600,
 ): Promise<string | null> {
+  const bucketName = process.env.AWS_S3_BUCKET_NAME ?? "scheme-application-files";
+
   if (!bucketName) {
     console.warn(
       "AWS_S3_BUCKET_NAME not configured, cannot generate presigned URL",
@@ -126,6 +140,7 @@ export function isS3Configured(): boolean {
  * @param key - S3 object key (path)
  */
 export async function deleteFromS3(key: string): Promise<void> {
+  const bucketName = process.env.AWS_S3_BUCKET_NAME ?? "scheme-application-files";
   if (!isS3Configured()) {
     console.warn("AWS S3 not configured");
     return;
@@ -133,7 +148,7 @@ export async function deleteFromS3(key: string): Promise<void> {
 
   try {
     const command = new DeleteObjectCommand({
-      Bucket: env.AWS_S3_BUCKET_NAME!,
+      Bucket: bucketName,
       Key: key,
     });
 

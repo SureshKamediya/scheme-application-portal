@@ -203,7 +203,7 @@ export function ApplicationForm({
       setErrors((prev) => ({ ...prev, payment_proof: "" }));
       setStatus({
         type: "success",
-        message: "Payment proof file selected. Will be uploaded after application submission.",
+        message: "Payment proof file selected.",
       });
     }
   };

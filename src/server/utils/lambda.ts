@@ -1,4 +1,4 @@
-import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
+import { LambdaClient, InvokeCommand, type LambdaClientConfig } from "@aws-sdk/client-lambda";
 import type { PdfPayload } from "~/types/pdfPayload";
 
 export interface LambdaPdfResponse {
@@ -45,13 +45,26 @@ export interface ExtractedPdfData {
 // }
 
 function getLambdaClient(): LambdaClient {
-  return new LambdaClient({
-  region: process.env.AWS_REGION ?? "ap-south-1",
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
-    },
-  });
+  const accessKey = process.env.AWS_ACCESS_KEY_ID;
+  const secretKey = process.env.AWS_SECRET_ACCESS_KEY;
+  
+  // Start with the basic configuration
+  const config: LambdaClientConfig = {
+    region: process.env.AWS_REGION ?? "ap-south-1",
+  };
+
+  // Explicitly check if both keys are present (non-null, non-undefined, non-empty)
+  if (accessKey && secretKey) {
+    console.log("Using explicit AWS credentials for Lambda client.");
+    config.credentials = {
+      accessKeyId: accessKey,
+      secretAccessKey: secretKey,
+    };
+  } 
+  // If keys are missing, the 'credentials' property is not added to the config, 
+  // and the SDK falls back to the IAM role or other provider chain methods.
+
+  return new LambdaClient(config);
 }
 
 /**
