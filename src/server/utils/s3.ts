@@ -4,10 +4,10 @@
  * Note: Using dynamic imports to avoid TypeScript issues with AWS SDK
  */
 
-import { env } from "~/env";
+// import { env } from "~/env";
 import {
   S3Client,
-  type S3ClientConfig,
+  // type S3ClientConfig,
   PutObjectCommand,
   GetObjectCommand,
   DeleteObjectCommand,
@@ -32,26 +32,35 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 //   });
 // }
 
-function getS3Client(): S3Client {
-  const config: S3ClientConfig = {
-    region: process.env.AWS_REGION ?? "ap-south-1",
-  };
+// function getS3Client(): S3Client {
+//   const config: S3ClientConfig = {
+//     region: process.env.AWS_REGION ?? "ap-south-1",
+//   };
 
-  const accessKey = env.AWS_ACCESS_KEY_ID;
-  const secretKey = env.AWS_SECRET_ACCESS_KEY;
+//   const accessKey = env.AWS_ACCESS_KEY_ID;
+//   const secretKey = env.AWS_SECRET_ACCESS_KEY;
 
-  if (accessKey && secretKey) {
-    console.log("Using explicit AWS credentials for S3 client.");
-    config.credentials = {
-      accessKeyId: accessKey,
-      secretAccessKey: secretKey,
-    };
-  }
-  // If keys are missing, the 'credentials' property is omitted,
-  // allowing the SDK to fall back to the IAM role (the next step in the chain).
+//   if (accessKey && secretKey) {
+//     console.log("Using explicit AWS credentials for S3 client.");
+//     config.credentials = {
+//       accessKeyId: accessKey,
+//       secretAccessKey: secretKey,
+//     };
+//   }
+//   // If keys are missing, the 'credentials' property is omitted,
+//   // allowing the SDK to fall back to the IAM role (the next step in the chain).
 
-  return new S3Client(config);
-}
+//   return new S3Client(config);
+// }
+
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION ?? "ap-south-1",
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+  },
+});
+const bucketName = process.env.AWS_S3_BUCKET_NAME!;
 
 /**
  * Upload file to S3
@@ -65,7 +74,7 @@ export async function uploadToS3(
   buffer: Buffer,
   contentType: string,
 ): Promise<string | null> {
-  const bucketName = process.env.AWS_S3_BUCKET_NAME ?? "scheme-application-files";
+  // const bucketName = process.env.AWS_S3_BUCKET_NAME ?? "scheme-application-files";
 
   if (!bucketName) {
     console.warn("AWS_S3_BUCKET_NAME not configured, skipping S3 upload");
@@ -80,7 +89,7 @@ export async function uploadToS3(
       ContentType: contentType,
     });
 
-    await getS3Client().send(command);
+    await s3Client.send(command);
 
     console.log(`File uploaded to S3: s3://${bucketName}/${key}`);
 
@@ -102,7 +111,8 @@ export async function getPresignedUrl(
   key: string,
   expirationSeconds = 3600,
 ): Promise<string | null> {
-  const bucketName = process.env.AWS_S3_BUCKET_NAME ?? "scheme-application-files";
+  const bucketName =
+    process.env.AWS_S3_BUCKET_NAME ?? "scheme-application-files";
 
   if (!bucketName) {
     console.warn(
@@ -117,7 +127,7 @@ export async function getPresignedUrl(
       Key: key,
     });
 
-    const url = await getSignedUrl(getS3Client(), command, {
+    const url = await getSignedUrl(s3Client, command, {
       expiresIn: expirationSeconds,
     });
     console.log(`Presigned URL generated: ${url}`);
@@ -132,7 +142,7 @@ export async function getPresignedUrl(
  * Check if AWS S3 is configured
  */
 export function isS3Configured(): boolean {
-  return Boolean(env.AWS_REGION && env.AWS_S3_BUCKET_NAME);
+  return Boolean(process.env.AWS_REGION && process.env.AWS_S3_BUCKET_NAME);
 }
 
 /**
@@ -140,7 +150,8 @@ export function isS3Configured(): boolean {
  * @param key - S3 object key (path)
  */
 export async function deleteFromS3(key: string): Promise<void> {
-  const bucketName = process.env.AWS_S3_BUCKET_NAME ?? "scheme-application-files";
+  const bucketName =
+    process.env.AWS_S3_BUCKET_NAME ?? "scheme-application-files";
   if (!isS3Configured()) {
     console.warn("AWS S3 not configured");
     return;
@@ -152,7 +163,7 @@ export async function deleteFromS3(key: string): Promise<void> {
       Key: key,
     });
 
-    await getS3Client().send(command);
+    await s3Client.send(command);
   } catch (error) {
     console.error("Error deleting file from S3:", error);
     throw new Error("Failed to delete file from S3");
