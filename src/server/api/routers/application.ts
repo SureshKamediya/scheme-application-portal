@@ -1,7 +1,11 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { uploadToS3, getPresignedUrl } from "~/server/utils/s3";
+import {
+  uploadToS3,
+  getPresignedUrl,
+  getPresignedUploadUrl,
+} from "~/server/utils/s3";
 import { generateS3Key } from "~/utils/fileUpload";
 import { invokePdfGenerator } from "~/server/utils/lambda";
 import type { PdfPayload } from "~/types/pdfPayload";
@@ -34,9 +38,7 @@ const ApplicationInput = z.object({
     .optional()
     .or(z.literal(""))
     .default(""),
-  aadhar_number: z
-    .string()
-    .length(12, "Aadhar number must be 12 digits"),
+  aadhar_number: z.string().length(12, "Aadhar number must be 12 digits"),
   permanent_address: z.string().optional().or(z.literal("")).default(""),
   permanent_address_pincode: z
     .string()
@@ -98,7 +100,11 @@ const ApplicationInput = z.object({
     .optional()
     .or(z.literal(""))
     .default(""),
-  dd_amount_or_transaction_amount: z.string().optional().or(z.literal("0.00")).default("0.00"),
+  dd_amount_or_transaction_amount: z
+    .string()
+    .optional()
+    .or(z.literal("0.00"))
+    .default("0.00"),
   payer_account_holder_name: z
     .string()
     .max(200, "Payer name max 200 characters")
@@ -277,90 +283,90 @@ export const applicationRouter = createTRPCRouter({
    * Input: applicationId, filename, fileBuffer (base64), mimeType
    * Output: S3 URL or filename if S3 not configured
    */
-  uploadPaymentProof: publicProcedure
-    .input(
-      z.object({
-        applicationNumber: z.number().int("Application number must be an integer"),
-        schemeName: z.string().max(255, "Scheme name too long"),
-        schemeId: z.number().int("Scheme ID must be an integer"),
-        filename: z.string().max(255, "Filename too long"),
-        fileBuffer: z.string().describe("File content as base64 string"),
-        mimeType: z.string().max(50, "MIME type too long"),
-      }),
-    )
-    .mutation(async ({ input }) => {
-      try {
-        // Validate file type
-        console.log("Validating file MIME type:", input.mimeType);
-        const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png","image/jpg"];
-        if (!allowedMimeTypes.includes(input.mimeType)) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message:
-              "File type not allowed. Only PDF, JPEG, JPG, and PNG are supported.",
-          });
-        }
+  // uploadPaymentProof: publicProcedure
+  //   .input(
+  //     z.object({
+  //       applicationNumber: z.number().int("Application number must be an integer"),
+  //       schemeName: z.string().max(255, "Scheme name too long"),
+  //       schemeId: z.number().int("Scheme ID must be an integer"),
+  //       filename: z.string().max(255, "Filename too long"),
+  //       fileBuffer: z.string().describe("File content as base64 string"),
+  //       mimeType: z.string().max(50, "MIME type too long"),
+  //     }),
+  //   )
+  //   .mutation(async ({ input }) => {
+  //     try {
+  //       // Validate file type
+  //       console.log("Validating file MIME type:", input.mimeType);
+  //       const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png","image/jpg"];
+  //       if (!allowedMimeTypes.includes(input.mimeType)) {
+  //         throw new TRPCError({
+  //           code: "BAD_REQUEST",
+  //           message:
+  //             "File type not allowed. Only PDF, JPEG, JPG, and PNG are supported.",
+  //         });
+  //       }
 
-        // Convert base64 to buffer
-        const buffer = Buffer.from(input.fileBuffer, "base64");
+  //       // Convert base64 to buffer
+  //       const buffer = Buffer.from(input.fileBuffer, "base64");
 
-        // Validate file size (max 5MB)
-        const maxSizeBytes = 5 * 1024 * 1024; // 5MB
-        if (buffer.length > maxSizeBytes) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "File size exceeds 5MB limit",
-          });
-        }
-        console.log("File buffer size (bytes):", buffer.length);
-        // Generate S3 key
-        const s3Key = generateS3Key(
-          input.applicationNumber,
-          input.filename,
-          input.schemeId,
-        );
+  //       // Validate file size (max 5MB)
+  //       const maxSizeBytes = 5 * 1024 * 1024; // 5MB
+  //       if (buffer.length > maxSizeBytes) {
+  //         throw new TRPCError({
+  //           code: "BAD_REQUEST",
+  //           message: "File size exceeds 5MB limit",
+  //         });
+  //       }
+  //       console.log("File buffer size (bytes):", buffer.length);
+  //       // Generate S3 key
+  //       const s3Key = generateS3Key(
+  //         input.applicationNumber,
+  //         input.filename,
+  //         input.schemeId,
+  //       );
 
-        console.log("Uploading payment proof to S3 with key:", s3Key);
-        // Upload to S3
-        const s3Url = await uploadToS3(s3Key, buffer, input.mimeType);
+  //       console.log("Uploading payment proof to S3 with key:", s3Key);
+  //       // Upload to S3
+  //       const s3Url = await uploadToS3(s3Key, buffer, input.mimeType);
 
-        if (!s3Url) {
-          // S3 not configured, return filename as fallback
-          console.warn(
-            "S3 not configured, returning filename as payment_proof",
-          );
-          return {
-            success: true,
-            url: input.filename,
-            key: s3Key,
-            bucket: null,
-          };
-        }
+  //       if (!s3Url) {
+  //         // S3 not configured, return filename as fallback
+  //         console.warn(
+  //           "S3 not configured, returning filename as payment_proof",
+  //         );
+  //         return {
+  //           success: true,
+  //           url: input.filename,
+  //           key: s3Key,
+  //           bucket: null,
+  //         };
+  //       }
 
-        return {
-          success: true,
-          url: s3Url,
-          key: s3Key,
-          bucket: true, // Indicates file was uploaded to S3
-        };
-      } catch (error) {
-        // Re-throw TRPC errors as-is
-        if (error instanceof TRPCError) {
-          throw error;
-        }
+  //       return {
+  //         success: true,
+  //         url: s3Url,
+  //         key: s3Key,
+  //         bucket: true, // Indicates file was uploaded to S3
+  //       };
+  //     } catch (error) {
+  //       // Re-throw TRPC errors as-is
+  //       if (error instanceof TRPCError) {
+  //         throw error;
+  //       }
 
-        // Log unexpected errors
-        console.error("Payment proof upload error:", error);
+  //       // Log unexpected errors
+  //       console.error("Payment proof upload error:", error);
 
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message:
-            error instanceof Error
-              ? error.message
-              : "Failed to upload payment proof",
-        });
-      }
-    }),
+  //       throw new TRPCError({
+  //         code: "INTERNAL_SERVER_ERROR",
+  //         message:
+  //           error instanceof Error
+  //             ? error.message
+  //             : "Failed to upload payment proof",
+  //       });
+  //     }
+  //   }),
 
   /**
    * Get application by mobile number and application number and scheme name
@@ -592,8 +598,10 @@ export const applicationRouter = createTRPCRouter({
           payment_status: input.payment_status,
           dd_id_or_transaction_id: input.dd_id_or_transaction_id,
           dd_date_or_transaction_date: input.dd_date_or_transaction_date,
-          dd_amount: parseFloat(String(input.dd_amount_or_transaction_amount || 0)) || 0,
-          dd_amount_or_transaction_amount: parseFloat(String(input.dd_amount_or_transaction_amount || 0)) || 0,
+          dd_amount:
+            parseFloat(String(input.dd_amount_or_transaction_amount || 0)) || 0,
+          dd_amount_or_transaction_amount:
+            parseFloat(String(input.dd_amount_or_transaction_amount || 0)) || 0,
           payee_account_holder_name: input.payer_account_holder_name, // have to change names in pdf payload
           payee_bank_name: input.payer_bank_name,
           refund_account_holder: input.applicant_account_holder_name,
@@ -620,7 +628,10 @@ export const applicationRouter = createTRPCRouter({
           });
         }
 
-        console.log("PDF generated by Lambda, file key:", lambdaResult.file_key);
+        console.log(
+          "PDF generated by Lambda, file key:",
+          lambdaResult.file_key,
+        );
         // Update application with the S3 file key path
         await ctx.db.scheme_application.update({
           where: { id: BigInt(applicationId) },
@@ -645,6 +656,78 @@ export const applicationRouter = createTRPCRouter({
           code: "INTERNAL_SERVER_ERROR",
           message:
             error instanceof Error ? error.message : "PDF generation failed",
+        });
+      }
+    }),
+
+  /**
+   * Get presigned URL for direct S3 upload
+   * Client uploads directly to S3 using this URL
+   */
+  getPresignedUploadUrl: publicProcedure
+    .input(
+      z.object({
+        filename: z.string().max(255, "Filename too long"),
+        mimeType: z.string().max(50, "MIME type too long"),
+        applicationNumber: z
+          .number()
+          .int("Application number must be an integer"),
+        schemeId: z.number().int("Scheme ID must be an integer"),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      try {
+        // Validate file type
+        const allowedMimeTypes = [
+          "application/pdf",
+          "image/jpeg",
+          "image/png",
+          "image/jpg",
+        ];
+        if (!allowedMimeTypes.includes(input.mimeType)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message:
+              "File type not allowed. Only PDF, JPEG, JPG, and PNG are supported.",
+          });
+        }
+
+        // Generate S3 key
+        const s3Key = generateS3Key(
+          input.applicationNumber,
+          input.filename,
+          input.schemeId,
+        );
+
+        // Get presigned URL for upload
+        const presignedUrl = await getPresignedUploadUrl(s3Key, input.mimeType);
+
+        if (!presignedUrl) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to generate presigned upload URL",
+          });
+        }
+
+        return {
+          success: true,
+          presignedUrl,
+          s3Key,
+          bucket: process.env.AWS_S3_BUCKET_NAME ?? "scheme-application-files",
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+
+        console.error("Get presigned URL error:", error);
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to generate presigned URL",
         });
       }
     }),

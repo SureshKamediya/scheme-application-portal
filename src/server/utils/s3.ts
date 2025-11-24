@@ -139,6 +139,46 @@ export async function getPresignedUrl(
 }
 
 /**
+ * Get presigned URL for direct S3 upload (PUT)
+ * @param key - S3 object key (path)
+ * @param contentType - MIME type for the file
+ * @param expirationSeconds - URL expiration time in seconds (default: 3600)
+ * @returns Presigned URL or null if S3 not configured
+ */
+export async function getPresignedUploadUrl(
+  key: string,
+  contentType: string,
+  expirationSeconds = 300,
+): Promise<string | null> {
+  if (!bucketName) {
+    console.warn(
+      "AWS_S3_BUCKET_NAME not configured, cannot generate presigned URL",
+    );
+    return null;
+  }
+
+  console.log(`Generating presigned upload URL for s3://${bucketName}/${key}`);
+
+  try {
+    const command = new PutObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+      ContentType: contentType,
+    });
+
+    const url = await getSignedUrl(s3Client, command, {
+      expiresIn: expirationSeconds,
+    });
+
+    console.log(`Presigned upload URL generated: ${url}`);
+    return url;
+  } catch (error) {
+    console.error("Error generating presigned upload URL:", error);
+    throw error;
+  }
+}
+
+/**
  * Check if AWS S3 is configured
  */
 export function isS3Configured(): boolean {

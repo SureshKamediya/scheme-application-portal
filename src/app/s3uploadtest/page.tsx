@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export default function UploadPage() {
+export default function S3UploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -11,78 +11,78 @@ export default function UploadPage() {
     message: string;
   } | null>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      setFile(e.target.files[0]);
-      setResult(null);
-    }
-  };
+  //   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //     if (e.target.files?.[0]) {
+  //       setFile(e.target.files[0]);
+  //       setResult(null);
+  //     }
+  //   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    if (e.dataTransfer?.files?.[0]) {
-      setFile(e.dataTransfer.files[0]);
-      setResult(null);
-    }
-  };
+  //   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  //     e.preventDefault();
+  //     if (e.dataTransfer?.files?.[0]) {
+  //       setFile(e.dataTransfer.files[0]);
+  //       setResult(null);
+  //     }
+  //   };
 
-  const handleUpload = async () => {
-    if (!file) return;
+  //   const handleUpload = async () => {
+  //     if (!file) return;
 
-    setUploading(true);
-    setProgress(0);
-    setResult(null);
+  //     setUploading(true);
+  //     setProgress(0);
+  //     setResult(null);
 
-    try {
-      setProgress(30);
+  //     try {
+  //       setProgress(30);
 
-      // Create FormData and append the file
-      const formData = new FormData();
-      formData.append("file", file);
+  //       // Create FormData and append the file
+  //       const formData = new FormData();
+  //       formData.append("file", file);
 
-      setProgress(50);
+  //       setProgress(50);
 
-      // Upload to API route (which uploads to S3)
-      const response = await fetch("/api/s3uplodertest", {
-        method: "POST",
-        body: formData,
-      });
+  //       // Upload to API route (which uploads to S3)
+  //       const response = await fetch("/api/s3uplodertest", {
+  //         method: "POST",
+  //         body: formData,
+  //       });
 
-      if (!response.ok) {
-        const errorData = (await response.json()) as { error?: string };
-        throw new Error(errorData.error ?? "Failed to upload file");
-      }
+  //       if (!response.ok) {
+  //         const errorData = (await response.json()) as { error?: string };
+  //         throw new Error(errorData.error ?? "Failed to upload file");
+  //       }
 
-      const data = (await response.json()) as { fileUrl: string };
-      setProgress(100);
+  //       const data = (await response.json()) as { fileUrl: string };
+  //       setProgress(100);
 
-      setResult({
-        type: "success",
-        message: `File uploaded successfully! URL: ${data.fileUrl}`,
-      });
-      setFile(null);
-    } catch (error) {
-      setResult({
-        type: "error",
-        message: error instanceof Error ? error.message : "Upload failed",
-      });
-    } finally {
-      setUploading(false);
-      setTimeout(() => setProgress(0), 1000);
-    }
-  };
+  //       setResult({
+  //         type: "success",
+  //         message: `File uploaded successfully! URL: ${data.fileUrl}`,
+  //       });
+  //       setFile(null);
+  //     } catch (error) {
+  //       setResult({
+  //         type: "error",
+  //         message: error instanceof Error ? error.message : "Upload failed",
+  //       });
+  //     } finally {
+  //       setUploading(false);
+  //       setTimeout(() => setProgress(0), 1000);
+  //     }
+  //   };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
-  };
+  //   const formatFileSize = (bytes: number) => {
+  //     if (bytes === 0) return "0 Bytes";
+  //     const k = 1024;
+  //     const sizes = ["Bytes", "KB", "MB", "GB"];
+  //     const i = Math.floor(Math.log(bytes) / Math.log(k));
+  //     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+  //   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-purple-600 to-indigo-700 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
+      {/* <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
         <h1 className="mb-2 text-2xl font-bold text-gray-800">🚀 S3 Upload</h1>
         <p className="mb-6 text-sm text-gray-600">
           Upload files directly to S3
@@ -143,7 +143,7 @@ export default function UploadPage() {
             <p className="text-sm break-words">{result.message}</p>
           </div>
         )}
-      </div>
+      </div> */}
     </div>
   );
 }

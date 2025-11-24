@@ -315,7 +315,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\hp\\Freelance-Projects\\scheme-application-portal\\generated\\prisma",
+      "value": "C:\\Users\\hp\\OneDrive\\Desktop\\riyasat-folders\\scheme-application-portal\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -329,7 +329,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\hp\\Freelance-Projects\\scheme-application-portal\\prisma\\schema.prisma",
+    "sourceFilePath": "C:\\Users\\hp\\OneDrive\\Desktop\\riyasat-folders\\scheme-application-portal\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
