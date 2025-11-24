@@ -37,8 +37,8 @@ function getS3Client(): S3Client {
     region: process.env.AWS_REGION ?? "ap-south-1",
   };
 
-  const accessKey = process.env.AWS_ACCESS_KEY_ID;
-  const secretKey = process.env.AWS_SECRET_ACCESS_KEY;
+  const accessKey = env.AWS_ACCESS_KEY_ID;
+  const secretKey = env.AWS_SECRET_ACCESS_KEY;
 
   if (accessKey && secretKey) {
     console.log("Using explicit AWS credentials for S3 client.");

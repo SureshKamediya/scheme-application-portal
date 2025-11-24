@@ -1,5 +1,6 @@
 import { LambdaClient, InvokeCommand, type LambdaClientConfig } from "@aws-sdk/client-lambda";
 import type { PdfPayload } from "~/types/pdfPayload";
+import { env } from "~/env";
 
 export interface LambdaPdfResponse {
   statusCode: number;
@@ -45,12 +46,12 @@ export interface ExtractedPdfData {
 // }
 
 function getLambdaClient(): LambdaClient {
-  const accessKey = process.env.AWS_ACCESS_KEY_ID;
-  const secretKey = process.env.AWS_SECRET_ACCESS_KEY;
+  const accessKey = env.AWS_ACCESS_KEY_ID;
+  const secretKey = env.AWS_SECRET_ACCESS_KEY;
   
   // Start with the basic configuration
   const config: LambdaClientConfig = {
-    region: process.env.AWS_REGION ?? "ap-south-1",
+    region: env.AWS_REGION ?? "ap-south-1",
   };
 
   // Explicitly check if both keys are present (non-null, non-undefined, non-empty)
