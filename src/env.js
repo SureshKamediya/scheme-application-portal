@@ -14,7 +14,7 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .default("development"),
     // AWS S3 Configuration
-    AWS_REGION: z.string().default("ap-south-1s"),
+    AWS_REGION: z.string().default("ap-south-1"),
     AWS_ACCESS_KEY_ID: z.string().optional(),
     AWS_SECRET_ACCESS_KEY: z.string().optional(),
     AWS_S3_BUCKET_NAME: z.string().optional(),
@@ -26,7 +26,7 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    // NEXT_PUBLIC_CLIENTVAR: z.string().default("default-client-var-value"),
   },
 
   /**

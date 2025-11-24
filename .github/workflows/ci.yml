@@ -13,13 +13,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    env:
-      # IMPORTANT: These must be configured as GitHub Secrets for the CI job.
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      AWS_REGION: ${{ secrets.SCHEME_AWS_REGION }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.SCHEME_AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.SCHEME_AWS_SECRET_ACCESS_KEY }}
-      AWS_S3_BUCKET_NAME: ${{ secrets.SCHEME_AWS_S3_BUCKET_NAME }}
+    # env:
+    #   # IMPORTANT: These must be configured as GitHub Secrets for the CI job.
+    #   DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    #   AWS_REGION: ${{ secrets.SCHEME_AWS_REGION }}
+    #   AWS_ACCESS_KEY_ID: ${{ secrets.SCHEME_AWS_ACCESS_KEY_ID }}
+    #   AWS_SECRET_ACCESS_KEY: ${{ secrets.SCHEME_AWS_SECRET_ACCESS_KEY }}
+    #   AWS_S3_BUCKET_NAME: ${{ secrets.SCHEME_AWS_S3_BUCKET_NAME }}
 
     steps:
       - name: Checkout Repository
@@ -42,4 +42,4 @@ jobs:
       #     npx prisma generate
 
       - name: Run Next.js Build
-        run: npm run build
+        run: SKIP_ENV_VALIDATION=1 npm run build

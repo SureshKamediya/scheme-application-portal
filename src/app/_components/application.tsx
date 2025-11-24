@@ -12,7 +12,7 @@ type FormState = {
   dob: string;
   id_type: string;
   id_number: string;
-  pan_number: string;
+  aadhar_number: string;
   permanent_address: string;
   permanent_address_pincode: string;
   postal_address: string;
@@ -20,21 +20,22 @@ type FormState = {
   email: string;
   annual_income: string;
   plot_category: string;
+  sub_category: string;
   registration_fees: string;
   processing_fees: string;
   total_payable_amount: string;
   payment_mode: string;
   dd_id_or_transaction_id: string;
   dd_date_or_transaction_date: string;
-  dd_amount: string;
-  payee_account_holder_name: string;
-  payee_bank_name: string;
+  dd_amount_or_transaction_amount: string;
+  payer_account_holder_name: string;
+  payer_bank_name: string;
   payment_proof: string;
-  refund_account_holder_name: string;
-  refund_account_number: string;
-  refund_bank_name: string;
-  refund_bank_branch_address: string;
-  refund_bank_ifsc: string;
+  applicant_account_holder_name: string;
+  applicant_account_number: string;
+  applicant_bank_name: string;
+  applicant_bank_branch_address: string;
+  applicant_bank_ifsc: string;
   scheme_id: number;
   scheme_name: string;
 };
@@ -57,7 +58,7 @@ export function ApplicationForm({
     dob: "",
     id_type: "",
     id_number: "",
-    pan_number: "",
+    aadhar_number: "",
     permanent_address: "",
     permanent_address_pincode: "",
     postal_address: "",
@@ -65,21 +66,22 @@ export function ApplicationForm({
     email: "",
     annual_income: "",
     plot_category: "",
+    sub_category: "",
     registration_fees: "",
     processing_fees: "",
     total_payable_amount: "",
     payment_mode: "",
     dd_id_or_transaction_id: "",
     dd_date_or_transaction_date: "",
-    dd_amount: "0.00",
-    payee_account_holder_name: "",
-    payee_bank_name: "",
+    dd_amount_or_transaction_amount: "0.00",
+    payer_account_holder_name: "",
+    payer_bank_name: "",
     payment_proof: "",
-    refund_account_holder_name: "",
-    refund_account_number: "",
-    refund_bank_name: "",
-    refund_bank_branch_address: "",
-    refund_bank_ifsc: "",
+    applicant_account_holder_name: "",
+    applicant_account_number: "",
+    applicant_bank_name: "",
+    applicant_bank_branch_address: "",
+    applicant_bank_ifsc: "",
     scheme_id: initialSchemeId,
     scheme_name: initialSchemeName
   });
@@ -124,7 +126,7 @@ export function ApplicationForm({
           });
 
           const uploadResult = await uploadPaymentProof.mutateAsync({
-            applicationId: application.application_number,
+            applicationNumber: application.application_number,
             schemeName: state.scheme_name,
             schemeId: state.scheme_id,
             filename: uploadedFile.name,
@@ -201,7 +203,7 @@ export function ApplicationForm({
       setErrors((prev) => ({ ...prev, payment_proof: "" }));
       setStatus({
         type: "success",
-        message: "Payment proof file selected. Will be uploaded after application submission.",
+        message: "Payment proof file selected.",
       });
     }
   };
@@ -213,7 +215,7 @@ export function ApplicationForm({
     const onlyAlphanumeric = /^[A-Za-z0-9\s]+$/;
     const mobileRegex = /^\d{10}$/;
     const pincodeRegex = /^\d{6}$/;
-    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+    const aadharRegex = /^\d{12}$/;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     
     if (currentStep === 0) {
@@ -255,10 +257,10 @@ export function ApplicationForm({
         newErrors.id_number = "ID number is too long-max 20 characters allowed";
       }
 
-      if (!state.pan_number.trim()) {
-        newErrors.pan_number = "PAN number is required";
-      } else if (!panRegex.test(state.pan_number.toUpperCase())) {
-        newErrors.pan_number = "Enter a valid PAN number (e.g., ABCDE1234F)";
+      if (!state.aadhar_number.trim()) {
+        newErrors.aadhar_number = "Aadhar number is required";
+      } else if (!aadharRegex.test(state.aadhar_number.toUpperCase())) {
+        newErrors.aadhar_number = "Enter a valid Aadhar number, it must be 12 digits";
       }
 
       if (!state.permanent_address.trim()) {
@@ -301,22 +303,22 @@ export function ApplicationForm({
         newErrors.dd_date_or_transaction_date = "DD/Transaction date is required";
       }
 
-      if (!state.dd_amount || Number(state.dd_amount) <= 0) {
-        newErrors.dd_amount = "Enter a valid payment amount";
-      } else if (Number(state.dd_amount) !== Number(state.total_payable_amount)) {
-        newErrors.dd_amount = `Payment amount must be ₹${state.total_payable_amount}`;
+      if (!state.dd_amount_or_transaction_amount || Number(state.dd_amount_or_transaction_amount) <= 0) {
+        newErrors.dd_amount_or_transaction_amount = "Enter a valid payment amount";
+      } else if (Number(state.dd_amount_or_transaction_amount) !== Number(state.total_payable_amount)) {
+        newErrors.dd_amount_or_transaction_amount = `Payment amount must be ₹${state.total_payable_amount}`;
       }
 
-      if (!state.payee_account_holder_name.trim()) {
-        newErrors.payee_account_holder_name = "Payer account holder name is required";
-      } else if (!onlyAlpha.test(state.payee_account_holder_name)) {
-        newErrors.payee_account_holder_name = "Payer account holder name should contain only letters";
+      if (!state.payer_account_holder_name.trim()) {
+        newErrors.payer_account_holder_name = "Payer account holder name is required";
+      } else if (!onlyAlpha.test(state.payer_account_holder_name)) {
+        newErrors.payer_account_holder_name = "Payer account holder name should contain only letters";
       }
 
-      if (!state.payee_bank_name.trim()) {
-        newErrors.payee_bank_name = "Payer bank name is required";
-      } else if (!onlyAlpha.test(state.payee_bank_name)) {
-        newErrors.payee_bank_name = "Payer bank name should contain only letters";
+      if (!state.payer_bank_name.trim()) {
+        newErrors.payer_bank_name = "Payer bank name is required";
+      } else if (!onlyAlpha.test(state.payer_bank_name)) {
+        newErrors.payer_bank_name = "Payer bank name should contain only letters";
       }
 
       if (!state.payment_proof.trim()) {
@@ -325,34 +327,34 @@ export function ApplicationForm({
     }
 
     if (currentStep === 2) {
-      if (!state.refund_account_holder_name.trim()) {
-        newErrors.refund_account_holder_name = "Refund account holder name is required";
-      } else if (!onlyAlpha.test(state.refund_account_holder_name)) {
-        newErrors.refund_account_holder_name = "Refund account holder name should contain only letters";
+      if (!state.applicant_account_holder_name.trim()) {
+        newErrors.applicant_account_holder_name = "Applicant account holder name is required";
+      } else if (!onlyAlpha.test(state.applicant_account_holder_name)) {
+        newErrors.applicant_account_holder_name = "Applicant account holder name should contain only letters";
       }
 
-      if (!state.refund_account_number.trim()) {
-        newErrors.refund_account_number = "Refund account number is required";
-      } else if (!onlyAlphanumeric.test(state.refund_account_number)) {
-        newErrors.refund_account_number = "Refund account number should be alphanumeric";
+      if (!state.applicant_account_number.trim()) {
+        newErrors.applicant_account_number = "Applicant account number is required";
+      } else if (!onlyAlphanumeric.test(state.applicant_account_number)) {
+        newErrors.applicant_account_number = "Applicant account number should be alphanumeric";
       }
 
-      if (!state.refund_bank_name.trim()) {
-        newErrors.refund_bank_name = "Refund bank name is required";
-      } else if (!onlyAlpha.test(state.refund_bank_name)) {
-        newErrors.refund_bank_name = "Refund bank name should contain only letters";
+      if (!state.applicant_bank_name.trim()) {
+        newErrors.applicant_bank_name = "Applicant bank name is required";
+      } else if (!onlyAlpha.test(state.applicant_bank_name)) {
+        newErrors.applicant_bank_name = "Applicant bank name should contain only letters";
       }
 
-      if (!state.refund_bank_branch_address.trim()) {
-        newErrors.refund_bank_branch_address = "Refund bank branch address is required";
+      if (!state.applicant_bank_branch_address.trim()) {
+        newErrors.applicant_bank_branch_address = "Applicant bank branch address is required";
       }
 
-      if (!state.refund_bank_ifsc.trim()) {
-        newErrors.refund_bank_ifsc = "Refund bank IFSC is required";
-      } else if (!onlyAlphanumeric.test(state.refund_bank_ifsc)) {
-        newErrors.refund_bank_ifsc = "Refund bank IFSC should be alphanumeric";
-      } else if(state.refund_bank_ifsc.trim().length > 11){
-        newErrors.refund_bank_ifsc = "Refund bank IFSC is too long-max 11 characters allowed";
+      if (!state.applicant_bank_ifsc.trim()) {
+        newErrors.applicant_bank_ifsc = "Applicant bank IFSC is required";
+      } else if (!onlyAlphanumeric.test(state.applicant_bank_ifsc)) {
+        newErrors.applicant_bank_ifsc = "Applicant bank IFSC should be alphanumeric";
+      } else if(state.applicant_bank_ifsc.trim().length > 11){
+        newErrors.applicant_bank_ifsc = "Applicant bank IFSC is too long-max 11 characters allowed";
       }
     }
 
@@ -411,7 +413,7 @@ export function ApplicationForm({
       registration_fees: state.registration_fees || "0.00",
       processing_fees: state.processing_fees || "0.00",
       total_payable_amount: state.total_payable_amount || "0.00",
-      dd_amount: state.dd_amount || "0.00",
+      dd_amount_or_transaction_amount: state.dd_amount_or_transaction_amount || "0.00",
     };
 
     try {
@@ -527,10 +529,10 @@ export function ApplicationForm({
                     className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
                   >
                     <option value="">Select</option>
-                    <option value="aadhaar">Aadhaar</option>
+                    <option value="aadhaar">Pan Card</option>
                     <option value="voter">Voter ID</option>
-                    <option value="passport">Passport</option>
                     <option value="driving">Driving License</option>
+                    <option value="rationCard">Ration Card</option>
                   </select>
                   {errors.id_type && (
                     <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.id_type}</p>
@@ -552,16 +554,16 @@ export function ApplicationForm({
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> PAN number</label>
+                  <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Aadhar number</label>
                   <input
-                    name="pan_number"
-                    value={state.pan_number}
+                    name="aadhar_number"
+                    value={state.aadhar_number}
                     onChange={onChange}
                     className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
-                    placeholder="PAN number"
+                    placeholder="Aadhar number"
                   />
-                  {errors.pan_number && (
-                    <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.pan_number}</p>
+                  {errors.aadhar_number && (
+                    <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.aadhar_number}</p>
                   )}
                 </div>
 
@@ -689,6 +691,35 @@ export function ApplicationForm({
                 </div>
 
                 <div>
+                  <label className="block text-xs sm:text-sm mb-1">Sub category</label>
+                  <select
+                    name="sub_category"
+                    value={state.sub_category}
+                    onChange={onChange}
+                    className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
+                  >
+                    <option value="">Select</option>
+                    <option value="unReserved">Un-Reserved</option>
+                    <option value="unReservedDestituteAndLandlessSingle">Un-Reserved(Destitute & Landless Single)</option>
+                    <option value="unReservedHandicapped">Un-Reserved Handicapped</option>
+                    <option value="governmentEmployees">Government Employees</option>
+                    <option value="journalist">Journalist</option>
+                    <option value="otherSoldiers">Other Soldiers(including ex-servicemen)</option>
+                    <option value="scheduledCaste">Scheduled Caste</option>
+                    <option value="scheduledTribe">Scheduled Tribe</option>
+                    <option value="soldierHandicapped">Soldier Handicapped</option>
+                    <option value="soldierWidowAndDependent">Soldier(Widow & Dependent)</option>
+                    <option value="transgender">Transgender</option>
+                  </select>
+                  {errors.id_type && (
+                    <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.id_type}</p>
+                  )}
+                  {errors.sub_category && (
+                    <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.sub_category}</p>
+                  )}
+                </div>
+
+                <div>
                   <label className="block text-xs sm:text-sm mb-1">Registration fees</label>
                   <p className="mt-1 text-xs sm:text-sm">₹{state.registration_fees || "-"}</p>
                 </div>
@@ -715,9 +746,7 @@ export function ApplicationForm({
                   >
                     <option value="">Select</option>
                     <option value="dd">DD</option>
-                    <option value="netbanking">Netbanking</option>
                     <option value="upi">UPI</option>
-                    <option value="card">Card</option>
                   </select>
                   {errors.payment_mode && (
                     <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.payment_mode}</p>
@@ -754,10 +783,10 @@ export function ApplicationForm({
                 <div>
                   <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Amount</label>
                   <input
-                    name="dd_amount"
+                    name="dd_amount_or_transaction_amount"
                     type="number"
                     step="0.01"
-                    value={state.dd_amount}
+                    value={state.dd_amount_or_transaction_amount}
                     onChange={onChange}
                     className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
                   />
@@ -769,26 +798,26 @@ export function ApplicationForm({
                 <div>
                   <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Payer account holder name</label>
                   <input
-                    name="payee_account_holder_name"
-                    value={state.payee_account_holder_name}
+                    name="payer_account_holder_name"
+                    value={state.payer_account_holder_name}
                     onChange={onChange}
                     className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
                   />
-                  {errors.payee_account_holder_name && (
-                    <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.payee_account_holder_name}</p>
+                  {errors.payer_account_holder_name && (
+                    <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.payer_account_holder_name}</p>
                   )}
                 </div>
 
                 <div>
                   <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Payer bank name</label>
                   <input
-                    name="payee_bank_name"
-                    value={state.payee_bank_name}
+                    name="payer_bank_name"
+                    value={state.payer_bank_name}
                     onChange={onChange}
                     className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
                   />
-                  {errors.payee_bank_name && (
-                    <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.payee_bank_name}</p>
+                  {errors.payer_bank_name && (
+                    <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.payer_bank_name}</p>
                   )}
                 </div>
 
@@ -828,65 +857,65 @@ export function ApplicationForm({
                 <div>
                   <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Account holder name</label>
                   <input
-                    name="refund_account_holder_name"
-                    value={state.refund_account_holder_name}
+                    name="applicant_account_holder_name"
+                    value={state.applicant_account_holder_name}
                     onChange={onChange}
                     className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
                   />
-                  {errors.refund_account_holder_name && (
-                    <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.refund_account_holder_name}</p>
+                  {errors.applicant_account_holder_name && (
+                    <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.applicant_account_holder_name}</p>
                   )}
                 </div>
 
                 <div>
                   <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Account number</label>
                   <input
-                    name="refund_account_number"
-                    value={state.refund_account_number}
+                    name="applicant_account_number"
+                    value={state.applicant_account_number}
                     onChange={onChange}
                     className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
                   />
-                  {errors.refund_account_number && (
-                    <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.refund_account_number}</p>
+                  {errors.applicant_account_number && (
+                    <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.applicant_account_number}</p>
                   )}
                 </div>
 
                 <div>
                   <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Bank name</label>
                   <input
-                    name="refund_bank_name"
-                    value={state.refund_bank_name}
+                    name="applicant_bank_name"
+                    value={state.applicant_bank_name}
                     onChange={onChange}
                     className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
                   />
-                  {errors.refund_bank_name && (
-                    <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.refund_bank_name}</p>
+                  {errors.applicant_bank_name && (
+                    <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.applicant_bank_name}</p>
                   )}
                 </div>
 
                 <div>
                   <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Bank branch address</label>
                   <input
-                    name="refund_bank_branch_address"
-                    value={state.refund_bank_branch_address}
+                    name="applicant_bank_branch_address"
+                    value={state.applicant_bank_branch_address}
                     onChange={onChange}
                     className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
                   />
-                  {errors.refund_bank_branch_address && (
-                    <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.refund_bank_branch_address}</p>
+                  {errors.applicant_bank_branch_address && (
+                    <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.applicant_bank_branch_address}</p>
                   )}
                 </div>
 
                 <div className="sm:col-span-2">
                   <label className="block text-xs sm:text-sm mb-1"><span className="text-red-500">*</span> Bank IFSC</label>
                   <input
-                    name="refund_bank_ifsc"
-                    value={state.refund_bank_ifsc}
+                    name="applicant_bank_ifsc"
+                    value={state.applicant_bank_ifsc}
                     onChange={onChange}
                     className="w-full border rounded px-2 sm:px-3 py-1.5 sm:py-2 text-sm"
                   />
-                  {errors.refund_bank_ifsc && (
-                    <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.refund_bank_ifsc}</p>
+                  {errors.applicant_bank_ifsc && (
+                    <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.applicant_bank_ifsc}</p>
                   )}
                 </div>
               </div>

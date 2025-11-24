@@ -1,5 +1,6 @@
-import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
+import { LambdaClient, InvokeCommand, type LambdaClientConfig } from "@aws-sdk/client-lambda";
 import type { PdfPayload } from "~/types/pdfPayload";
+import { env } from "~/env";
 
 export interface LambdaPdfResponse {
   statusCode: number;
@@ -26,6 +27,47 @@ export interface ExtractedPdfData {
   bucket: string;
 }
 
+// let lambdaClient: LambdaClient = null as unknown as LambdaClient;
+
+// if(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+//   console.log("AWS credentials found in environment variables. Using explicit credentials provider.");
+//   lambdaClient = new LambdaClient({
+//     region: process.env.AWS_REGION ?? "ap-south-1",
+//     credentials: {
+//       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+//       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+//     },
+//   });
+// } else{
+//   console.warn("AWS credentials not found in environment variables. Using default credentials provider.");
+//   lambdaClient = new LambdaClient({
+//     region: process.env.AWS_REGION ?? "ap-south-1",
+//   });
+// }
+
+function getLambdaClient(): LambdaClient {
+  const accessKey = env.AWS_ACCESS_KEY_ID;
+  const secretKey = env.AWS_SECRET_ACCESS_KEY;
+  
+  // Start with the basic configuration
+  const config: LambdaClientConfig = {
+    region: env.AWS_REGION ?? "ap-south-1",
+  };
+
+  // Explicitly check if both keys are present (non-null, non-undefined, non-empty)
+  if (accessKey && secretKey) {
+    console.log("Using explicit AWS credentials for Lambda client.");
+    config.credentials = {
+      accessKeyId: accessKey,
+      secretAccessKey: secretKey,
+    };
+  } 
+  // If keys are missing, the 'credentials' property is not added to the config, 
+  // and the SDK falls back to the IAM role or other provider chain methods.
+
+  return new LambdaClient(config);
+}
+
 /**
  * invokePdfGenerator - wrapper to invoke the PDF generator Lambda.
  * Uses AWS SDK v3 LambdaClient.
@@ -35,14 +77,6 @@ export interface ExtractedPdfData {
 export async function invokePdfGenerator(
   payload: PdfPayload,
 ): Promise<ExtractedPdfData> {
-  const client = new LambdaClient({
-    region: process.env.AWS_REGION ?? "ap-south-1",
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
-    },
-  });
-
   const functionName =
     process.env.LAMBDA_FUNCTION_NAME ??
     "application_acknowledgement_pdf_generator_2";
@@ -53,7 +87,9 @@ export async function invokePdfGenerator(
       Payload: JSON.stringify(payload),
     });
 
-    const result = await client.send(command);
+    const result = await getLambdaClient().send(command);
+
+    console.log(`Lambda invoked: ${functionName}, StatusCode: ${result.StatusCode}, Result: ${JSON.stringify(result)}`);
 
     // Parse the nested JSON response from Lambda
     let parsedBody: LambdaResponseBody | null = null;
@@ -68,6 +104,7 @@ export async function invokePdfGenerator(
       }
 
       if (typeof payloadData === "string") {
+        console.log("Parsing Lambda payload string:", payloadData);
         payloadData = JSON.parse(payloadData);
       }
 
@@ -83,7 +120,7 @@ export async function invokePdfGenerator(
           bodyContent = JSON.parse(bodyContent);
         }
 
-        parsedBody = payloadData as unknown as LambdaResponseBody;
+        parsedBody = bodyContent as LambdaResponseBody;
       }
     } catch (parseError) {
       console.error("Error parsing Lambda response:", parseError);
@@ -103,6 +140,6 @@ export async function invokePdfGenerator(
       bucket: parsedBody.responce.body.bucket,
     };
   } finally {
-    client.destroy();
+    getLambdaClient().destroy();
   }
 }

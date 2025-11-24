@@ -82,16 +82,16 @@ export function formatFileSize(bytes: number): string {
 
 /**
  * Generate a unique S3 key for the file
- * @param applicationId - Application ID from database
+ * @param applicationNumber - Application number from database
  * @param originalFilename - Original filename
  * @returns S3 object key
  */
 export function generateS3Key(
-  applicationId: number | string,
+  applicationNumber: number | string,
   originalFilename: string,
   schemeId: number | string
 ): string {
   const timestamp = Date.now();
   const ext = originalFilename.split(".").pop() ?? "bin";
-  return `applications/${schemeId}/${applicationId}/payment_proof_${timestamp}.${ext}`;
+  return `applications/${schemeId}/payment_proofs/payment_proofs_${schemeId}_${applicationNumber}_${timestamp}.${ext}`;
 }

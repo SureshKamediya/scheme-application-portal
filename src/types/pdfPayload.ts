@@ -12,6 +12,7 @@ export interface PdfPayload {
   id_type?: string;
   id_number?: string;
   pan_number?: string;
+  aadhar_number?: string;
   permanent_address?: string;
   permanent_address_pincode?: string;
   postal_address?: string;
@@ -26,12 +27,20 @@ export interface PdfPayload {
   dd_id_or_transaction_id?: string;
   dd_date_or_transaction_date?: string;
   dd_amount?: number;
+  dd_amount_or_transaction_amount?: number;
   payee_account_holder_name?: string;
   payee_bank_name?: string;
+  payer_account_holder_name?: string;
+  payer_bank_name?: string;
   refund_account_holder?: string;
   refund_account_number?: string;
   refund_bank_name?: string;
   refund_bank_ifsc?: string;
   refund_bank_branch_address?: string;
+  applicant_account_holder_name?: string;
+  applicant_account_number?: string;
+  applicant_bank_name?: string;
+  applicant_bank_ifsc?: string;
+  applicant_bank_branch_address?: string;
   print_date?: string;
 }

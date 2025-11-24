@@ -54,6 +54,7 @@ export function ApplicationDetails({
 
     try {
       // 1) Try to get stored PDF url from server
+      console.log("Attempting to download existing PDF...");
       const { downloadUrl } = await downloadPdfMutation.mutateAsync({
         mobile_number: application.mobile_number,
         application_number: application.application_number,
@@ -84,6 +85,7 @@ export function ApplicationDetails({
     }
 
     // 2) If not available, ask server to generate
+    console.log("PDF not found, requesting generation...");
     try {
       setStatus({
         type: "info",
@@ -118,7 +120,7 @@ export function ApplicationDetails({
         dob: dobString,
         id_type: fullApplication.id_type || "",
         id_number: fullApplication.id_number || "",
-        pan_number: fullApplication.pan_number || "",
+        aadhar_number: fullApplication.aadhar_number || "",
         permanent_address: fullApplication.permanent_address || "",
         permanent_address_pincode:
           fullApplication.permanent_address_pincode || "",
@@ -135,18 +137,18 @@ export function ApplicationDetails({
         payment_mode: fullApplication.payment_mode || "",
         dd_id_or_transaction_id: fullApplication.dd_id_or_transaction_id || "",
         dd_date_or_transaction_date: ddDateString,
-        dd_amount: fullApplication.dd_amount?.toString() || "0.00",
-        payee_account_holder_name:
-          fullApplication.payee_account_holder_name || "",
-        payee_bank_name: fullApplication.payee_bank_name || "",
+        dd_amount_or_transaction_amount: fullApplication.dd_amount_or_transaction_amount?.toString() || "0.00",
+        payer_account_holder_name:
+          fullApplication.payer_account_holder_name || "",
+        payer_bank_name: fullApplication.payer_bank_name || "",
         payment_status: fullApplication.payment_status || "pending",
-        refund_account_holder_name:
-          fullApplication.refund_account_holder_name || "",
-        refund_account_number: fullApplication.refund_account_number || "",
-        refund_bank_name: fullApplication.refund_bank_name || "",
-        refund_bank_branch_address:
-          fullApplication.refund_bank_branch_address || "",
-        refund_bank_ifsc: fullApplication.refund_bank_ifsc || "",
+        applicant_account_holder_name:
+          fullApplication.applicant_account_holder_name || "",
+        applicant_account_number: fullApplication.applicant_account_number || "",
+        applicant_bank_name: fullApplication.applicant_bank_name || "",
+        applicant_bank_branch_address:
+          fullApplication.applicant_bank_branch_address || "",
+        applicant_bank_ifsc: fullApplication.applicant_bank_ifsc || "",
         scheme_id: Number(fullApplication.scheme_id),
         application_id: applicationId,
       };
@@ -154,6 +156,7 @@ export function ApplicationDetails({
       await generatePdfMutation.mutateAsync(generatePayload);
 
       // 3) Retry download after generation (Lambda uploads to S3)
+      console.log("PDF generated, attempting to download...");
       setStatus({
         type: "info",
         message: "PDF generated, downloading...",
@@ -175,6 +178,7 @@ export function ApplicationDetails({
         return;
       }
 
+      console.error("PDF download URL missing after generation");
       // final fallback
       setStatus({
         type: "error",
@@ -266,7 +270,7 @@ export function ApplicationDetails({
             <p className="font-medium">{application.annual_income ?? "N/A"}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">Submission Date</p>
+            <p className="text-sm text-gray-600">Applciaiton Submission Date</p>
             <p className="font-medium">
               {application.application_submission_date
                 ? new Date(
@@ -286,7 +290,7 @@ export function ApplicationDetails({
             <p className="text-sm text-gray-600">Payment Mode</p>
             <p className="font-medium">{application.payment_mode ?? "N/A"}</p>
           </div>
-          <div>
+          {/* <div>
             <p className="text-sm text-gray-600">Payment Status</p>
             <p
               className={`font-medium ${
@@ -297,7 +301,7 @@ export function ApplicationDetails({
             >
               {application.payment_status ?? "N/A"}
             </p>
-          </div>
+          </div> */}
           <div>
             <p className="text-sm text-gray-600">Registration Fees</p>
             <p className="font-medium">

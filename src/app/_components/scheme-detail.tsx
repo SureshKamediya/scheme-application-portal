@@ -6,18 +6,17 @@ import { OTPForm } from "./otp";
 import Link from "next/link";
 import { ApplicationLookup } from "./applicationLookup";
 
-interface DocumentWithUrl {
+interface SchemeFile {
   id: bigint;
   name: string | null;
   file_choice: string;
   file: string | null;
-  url?: string | null;
 }
 
-interface DocumentUrlResult {
-  success: boolean;
-  url?: string;
-}
+type SchemeFileArray = SchemeFile[] | undefined;
+
+const S3_BUCKET = "scheme-application-files";
+const S3_REGION = "ap-south-1";
 
 export function SchemeDetail({ schemeId }: { schemeId: number }) {
   const [submittedApplicationData, setSubmittedApplicationData] = useState<{
@@ -27,10 +26,6 @@ export function SchemeDetail({ schemeId }: { schemeId: number }) {
     scheme_id: number;
   } | null>(null);
 
-  const [documentsWithUrls, setDocumentsWithUrls] = useState<DocumentWithUrl[]>(
-    [],
-  );
-
   const {
     data: scheme,
     isLoading,
@@ -39,46 +34,32 @@ export function SchemeDetail({ schemeId }: { schemeId: number }) {
     schemeId,
   });
 
-  // Fetch presigned URLs when scheme data loads
-  useEffect(() => {
-    const fetchDocumentUrls = async () => {
-      const files = scheme?.scheme_schemefiles ?? [];
-      if (files.length > 0 && documentsWithUrls.length === 0) {
-        const docsWithUrls = await Promise.all(
-          files.map(async (file: DocumentWithUrl) => {
-            try {
-              // Use tRPC client directly to query presigned URL
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-              const result = await (
-                api.scheme.getDocumentUrl as unknown as (input: {
-                  schemeId: number;
-                  documentId: number;
-                }) => Promise<DocumentUrlResult>
-              )({
-                schemeId,
-                documentId: Number(file.id),
-              });
-              return {
-                ...file,
-                url: result.success ? result.url : null,
-              };
-            } catch (err) {
-              console.error("Error fetching document URL:", err);
-              return {
-                ...file,
-                url: null,
-              };
-            }
-          }),
-        );
-        setDocumentsWithUrls(docsWithUrls);
-      }
-    };
-
-    void fetchDocumentUrls();
-  }, [scheme?.scheme_schemefiles, schemeId, documentsWithUrls.length]);
-
   const [showApplyForm, setShowApplyForm] = useState(false);
+  const [termsAndConditionsFileName, setTermsAndConditionsFileName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const schemeFiles: SchemeFileArray = scheme?.scheme_schemefiles ?? [];
+    if (schemeFiles.length > 0) {
+      // 2. Safely search for the terms document
+      const termsDoc = schemeFiles.find(
+        (file: SchemeFile) => {
+          const isMatchByName = file.name?.toLowerCase().includes("terms");
+          const isMatchByChoice = file.file_choice?.toLowerCase().includes("terms");
+          
+          return isMatchByName ?? isMatchByChoice;
+        }
+      );
+
+      const hasFileAndEnv = termsDoc?.file && S3_BUCKET && S3_REGION;   
+      if (hasFileAndEnv) {
+        const s3BaseUrl = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/`;
+        const fullS3Url = `${s3BaseUrl}${termsDoc.file}`;
+        setTermsAndConditionsFileName(fullS3Url);
+      } else {
+        setTermsAndConditionsFileName(null);
+      }
+    }
+  }, [scheme]);
 
   if (isLoading) {
     return (
@@ -112,7 +93,7 @@ export function SchemeDetail({ schemeId }: { schemeId: number }) {
         >
           ← Back to Scheme Details
         </button>
-        <OTPForm schemeId={Number(scheme.id)} schemeName={scheme.name} />
+        <OTPForm schemeId={Number(scheme.id)} schemeName={scheme.name}  termsAndConditionsFileName={termsAndConditionsFileName ?? ""}/>
       </div>
     );
   }
@@ -217,10 +198,10 @@ export function SchemeDetail({ schemeId }: { schemeId: number }) {
                       <p className="text-gray-900">{scheme.phone}</p>
                     </div>
                   )}
-                  {scheme.reserved_rate !== undefined && (
+                  {scheme.reserved_price !== undefined && (
                     <div>
-                      <p className="text-sm text-gray-600">Reserved Rate (%)</p>
-                      <p className="text-gray-900">{scheme.reserved_rate}%</p>
+                      <p className="text-sm text-gray-600">Reserved Price</p>
+                      <p className="text-gray-900">{scheme.reserved_price}</p>
                     </div>
                   )}
                 </div>
@@ -309,63 +290,52 @@ export function SchemeDetail({ schemeId }: { schemeId: number }) {
 
             {/* Right Column - Files */}
             <div>
-              {scheme.scheme_schemefiles &&
-              scheme.scheme_schemefiles.length > 0 ? (
+              {scheme.scheme_schemefiles && scheme.scheme_schemefiles.length > 0 ? (
                 <div className="sticky top-6 rounded-lg bg-white p-6 shadow-sm">
                   <h2 className="mb-4 text-xl font-semibold text-gray-900">
                     Scheme Documents
                   </h2>
                   <div className="space-y-3">
-                    {documentsWithUrls.length > 0
-                      ? documentsWithUrls.map((file) => (
-                          <div
-                            key={file.id}
-                            className="flex items-start gap-3 rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100"
-                          >
-                            <div className="text-2xl">📄</div>
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-medium text-gray-900">
-                                {file.name ?? file.file_choice}
-                              </p>
-                              <p className="mt-1 text-xs text-gray-500">
-                                {file.file_choice}
-                              </p>
-                              {file.url ? (
-                                <a
-                                  href={file.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="mt-2 inline-block text-xs text-blue-600 hover:text-blue-800"
-                                >
-                                  Download →
-                                </a>
-                              ) : (
-                                <p className="mt-2 text-xs text-gray-400">
-                                  Loading...
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        ))
-                      : scheme.scheme_schemefiles.map((file) => (
-                          <div
-                            key={file.id}
-                            className="flex items-start gap-3 rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100"
-                          >
-                            <div className="text-2xl">📄</div>
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-medium text-gray-900">
-                                {file.name ?? file.file_choice}
-                              </p>
-                              <p className="mt-1 text-xs text-gray-500">
-                                {file.file_choice}
-                              </p>
+                    {scheme.scheme_schemefiles.map((file: SchemeFile) => {
+                      
+                      let fullS3Url = "";
+
+                      // Check for existence before constructing the URL
+                      const hasFileAndEnv = file.file && S3_BUCKET && S3_REGION;
+
+                      if (hasFileAndEnv) {
+                        const s3BaseUrl = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/`;
+                        fullS3Url = `${s3BaseUrl}${file.file}`;
+                      }
+
+                      return (
+                        <div
+                          key={file.id}
+                          className="flex items-start gap-3 rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100"
+                        >
+                          <div className="text-2xl">📄</div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-gray-900">
+                              {file.name ?? file.file_choice}
+                            </p>
+                            {hasFileAndEnv ? (
+                              <a
+                                href={fullS3Url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mt-2 inline-block text-xs text-blue-600 hover:text-blue-800"
+                              >
+                                Download →
+                              </a>
+                            ) : (
                               <p className="mt-2 text-xs text-gray-400">
                                 Loading...
                               </p>
-                            </div>
+                            )}
                           </div>
-                        ))}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               ) : (

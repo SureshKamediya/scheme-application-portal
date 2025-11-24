@@ -13371,7 +13371,7 @@ export namespace Prisma {
     registration_fees: Decimal | null
     processing_fees: Decimal | null
     total_payable_amount: Decimal | null
-    dd_amount: Decimal | null
+    dd_amount_or_transaction_amount: Decimal | null
     scheme_id: number | null
     application_number: number | null
   }
@@ -13381,7 +13381,7 @@ export namespace Prisma {
     registration_fees: Decimal | null
     processing_fees: Decimal | null
     total_payable_amount: Decimal | null
-    dd_amount: Decimal | null
+    dd_amount_or_transaction_amount: Decimal | null
     scheme_id: bigint | null
     application_number: number | null
   }
@@ -13394,7 +13394,6 @@ export namespace Prisma {
     dob: Date | null
     id_type: string | null
     id_number: string | null
-    pan_number: string | null
     permanent_address: string | null
     permanent_address_pincode: string | null
     postal_address: string | null
@@ -13408,16 +13407,16 @@ export namespace Prisma {
     payment_mode: string | null
     dd_id_or_transaction_id: string | null
     dd_date_or_transaction_date: Date | null
-    dd_amount: Decimal | null
-    payee_account_holder_name: string | null
-    payee_bank_name: string | null
+    dd_amount_or_transaction_amount: Decimal | null
+    payer_account_holder_name: string | null
+    payer_bank_name: string | null
     payment_proof: string | null
     payment_status: string | null
-    refund_account_holder_name: string | null
-    refund_account_number: string | null
-    refund_bank_name: string | null
-    refund_bank_branch_address: string | null
-    refund_bank_ifsc: string | null
+    applicant_account_holder_name: string | null
+    applicant_account_number: string | null
+    applicant_bank_name: string | null
+    applicant_bank_branch_address: string | null
+    applicant_bank_ifsc: string | null
     application_submission_date: Date | null
     application_status: string | null
     rejection_remark: string | null
@@ -13427,6 +13426,8 @@ export namespace Prisma {
     updated_at: Date | null
     scheme_id: bigint | null
     application_number: number | null
+    aadhar_number: string | null
+    sub_category: string | null
   }
 
   export type Scheme_applicationMaxAggregateOutputType = {
@@ -13437,7 +13438,6 @@ export namespace Prisma {
     dob: Date | null
     id_type: string | null
     id_number: string | null
-    pan_number: string | null
     permanent_address: string | null
     permanent_address_pincode: string | null
     postal_address: string | null
@@ -13451,16 +13451,16 @@ export namespace Prisma {
     payment_mode: string | null
     dd_id_or_transaction_id: string | null
     dd_date_or_transaction_date: Date | null
-    dd_amount: Decimal | null
-    payee_account_holder_name: string | null
-    payee_bank_name: string | null
+    dd_amount_or_transaction_amount: Decimal | null
+    payer_account_holder_name: string | null
+    payer_bank_name: string | null
     payment_proof: string | null
     payment_status: string | null
-    refund_account_holder_name: string | null
-    refund_account_number: string | null
-    refund_bank_name: string | null
-    refund_bank_branch_address: string | null
-    refund_bank_ifsc: string | null
+    applicant_account_holder_name: string | null
+    applicant_account_number: string | null
+    applicant_bank_name: string | null
+    applicant_bank_branch_address: string | null
+    applicant_bank_ifsc: string | null
     application_submission_date: Date | null
     application_status: string | null
     rejection_remark: string | null
@@ -13470,6 +13470,8 @@ export namespace Prisma {
     updated_at: Date | null
     scheme_id: bigint | null
     application_number: number | null
+    aadhar_number: string | null
+    sub_category: string | null
   }
 
   export type Scheme_applicationCountAggregateOutputType = {
@@ -13480,7 +13482,6 @@ export namespace Prisma {
     dob: number
     id_type: number
     id_number: number
-    pan_number: number
     permanent_address: number
     permanent_address_pincode: number
     postal_address: number
@@ -13494,16 +13495,16 @@ export namespace Prisma {
     payment_mode: number
     dd_id_or_transaction_id: number
     dd_date_or_transaction_date: number
-    dd_amount: number
-    payee_account_holder_name: number
-    payee_bank_name: number
+    dd_amount_or_transaction_amount: number
+    payer_account_holder_name: number
+    payer_bank_name: number
     payment_proof: number
     payment_status: number
-    refund_account_holder_name: number
-    refund_account_number: number
-    refund_bank_name: number
-    refund_bank_branch_address: number
-    refund_bank_ifsc: number
+    applicant_account_holder_name: number
+    applicant_account_number: number
+    applicant_bank_name: number
+    applicant_bank_branch_address: number
+    applicant_bank_ifsc: number
     application_submission_date: number
     application_status: number
     rejection_remark: number
@@ -13513,6 +13514,8 @@ export namespace Prisma {
     updated_at: number
     scheme_id: number
     application_number: number
+    aadhar_number: number
+    sub_category: number
     _all: number
   }
 
@@ -13522,7 +13525,7 @@ export namespace Prisma {
     registration_fees?: true
     processing_fees?: true
     total_payable_amount?: true
-    dd_amount?: true
+    dd_amount_or_transaction_amount?: true
     scheme_id?: true
     application_number?: true
   }
@@ -13532,7 +13535,7 @@ export namespace Prisma {
     registration_fees?: true
     processing_fees?: true
     total_payable_amount?: true
-    dd_amount?: true
+    dd_amount_or_transaction_amount?: true
     scheme_id?: true
     application_number?: true
   }
@@ -13545,7 +13548,6 @@ export namespace Prisma {
     dob?: true
     id_type?: true
     id_number?: true
-    pan_number?: true
     permanent_address?: true
     permanent_address_pincode?: true
     postal_address?: true
@@ -13559,16 +13561,16 @@ export namespace Prisma {
     payment_mode?: true
     dd_id_or_transaction_id?: true
     dd_date_or_transaction_date?: true
-    dd_amount?: true
-    payee_account_holder_name?: true
-    payee_bank_name?: true
+    dd_amount_or_transaction_amount?: true
+    payer_account_holder_name?: true
+    payer_bank_name?: true
     payment_proof?: true
     payment_status?: true
-    refund_account_holder_name?: true
-    refund_account_number?: true
-    refund_bank_name?: true
-    refund_bank_branch_address?: true
-    refund_bank_ifsc?: true
+    applicant_account_holder_name?: true
+    applicant_account_number?: true
+    applicant_bank_name?: true
+    applicant_bank_branch_address?: true
+    applicant_bank_ifsc?: true
     application_submission_date?: true
     application_status?: true
     rejection_remark?: true
@@ -13578,6 +13580,8 @@ export namespace Prisma {
     updated_at?: true
     scheme_id?: true
     application_number?: true
+    aadhar_number?: true
+    sub_category?: true
   }
 
   export type Scheme_applicationMaxAggregateInputType = {
@@ -13588,7 +13592,6 @@ export namespace Prisma {
     dob?: true
     id_type?: true
     id_number?: true
-    pan_number?: true
     permanent_address?: true
     permanent_address_pincode?: true
     postal_address?: true
@@ -13602,16 +13605,16 @@ export namespace Prisma {
     payment_mode?: true
     dd_id_or_transaction_id?: true
     dd_date_or_transaction_date?: true
-    dd_amount?: true
-    payee_account_holder_name?: true
-    payee_bank_name?: true
+    dd_amount_or_transaction_amount?: true
+    payer_account_holder_name?: true
+    payer_bank_name?: true
     payment_proof?: true
     payment_status?: true
-    refund_account_holder_name?: true
-    refund_account_number?: true
-    refund_bank_name?: true
-    refund_bank_branch_address?: true
-    refund_bank_ifsc?: true
+    applicant_account_holder_name?: true
+    applicant_account_number?: true
+    applicant_bank_name?: true
+    applicant_bank_branch_address?: true
+    applicant_bank_ifsc?: true
     application_submission_date?: true
     application_status?: true
     rejection_remark?: true
@@ -13621,6 +13624,8 @@ export namespace Prisma {
     updated_at?: true
     scheme_id?: true
     application_number?: true
+    aadhar_number?: true
+    sub_category?: true
   }
 
   export type Scheme_applicationCountAggregateInputType = {
@@ -13631,7 +13636,6 @@ export namespace Prisma {
     dob?: true
     id_type?: true
     id_number?: true
-    pan_number?: true
     permanent_address?: true
     permanent_address_pincode?: true
     postal_address?: true
@@ -13645,16 +13649,16 @@ export namespace Prisma {
     payment_mode?: true
     dd_id_or_transaction_id?: true
     dd_date_or_transaction_date?: true
-    dd_amount?: true
-    payee_account_holder_name?: true
-    payee_bank_name?: true
+    dd_amount_or_transaction_amount?: true
+    payer_account_holder_name?: true
+    payer_bank_name?: true
     payment_proof?: true
     payment_status?: true
-    refund_account_holder_name?: true
-    refund_account_number?: true
-    refund_bank_name?: true
-    refund_bank_branch_address?: true
-    refund_bank_ifsc?: true
+    applicant_account_holder_name?: true
+    applicant_account_number?: true
+    applicant_bank_name?: true
+    applicant_bank_branch_address?: true
+    applicant_bank_ifsc?: true
     application_submission_date?: true
     application_status?: true
     rejection_remark?: true
@@ -13664,6 +13668,8 @@ export namespace Prisma {
     updated_at?: true
     scheme_id?: true
     application_number?: true
+    aadhar_number?: true
+    sub_category?: true
     _all?: true
   }
 
@@ -13761,7 +13767,6 @@ export namespace Prisma {
     dob: Date
     id_type: string
     id_number: string
-    pan_number: string
     permanent_address: string
     permanent_address_pincode: string
     postal_address: string
@@ -13775,16 +13780,16 @@ export namespace Prisma {
     payment_mode: string
     dd_id_or_transaction_id: string
     dd_date_or_transaction_date: Date
-    dd_amount: Decimal
-    payee_account_holder_name: string
-    payee_bank_name: string
+    dd_amount_or_transaction_amount: Decimal
+    payer_account_holder_name: string
+    payer_bank_name: string
     payment_proof: string
     payment_status: string
-    refund_account_holder_name: string
-    refund_account_number: string
-    refund_bank_name: string
-    refund_bank_branch_address: string
-    refund_bank_ifsc: string
+    applicant_account_holder_name: string
+    applicant_account_number: string
+    applicant_bank_name: string
+    applicant_bank_branch_address: string
+    applicant_bank_ifsc: string
     application_submission_date: Date
     application_status: string
     rejection_remark: string
@@ -13794,6 +13799,8 @@ export namespace Prisma {
     updated_at: Date
     scheme_id: bigint
     application_number: number
+    aadhar_number: string
+    sub_category: string
     _count: Scheme_applicationCountAggregateOutputType | null
     _avg: Scheme_applicationAvgAggregateOutputType | null
     _sum: Scheme_applicationSumAggregateOutputType | null
@@ -13823,7 +13830,6 @@ export namespace Prisma {
     dob?: boolean
     id_type?: boolean
     id_number?: boolean
-    pan_number?: boolean
     permanent_address?: boolean
     permanent_address_pincode?: boolean
     postal_address?: boolean
@@ -13837,16 +13843,16 @@ export namespace Prisma {
     payment_mode?: boolean
     dd_id_or_transaction_id?: boolean
     dd_date_or_transaction_date?: boolean
-    dd_amount?: boolean
-    payee_account_holder_name?: boolean
-    payee_bank_name?: boolean
+    dd_amount_or_transaction_amount?: boolean
+    payer_account_holder_name?: boolean
+    payer_bank_name?: boolean
     payment_proof?: boolean
     payment_status?: boolean
-    refund_account_holder_name?: boolean
-    refund_account_number?: boolean
-    refund_bank_name?: boolean
-    refund_bank_branch_address?: boolean
-    refund_bank_ifsc?: boolean
+    applicant_account_holder_name?: boolean
+    applicant_account_number?: boolean
+    applicant_bank_name?: boolean
+    applicant_bank_branch_address?: boolean
+    applicant_bank_ifsc?: boolean
     application_submission_date?: boolean
     application_status?: boolean
     rejection_remark?: boolean
@@ -13856,6 +13862,8 @@ export namespace Prisma {
     updated_at?: boolean
     scheme_id?: boolean
     application_number?: boolean
+    aadhar_number?: boolean
+    sub_category?: boolean
     scheme_scheme?: boolean | scheme_schemeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["scheme_application"]>
 
@@ -13867,7 +13875,6 @@ export namespace Prisma {
     dob?: boolean
     id_type?: boolean
     id_number?: boolean
-    pan_number?: boolean
     permanent_address?: boolean
     permanent_address_pincode?: boolean
     postal_address?: boolean
@@ -13881,16 +13888,16 @@ export namespace Prisma {
     payment_mode?: boolean
     dd_id_or_transaction_id?: boolean
     dd_date_or_transaction_date?: boolean
-    dd_amount?: boolean
-    payee_account_holder_name?: boolean
-    payee_bank_name?: boolean
+    dd_amount_or_transaction_amount?: boolean
+    payer_account_holder_name?: boolean
+    payer_bank_name?: boolean
     payment_proof?: boolean
     payment_status?: boolean
-    refund_account_holder_name?: boolean
-    refund_account_number?: boolean
-    refund_bank_name?: boolean
-    refund_bank_branch_address?: boolean
-    refund_bank_ifsc?: boolean
+    applicant_account_holder_name?: boolean
+    applicant_account_number?: boolean
+    applicant_bank_name?: boolean
+    applicant_bank_branch_address?: boolean
+    applicant_bank_ifsc?: boolean
     application_submission_date?: boolean
     application_status?: boolean
     rejection_remark?: boolean
@@ -13900,6 +13907,8 @@ export namespace Prisma {
     updated_at?: boolean
     scheme_id?: boolean
     application_number?: boolean
+    aadhar_number?: boolean
+    sub_category?: boolean
     scheme_scheme?: boolean | scheme_schemeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["scheme_application"]>
 
@@ -13911,7 +13920,6 @@ export namespace Prisma {
     dob?: boolean
     id_type?: boolean
     id_number?: boolean
-    pan_number?: boolean
     permanent_address?: boolean
     permanent_address_pincode?: boolean
     postal_address?: boolean
@@ -13925,16 +13933,16 @@ export namespace Prisma {
     payment_mode?: boolean
     dd_id_or_transaction_id?: boolean
     dd_date_or_transaction_date?: boolean
-    dd_amount?: boolean
-    payee_account_holder_name?: boolean
-    payee_bank_name?: boolean
+    dd_amount_or_transaction_amount?: boolean
+    payer_account_holder_name?: boolean
+    payer_bank_name?: boolean
     payment_proof?: boolean
     payment_status?: boolean
-    refund_account_holder_name?: boolean
-    refund_account_number?: boolean
-    refund_bank_name?: boolean
-    refund_bank_branch_address?: boolean
-    refund_bank_ifsc?: boolean
+    applicant_account_holder_name?: boolean
+    applicant_account_number?: boolean
+    applicant_bank_name?: boolean
+    applicant_bank_branch_address?: boolean
+    applicant_bank_ifsc?: boolean
     application_submission_date?: boolean
     application_status?: boolean
     rejection_remark?: boolean
@@ -13944,6 +13952,8 @@ export namespace Prisma {
     updated_at?: boolean
     scheme_id?: boolean
     application_number?: boolean
+    aadhar_number?: boolean
+    sub_category?: boolean
     scheme_scheme?: boolean | scheme_schemeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["scheme_application"]>
 
@@ -13955,7 +13965,6 @@ export namespace Prisma {
     dob?: boolean
     id_type?: boolean
     id_number?: boolean
-    pan_number?: boolean
     permanent_address?: boolean
     permanent_address_pincode?: boolean
     postal_address?: boolean
@@ -13969,16 +13978,16 @@ export namespace Prisma {
     payment_mode?: boolean
     dd_id_or_transaction_id?: boolean
     dd_date_or_transaction_date?: boolean
-    dd_amount?: boolean
-    payee_account_holder_name?: boolean
-    payee_bank_name?: boolean
+    dd_amount_or_transaction_amount?: boolean
+    payer_account_holder_name?: boolean
+    payer_bank_name?: boolean
     payment_proof?: boolean
     payment_status?: boolean
-    refund_account_holder_name?: boolean
-    refund_account_number?: boolean
-    refund_bank_name?: boolean
-    refund_bank_branch_address?: boolean
-    refund_bank_ifsc?: boolean
+    applicant_account_holder_name?: boolean
+    applicant_account_number?: boolean
+    applicant_bank_name?: boolean
+    applicant_bank_branch_address?: boolean
+    applicant_bank_ifsc?: boolean
     application_submission_date?: boolean
     application_status?: boolean
     rejection_remark?: boolean
@@ -13988,9 +13997,11 @@ export namespace Prisma {
     updated_at?: boolean
     scheme_id?: boolean
     application_number?: boolean
+    aadhar_number?: boolean
+    sub_category?: boolean
   }
 
-  export type scheme_applicationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "mobile_number" | "applicant_name" | "father_or_husband_name" | "dob" | "id_type" | "id_number" | "pan_number" | "permanent_address" | "permanent_address_pincode" | "postal_address" | "postal_address_pincode" | "email" | "annual_income" | "plot_category" | "registration_fees" | "processing_fees" | "total_payable_amount" | "payment_mode" | "dd_id_or_transaction_id" | "dd_date_or_transaction_date" | "dd_amount" | "payee_account_holder_name" | "payee_bank_name" | "payment_proof" | "payment_status" | "refund_account_holder_name" | "refund_account_number" | "refund_bank_name" | "refund_bank_branch_address" | "refund_bank_ifsc" | "application_submission_date" | "application_status" | "rejection_remark" | "lottery_status" | "application_pdf" | "created_at" | "updated_at" | "scheme_id" | "application_number", ExtArgs["result"]["scheme_application"]>
+  export type scheme_applicationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "mobile_number" | "applicant_name" | "father_or_husband_name" | "dob" | "id_type" | "id_number" | "permanent_address" | "permanent_address_pincode" | "postal_address" | "postal_address_pincode" | "email" | "annual_income" | "plot_category" | "registration_fees" | "processing_fees" | "total_payable_amount" | "payment_mode" | "dd_id_or_transaction_id" | "dd_date_or_transaction_date" | "dd_amount_or_transaction_amount" | "payer_account_holder_name" | "payer_bank_name" | "payment_proof" | "payment_status" | "applicant_account_holder_name" | "applicant_account_number" | "applicant_bank_name" | "applicant_bank_branch_address" | "applicant_bank_ifsc" | "application_submission_date" | "application_status" | "rejection_remark" | "lottery_status" | "application_pdf" | "created_at" | "updated_at" | "scheme_id" | "application_number" | "aadhar_number" | "sub_category", ExtArgs["result"]["scheme_application"]>
   export type scheme_applicationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     scheme_scheme?: boolean | scheme_schemeDefaultArgs<ExtArgs>
   }
@@ -14014,7 +14025,6 @@ export namespace Prisma {
       dob: Date
       id_type: string
       id_number: string
-      pan_number: string
       permanent_address: string
       permanent_address_pincode: string
       postal_address: string
@@ -14028,16 +14038,16 @@ export namespace Prisma {
       payment_mode: string
       dd_id_or_transaction_id: string
       dd_date_or_transaction_date: Date
-      dd_amount: Prisma.Decimal
-      payee_account_holder_name: string
-      payee_bank_name: string
+      dd_amount_or_transaction_amount: Prisma.Decimal
+      payer_account_holder_name: string
+      payer_bank_name: string
       payment_proof: string
       payment_status: string
-      refund_account_holder_name: string
-      refund_account_number: string
-      refund_bank_name: string
-      refund_bank_branch_address: string
-      refund_bank_ifsc: string
+      applicant_account_holder_name: string
+      applicant_account_number: string
+      applicant_bank_name: string
+      applicant_bank_branch_address: string
+      applicant_bank_ifsc: string
       application_submission_date: Date
       application_status: string
       rejection_remark: string
@@ -14047,6 +14057,8 @@ export namespace Prisma {
       updated_at: Date
       scheme_id: bigint
       application_number: number
+      aadhar_number: string
+      sub_category: string
     }, ExtArgs["result"]["scheme_application"]>
     composites: {}
   }
@@ -14478,7 +14490,6 @@ export namespace Prisma {
     readonly dob: FieldRef<"scheme_application", 'DateTime'>
     readonly id_type: FieldRef<"scheme_application", 'String'>
     readonly id_number: FieldRef<"scheme_application", 'String'>
-    readonly pan_number: FieldRef<"scheme_application", 'String'>
     readonly permanent_address: FieldRef<"scheme_application", 'String'>
     readonly permanent_address_pincode: FieldRef<"scheme_application", 'String'>
     readonly postal_address: FieldRef<"scheme_application", 'String'>
@@ -14492,16 +14503,16 @@ export namespace Prisma {
     readonly payment_mode: FieldRef<"scheme_application", 'String'>
     readonly dd_id_or_transaction_id: FieldRef<"scheme_application", 'String'>
     readonly dd_date_or_transaction_date: FieldRef<"scheme_application", 'DateTime'>
-    readonly dd_amount: FieldRef<"scheme_application", 'Decimal'>
-    readonly payee_account_holder_name: FieldRef<"scheme_application", 'String'>
-    readonly payee_bank_name: FieldRef<"scheme_application", 'String'>
+    readonly dd_amount_or_transaction_amount: FieldRef<"scheme_application", 'Decimal'>
+    readonly payer_account_holder_name: FieldRef<"scheme_application", 'String'>
+    readonly payer_bank_name: FieldRef<"scheme_application", 'String'>
     readonly payment_proof: FieldRef<"scheme_application", 'String'>
     readonly payment_status: FieldRef<"scheme_application", 'String'>
-    readonly refund_account_holder_name: FieldRef<"scheme_application", 'String'>
-    readonly refund_account_number: FieldRef<"scheme_application", 'String'>
-    readonly refund_bank_name: FieldRef<"scheme_application", 'String'>
-    readonly refund_bank_branch_address: FieldRef<"scheme_application", 'String'>
-    readonly refund_bank_ifsc: FieldRef<"scheme_application", 'String'>
+    readonly applicant_account_holder_name: FieldRef<"scheme_application", 'String'>
+    readonly applicant_account_number: FieldRef<"scheme_application", 'String'>
+    readonly applicant_bank_name: FieldRef<"scheme_application", 'String'>
+    readonly applicant_bank_branch_address: FieldRef<"scheme_application", 'String'>
+    readonly applicant_bank_ifsc: FieldRef<"scheme_application", 'String'>
     readonly application_submission_date: FieldRef<"scheme_application", 'DateTime'>
     readonly application_status: FieldRef<"scheme_application", 'String'>
     readonly rejection_remark: FieldRef<"scheme_application", 'String'>
@@ -14511,6 +14522,8 @@ export namespace Prisma {
     readonly updated_at: FieldRef<"scheme_application", 'DateTime'>
     readonly scheme_id: FieldRef<"scheme_application", 'BigInt'>
     readonly application_number: FieldRef<"scheme_application", 'Int'>
+    readonly aadhar_number: FieldRef<"scheme_application", 'String'>
+    readonly sub_category: FieldRef<"scheme_application", 'String'>
   }
     
 
@@ -14941,18 +14954,18 @@ export namespace Prisma {
     id: number | null
     Lig_plot_count: number | null
     ews_plot_count: number | null
-    reserved_rate: number | null
     next_application_number: number | null
     application_number_start: number | null
+    reserved_price: number | null
   }
 
   export type Scheme_schemeSumAggregateOutputType = {
     id: bigint | null
     Lig_plot_count: number | null
     ews_plot_count: number | null
-    reserved_rate: number | null
     next_application_number: number | null
     application_number_start: number | null
+    reserved_price: number | null
   }
 
   export type Scheme_schemeMinAggregateOutputType = {
@@ -14970,9 +14983,9 @@ export namespace Prisma {
     company: string | null
     Lig_plot_count: number | null
     ews_plot_count: number | null
-    reserved_rate: number | null
     next_application_number: number | null
     application_number_start: number | null
+    reserved_price: number | null
   }
 
   export type Scheme_schemeMaxAggregateOutputType = {
@@ -14990,9 +15003,9 @@ export namespace Prisma {
     company: string | null
     Lig_plot_count: number | null
     ews_plot_count: number | null
-    reserved_rate: number | null
     next_application_number: number | null
     application_number_start: number | null
+    reserved_price: number | null
   }
 
   export type Scheme_schemeCountAggregateOutputType = {
@@ -15010,9 +15023,9 @@ export namespace Prisma {
     company: number
     Lig_plot_count: number
     ews_plot_count: number
-    reserved_rate: number
     next_application_number: number
     application_number_start: number
+    reserved_price: number
     _all: number
   }
 
@@ -15021,18 +15034,18 @@ export namespace Prisma {
     id?: true
     Lig_plot_count?: true
     ews_plot_count?: true
-    reserved_rate?: true
     next_application_number?: true
     application_number_start?: true
+    reserved_price?: true
   }
 
   export type Scheme_schemeSumAggregateInputType = {
     id?: true
     Lig_plot_count?: true
     ews_plot_count?: true
-    reserved_rate?: true
     next_application_number?: true
     application_number_start?: true
+    reserved_price?: true
   }
 
   export type Scheme_schemeMinAggregateInputType = {
@@ -15050,9 +15063,9 @@ export namespace Prisma {
     company?: true
     Lig_plot_count?: true
     ews_plot_count?: true
-    reserved_rate?: true
     next_application_number?: true
     application_number_start?: true
+    reserved_price?: true
   }
 
   export type Scheme_schemeMaxAggregateInputType = {
@@ -15070,9 +15083,9 @@ export namespace Prisma {
     company?: true
     Lig_plot_count?: true
     ews_plot_count?: true
-    reserved_rate?: true
     next_application_number?: true
     application_number_start?: true
+    reserved_price?: true
   }
 
   export type Scheme_schemeCountAggregateInputType = {
@@ -15090,9 +15103,9 @@ export namespace Prisma {
     company?: true
     Lig_plot_count?: true
     ews_plot_count?: true
-    reserved_rate?: true
     next_application_number?: true
     application_number_start?: true
+    reserved_price?: true
     _all?: true
   }
 
@@ -15197,9 +15210,9 @@ export namespace Prisma {
     company: string
     Lig_plot_count: number
     ews_plot_count: number
-    reserved_rate: number
     next_application_number: number
     application_number_start: number
+    reserved_price: number
     _count: Scheme_schemeCountAggregateOutputType | null
     _avg: Scheme_schemeAvgAggregateOutputType | null
     _sum: Scheme_schemeSumAggregateOutputType | null
@@ -15236,9 +15249,9 @@ export namespace Prisma {
     company?: boolean
     Lig_plot_count?: boolean
     ews_plot_count?: boolean
-    reserved_rate?: boolean
     next_application_number?: boolean
     application_number_start?: boolean
+    reserved_price?: boolean
     scheme_application?: boolean | scheme_scheme$scheme_applicationArgs<ExtArgs>
     scheme_schemefiles?: boolean | scheme_scheme$scheme_schemefilesArgs<ExtArgs>
     _count?: boolean | Scheme_schemeCountOutputTypeDefaultArgs<ExtArgs>
@@ -15259,9 +15272,9 @@ export namespace Prisma {
     company?: boolean
     Lig_plot_count?: boolean
     ews_plot_count?: boolean
-    reserved_rate?: boolean
     next_application_number?: boolean
     application_number_start?: boolean
+    reserved_price?: boolean
   }, ExtArgs["result"]["scheme_scheme"]>
 
   export type scheme_schemeSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -15279,9 +15292,9 @@ export namespace Prisma {
     company?: boolean
     Lig_plot_count?: boolean
     ews_plot_count?: boolean
-    reserved_rate?: boolean
     next_application_number?: boolean
     application_number_start?: boolean
+    reserved_price?: boolean
   }, ExtArgs["result"]["scheme_scheme"]>
 
   export type scheme_schemeSelectScalar = {
@@ -15299,12 +15312,12 @@ export namespace Prisma {
     company?: boolean
     Lig_plot_count?: boolean
     ews_plot_count?: boolean
-    reserved_rate?: boolean
     next_application_number?: boolean
     application_number_start?: boolean
+    reserved_price?: boolean
   }
 
-  export type scheme_schemeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "address" | "phone" | "appeal_end_date" | "application_close_date" | "application_open_date" | "close_date" | "created_at" | "lottery_result_date" | "successful_applicants_publish_date" | "company" | "Lig_plot_count" | "ews_plot_count" | "reserved_rate" | "next_application_number" | "application_number_start", ExtArgs["result"]["scheme_scheme"]>
+  export type scheme_schemeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "address" | "phone" | "appeal_end_date" | "application_close_date" | "application_open_date" | "close_date" | "created_at" | "lottery_result_date" | "successful_applicants_publish_date" | "company" | "Lig_plot_count" | "ews_plot_count" | "next_application_number" | "application_number_start" | "reserved_price", ExtArgs["result"]["scheme_scheme"]>
   export type scheme_schemeInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     scheme_application?: boolean | scheme_scheme$scheme_applicationArgs<ExtArgs>
     scheme_schemefiles?: boolean | scheme_scheme$scheme_schemefilesArgs<ExtArgs>
@@ -15334,9 +15347,9 @@ export namespace Prisma {
       company: string
       Lig_plot_count: number
       ews_plot_count: number
-      reserved_rate: number
       next_application_number: number
       application_number_start: number
+      reserved_price: number
     }, ExtArgs["result"]["scheme_scheme"]>
     composites: {}
   }
@@ -15776,9 +15789,9 @@ export namespace Prisma {
     readonly company: FieldRef<"scheme_scheme", 'String'>
     readonly Lig_plot_count: FieldRef<"scheme_scheme", 'Int'>
     readonly ews_plot_count: FieldRef<"scheme_scheme", 'Int'>
-    readonly reserved_rate: FieldRef<"scheme_scheme", 'Int'>
     readonly next_application_number: FieldRef<"scheme_scheme", 'Int'>
     readonly application_number_start: FieldRef<"scheme_scheme", 'Int'>
+    readonly reserved_price: FieldRef<"scheme_scheme", 'Int'>
   }
     
 
@@ -19676,7 +19689,6 @@ export namespace Prisma {
     dob: 'dob',
     id_type: 'id_type',
     id_number: 'id_number',
-    pan_number: 'pan_number',
     permanent_address: 'permanent_address',
     permanent_address_pincode: 'permanent_address_pincode',
     postal_address: 'postal_address',
@@ -19690,16 +19702,16 @@ export namespace Prisma {
     payment_mode: 'payment_mode',
     dd_id_or_transaction_id: 'dd_id_or_transaction_id',
     dd_date_or_transaction_date: 'dd_date_or_transaction_date',
-    dd_amount: 'dd_amount',
-    payee_account_holder_name: 'payee_account_holder_name',
-    payee_bank_name: 'payee_bank_name',
+    dd_amount_or_transaction_amount: 'dd_amount_or_transaction_amount',
+    payer_account_holder_name: 'payer_account_holder_name',
+    payer_bank_name: 'payer_bank_name',
     payment_proof: 'payment_proof',
     payment_status: 'payment_status',
-    refund_account_holder_name: 'refund_account_holder_name',
-    refund_account_number: 'refund_account_number',
-    refund_bank_name: 'refund_bank_name',
-    refund_bank_branch_address: 'refund_bank_branch_address',
-    refund_bank_ifsc: 'refund_bank_ifsc',
+    applicant_account_holder_name: 'applicant_account_holder_name',
+    applicant_account_number: 'applicant_account_number',
+    applicant_bank_name: 'applicant_bank_name',
+    applicant_bank_branch_address: 'applicant_bank_branch_address',
+    applicant_bank_ifsc: 'applicant_bank_ifsc',
     application_submission_date: 'application_submission_date',
     application_status: 'application_status',
     rejection_remark: 'rejection_remark',
@@ -19708,7 +19720,9 @@ export namespace Prisma {
     created_at: 'created_at',
     updated_at: 'updated_at',
     scheme_id: 'scheme_id',
-    application_number: 'application_number'
+    application_number: 'application_number',
+    aadhar_number: 'aadhar_number',
+    sub_category: 'sub_category'
   };
 
   export type Scheme_applicationScalarFieldEnum = (typeof Scheme_applicationScalarFieldEnum)[keyof typeof Scheme_applicationScalarFieldEnum]
@@ -19729,9 +19743,9 @@ export namespace Prisma {
     company: 'company',
     Lig_plot_count: 'Lig_plot_count',
     ews_plot_count: 'ews_plot_count',
-    reserved_rate: 'reserved_rate',
     next_application_number: 'next_application_number',
-    application_number_start: 'application_number_start'
+    application_number_start: 'application_number_start',
+    reserved_price: 'reserved_price'
   };
 
   export type Scheme_schemeScalarFieldEnum = (typeof Scheme_schemeScalarFieldEnum)[keyof typeof Scheme_schemeScalarFieldEnum]
@@ -20507,7 +20521,6 @@ export namespace Prisma {
     dob?: DateTimeFilter<"scheme_application"> | Date | string
     id_type?: StringFilter<"scheme_application"> | string
     id_number?: StringFilter<"scheme_application"> | string
-    pan_number?: StringFilter<"scheme_application"> | string
     permanent_address?: StringFilter<"scheme_application"> | string
     permanent_address_pincode?: StringFilter<"scheme_application"> | string
     postal_address?: StringFilter<"scheme_application"> | string
@@ -20521,16 +20534,16 @@ export namespace Prisma {
     payment_mode?: StringFilter<"scheme_application"> | string
     dd_id_or_transaction_id?: StringFilter<"scheme_application"> | string
     dd_date_or_transaction_date?: DateTimeFilter<"scheme_application"> | Date | string
-    dd_amount?: DecimalFilter<"scheme_application"> | Decimal | DecimalJsLike | number | string
-    payee_account_holder_name?: StringFilter<"scheme_application"> | string
-    payee_bank_name?: StringFilter<"scheme_application"> | string
+    dd_amount_or_transaction_amount?: DecimalFilter<"scheme_application"> | Decimal | DecimalJsLike | number | string
+    payer_account_holder_name?: StringFilter<"scheme_application"> | string
+    payer_bank_name?: StringFilter<"scheme_application"> | string
     payment_proof?: StringFilter<"scheme_application"> | string
     payment_status?: StringFilter<"scheme_application"> | string
-    refund_account_holder_name?: StringFilter<"scheme_application"> | string
-    refund_account_number?: StringFilter<"scheme_application"> | string
-    refund_bank_name?: StringFilter<"scheme_application"> | string
-    refund_bank_branch_address?: StringFilter<"scheme_application"> | string
-    refund_bank_ifsc?: StringFilter<"scheme_application"> | string
+    applicant_account_holder_name?: StringFilter<"scheme_application"> | string
+    applicant_account_number?: StringFilter<"scheme_application"> | string
+    applicant_bank_name?: StringFilter<"scheme_application"> | string
+    applicant_bank_branch_address?: StringFilter<"scheme_application"> | string
+    applicant_bank_ifsc?: StringFilter<"scheme_application"> | string
     application_submission_date?: DateTimeFilter<"scheme_application"> | Date | string
     application_status?: StringFilter<"scheme_application"> | string
     rejection_remark?: StringFilter<"scheme_application"> | string
@@ -20540,6 +20553,8 @@ export namespace Prisma {
     updated_at?: DateTimeFilter<"scheme_application"> | Date | string
     scheme_id?: BigIntFilter<"scheme_application"> | bigint | number
     application_number?: IntFilter<"scheme_application"> | number
+    aadhar_number?: StringFilter<"scheme_application"> | string
+    sub_category?: StringFilter<"scheme_application"> | string
     scheme_scheme?: XOR<Scheme_schemeScalarRelationFilter, scheme_schemeWhereInput>
   }
 
@@ -20551,7 +20566,6 @@ export namespace Prisma {
     dob?: SortOrder
     id_type?: SortOrder
     id_number?: SortOrder
-    pan_number?: SortOrder
     permanent_address?: SortOrder
     permanent_address_pincode?: SortOrder
     postal_address?: SortOrder
@@ -20565,16 +20579,16 @@ export namespace Prisma {
     payment_mode?: SortOrder
     dd_id_or_transaction_id?: SortOrder
     dd_date_or_transaction_date?: SortOrder
-    dd_amount?: SortOrder
-    payee_account_holder_name?: SortOrder
-    payee_bank_name?: SortOrder
+    dd_amount_or_transaction_amount?: SortOrder
+    payer_account_holder_name?: SortOrder
+    payer_bank_name?: SortOrder
     payment_proof?: SortOrder
     payment_status?: SortOrder
-    refund_account_holder_name?: SortOrder
-    refund_account_number?: SortOrder
-    refund_bank_name?: SortOrder
-    refund_bank_branch_address?: SortOrder
-    refund_bank_ifsc?: SortOrder
+    applicant_account_holder_name?: SortOrder
+    applicant_account_number?: SortOrder
+    applicant_bank_name?: SortOrder
+    applicant_bank_branch_address?: SortOrder
+    applicant_bank_ifsc?: SortOrder
     application_submission_date?: SortOrder
     application_status?: SortOrder
     rejection_remark?: SortOrder
@@ -20584,13 +20598,15 @@ export namespace Prisma {
     updated_at?: SortOrder
     scheme_id?: SortOrder
     application_number?: SortOrder
+    aadhar_number?: SortOrder
+    sub_category?: SortOrder
     scheme_scheme?: scheme_schemeOrderByWithRelationInput
   }
 
   export type scheme_applicationWhereUniqueInput = Prisma.AtLeast<{
     id?: bigint | number
-    application_number?: number
     scheme_id_mobile_number?: scheme_applicationScheme_idMobile_numberCompoundUniqueInput
+    scheme_id_application_number?: scheme_applicationScheme_idApplication_numberCompoundUniqueInput
     AND?: scheme_applicationWhereInput | scheme_applicationWhereInput[]
     OR?: scheme_applicationWhereInput[]
     NOT?: scheme_applicationWhereInput | scheme_applicationWhereInput[]
@@ -20600,7 +20616,6 @@ export namespace Prisma {
     dob?: DateTimeFilter<"scheme_application"> | Date | string
     id_type?: StringFilter<"scheme_application"> | string
     id_number?: StringFilter<"scheme_application"> | string
-    pan_number?: StringFilter<"scheme_application"> | string
     permanent_address?: StringFilter<"scheme_application"> | string
     permanent_address_pincode?: StringFilter<"scheme_application"> | string
     postal_address?: StringFilter<"scheme_application"> | string
@@ -20614,16 +20629,16 @@ export namespace Prisma {
     payment_mode?: StringFilter<"scheme_application"> | string
     dd_id_or_transaction_id?: StringFilter<"scheme_application"> | string
     dd_date_or_transaction_date?: DateTimeFilter<"scheme_application"> | Date | string
-    dd_amount?: DecimalFilter<"scheme_application"> | Decimal | DecimalJsLike | number | string
-    payee_account_holder_name?: StringFilter<"scheme_application"> | string
-    payee_bank_name?: StringFilter<"scheme_application"> | string
+    dd_amount_or_transaction_amount?: DecimalFilter<"scheme_application"> | Decimal | DecimalJsLike | number | string
+    payer_account_holder_name?: StringFilter<"scheme_application"> | string
+    payer_bank_name?: StringFilter<"scheme_application"> | string
     payment_proof?: StringFilter<"scheme_application"> | string
     payment_status?: StringFilter<"scheme_application"> | string
-    refund_account_holder_name?: StringFilter<"scheme_application"> | string
-    refund_account_number?: StringFilter<"scheme_application"> | string
-    refund_bank_name?: StringFilter<"scheme_application"> | string
-    refund_bank_branch_address?: StringFilter<"scheme_application"> | string
-    refund_bank_ifsc?: StringFilter<"scheme_application"> | string
+    applicant_account_holder_name?: StringFilter<"scheme_application"> | string
+    applicant_account_number?: StringFilter<"scheme_application"> | string
+    applicant_bank_name?: StringFilter<"scheme_application"> | string
+    applicant_bank_branch_address?: StringFilter<"scheme_application"> | string
+    applicant_bank_ifsc?: StringFilter<"scheme_application"> | string
     application_submission_date?: DateTimeFilter<"scheme_application"> | Date | string
     application_status?: StringFilter<"scheme_application"> | string
     rejection_remark?: StringFilter<"scheme_application"> | string
@@ -20632,8 +20647,11 @@ export namespace Prisma {
     created_at?: DateTimeFilter<"scheme_application"> | Date | string
     updated_at?: DateTimeFilter<"scheme_application"> | Date | string
     scheme_id?: BigIntFilter<"scheme_application"> | bigint | number
+    application_number?: IntFilter<"scheme_application"> | number
+    aadhar_number?: StringFilter<"scheme_application"> | string
+    sub_category?: StringFilter<"scheme_application"> | string
     scheme_scheme?: XOR<Scheme_schemeScalarRelationFilter, scheme_schemeWhereInput>
-  }, "id" | "application_number" | "scheme_id_mobile_number">
+  }, "id" | "scheme_id_mobile_number" | "scheme_id_application_number">
 
   export type scheme_applicationOrderByWithAggregationInput = {
     id?: SortOrder
@@ -20643,7 +20661,6 @@ export namespace Prisma {
     dob?: SortOrder
     id_type?: SortOrder
     id_number?: SortOrder
-    pan_number?: SortOrder
     permanent_address?: SortOrder
     permanent_address_pincode?: SortOrder
     postal_address?: SortOrder
@@ -20657,16 +20674,16 @@ export namespace Prisma {
     payment_mode?: SortOrder
     dd_id_or_transaction_id?: SortOrder
     dd_date_or_transaction_date?: SortOrder
-    dd_amount?: SortOrder
-    payee_account_holder_name?: SortOrder
-    payee_bank_name?: SortOrder
+    dd_amount_or_transaction_amount?: SortOrder
+    payer_account_holder_name?: SortOrder
+    payer_bank_name?: SortOrder
     payment_proof?: SortOrder
     payment_status?: SortOrder
-    refund_account_holder_name?: SortOrder
-    refund_account_number?: SortOrder
-    refund_bank_name?: SortOrder
-    refund_bank_branch_address?: SortOrder
-    refund_bank_ifsc?: SortOrder
+    applicant_account_holder_name?: SortOrder
+    applicant_account_number?: SortOrder
+    applicant_bank_name?: SortOrder
+    applicant_bank_branch_address?: SortOrder
+    applicant_bank_ifsc?: SortOrder
     application_submission_date?: SortOrder
     application_status?: SortOrder
     rejection_remark?: SortOrder
@@ -20676,6 +20693,8 @@ export namespace Prisma {
     updated_at?: SortOrder
     scheme_id?: SortOrder
     application_number?: SortOrder
+    aadhar_number?: SortOrder
+    sub_category?: SortOrder
     _count?: scheme_applicationCountOrderByAggregateInput
     _avg?: scheme_applicationAvgOrderByAggregateInput
     _max?: scheme_applicationMaxOrderByAggregateInput
@@ -20694,7 +20713,6 @@ export namespace Prisma {
     dob?: DateTimeWithAggregatesFilter<"scheme_application"> | Date | string
     id_type?: StringWithAggregatesFilter<"scheme_application"> | string
     id_number?: StringWithAggregatesFilter<"scheme_application"> | string
-    pan_number?: StringWithAggregatesFilter<"scheme_application"> | string
     permanent_address?: StringWithAggregatesFilter<"scheme_application"> | string
     permanent_address_pincode?: StringWithAggregatesFilter<"scheme_application"> | string
     postal_address?: StringWithAggregatesFilter<"scheme_application"> | string
@@ -20708,16 +20726,16 @@ export namespace Prisma {
     payment_mode?: StringWithAggregatesFilter<"scheme_application"> | string
     dd_id_or_transaction_id?: StringWithAggregatesFilter<"scheme_application"> | string
     dd_date_or_transaction_date?: DateTimeWithAggregatesFilter<"scheme_application"> | Date | string
-    dd_amount?: DecimalWithAggregatesFilter<"scheme_application"> | Decimal | DecimalJsLike | number | string
-    payee_account_holder_name?: StringWithAggregatesFilter<"scheme_application"> | string
-    payee_bank_name?: StringWithAggregatesFilter<"scheme_application"> | string
+    dd_amount_or_transaction_amount?: DecimalWithAggregatesFilter<"scheme_application"> | Decimal | DecimalJsLike | number | string
+    payer_account_holder_name?: StringWithAggregatesFilter<"scheme_application"> | string
+    payer_bank_name?: StringWithAggregatesFilter<"scheme_application"> | string
     payment_proof?: StringWithAggregatesFilter<"scheme_application"> | string
     payment_status?: StringWithAggregatesFilter<"scheme_application"> | string
-    refund_account_holder_name?: StringWithAggregatesFilter<"scheme_application"> | string
-    refund_account_number?: StringWithAggregatesFilter<"scheme_application"> | string
-    refund_bank_name?: StringWithAggregatesFilter<"scheme_application"> | string
-    refund_bank_branch_address?: StringWithAggregatesFilter<"scheme_application"> | string
-    refund_bank_ifsc?: StringWithAggregatesFilter<"scheme_application"> | string
+    applicant_account_holder_name?: StringWithAggregatesFilter<"scheme_application"> | string
+    applicant_account_number?: StringWithAggregatesFilter<"scheme_application"> | string
+    applicant_bank_name?: StringWithAggregatesFilter<"scheme_application"> | string
+    applicant_bank_branch_address?: StringWithAggregatesFilter<"scheme_application"> | string
+    applicant_bank_ifsc?: StringWithAggregatesFilter<"scheme_application"> | string
     application_submission_date?: DateTimeWithAggregatesFilter<"scheme_application"> | Date | string
     application_status?: StringWithAggregatesFilter<"scheme_application"> | string
     rejection_remark?: StringWithAggregatesFilter<"scheme_application"> | string
@@ -20727,6 +20745,8 @@ export namespace Prisma {
     updated_at?: DateTimeWithAggregatesFilter<"scheme_application"> | Date | string
     scheme_id?: BigIntWithAggregatesFilter<"scheme_application"> | bigint | number
     application_number?: IntWithAggregatesFilter<"scheme_application"> | number
+    aadhar_number?: StringWithAggregatesFilter<"scheme_application"> | string
+    sub_category?: StringWithAggregatesFilter<"scheme_application"> | string
   }
 
   export type scheme_schemeWhereInput = {
@@ -20747,9 +20767,9 @@ export namespace Prisma {
     company?: StringFilter<"scheme_scheme"> | string
     Lig_plot_count?: IntFilter<"scheme_scheme"> | number
     ews_plot_count?: IntFilter<"scheme_scheme"> | number
-    reserved_rate?: IntFilter<"scheme_scheme"> | number
     next_application_number?: IntFilter<"scheme_scheme"> | number
     application_number_start?: IntFilter<"scheme_scheme"> | number
+    reserved_price?: IntFilter<"scheme_scheme"> | number
     scheme_application?: Scheme_applicationListRelationFilter
     scheme_schemefiles?: Scheme_schemefilesListRelationFilter
   }
@@ -20769,9 +20789,9 @@ export namespace Prisma {
     company?: SortOrder
     Lig_plot_count?: SortOrder
     ews_plot_count?: SortOrder
-    reserved_rate?: SortOrder
     next_application_number?: SortOrder
     application_number_start?: SortOrder
+    reserved_price?: SortOrder
     scheme_application?: scheme_applicationOrderByRelationAggregateInput
     scheme_schemefiles?: scheme_schemefilesOrderByRelationAggregateInput
   }
@@ -20794,9 +20814,9 @@ export namespace Prisma {
     company?: StringFilter<"scheme_scheme"> | string
     Lig_plot_count?: IntFilter<"scheme_scheme"> | number
     ews_plot_count?: IntFilter<"scheme_scheme"> | number
-    reserved_rate?: IntFilter<"scheme_scheme"> | number
     next_application_number?: IntFilter<"scheme_scheme"> | number
     application_number_start?: IntFilter<"scheme_scheme"> | number
+    reserved_price?: IntFilter<"scheme_scheme"> | number
     scheme_application?: Scheme_applicationListRelationFilter
     scheme_schemefiles?: Scheme_schemefilesListRelationFilter
   }, "id" | "name" | "phone">
@@ -20816,9 +20836,9 @@ export namespace Prisma {
     company?: SortOrder
     Lig_plot_count?: SortOrder
     ews_plot_count?: SortOrder
-    reserved_rate?: SortOrder
     next_application_number?: SortOrder
     application_number_start?: SortOrder
+    reserved_price?: SortOrder
     _count?: scheme_schemeCountOrderByAggregateInput
     _avg?: scheme_schemeAvgOrderByAggregateInput
     _max?: scheme_schemeMaxOrderByAggregateInput
@@ -20844,9 +20864,9 @@ export namespace Prisma {
     company?: StringWithAggregatesFilter<"scheme_scheme"> | string
     Lig_plot_count?: IntWithAggregatesFilter<"scheme_scheme"> | number
     ews_plot_count?: IntWithAggregatesFilter<"scheme_scheme"> | number
-    reserved_rate?: IntWithAggregatesFilter<"scheme_scheme"> | number
     next_application_number?: IntWithAggregatesFilter<"scheme_scheme"> | number
     application_number_start?: IntWithAggregatesFilter<"scheme_scheme"> | number
+    reserved_price?: IntWithAggregatesFilter<"scheme_scheme"> | number
   }
 
   export type scheme_schemefilesWhereInput = {
@@ -21585,7 +21605,6 @@ export namespace Prisma {
     dob: Date | string
     id_type: string
     id_number: string
-    pan_number: string
     permanent_address: string
     permanent_address_pincode: string
     postal_address: string
@@ -21599,16 +21618,16 @@ export namespace Prisma {
     payment_mode: string
     dd_id_or_transaction_id: string
     dd_date_or_transaction_date: Date | string
-    dd_amount: Decimal | DecimalJsLike | number | string
-    payee_account_holder_name: string
-    payee_bank_name: string
+    dd_amount_or_transaction_amount: Decimal | DecimalJsLike | number | string
+    payer_account_holder_name: string
+    payer_bank_name: string
     payment_proof: string
     payment_status: string
-    refund_account_holder_name: string
-    refund_account_number: string
-    refund_bank_name: string
-    refund_bank_branch_address: string
-    refund_bank_ifsc: string
+    applicant_account_holder_name: string
+    applicant_account_number: string
+    applicant_bank_name: string
+    applicant_bank_branch_address: string
+    applicant_bank_ifsc: string
     application_submission_date: Date | string
     application_status: string
     rejection_remark: string
@@ -21617,6 +21636,8 @@ export namespace Prisma {
     created_at: Date | string
     updated_at: Date | string
     application_number: number
+    aadhar_number: string
+    sub_category: string
     scheme_scheme: scheme_schemeCreateNestedOneWithoutScheme_applicationInput
   }
 
@@ -21628,7 +21649,6 @@ export namespace Prisma {
     dob: Date | string
     id_type: string
     id_number: string
-    pan_number: string
     permanent_address: string
     permanent_address_pincode: string
     postal_address: string
@@ -21642,16 +21662,16 @@ export namespace Prisma {
     payment_mode: string
     dd_id_or_transaction_id: string
     dd_date_or_transaction_date: Date | string
-    dd_amount: Decimal | DecimalJsLike | number | string
-    payee_account_holder_name: string
-    payee_bank_name: string
+    dd_amount_or_transaction_amount: Decimal | DecimalJsLike | number | string
+    payer_account_holder_name: string
+    payer_bank_name: string
     payment_proof: string
     payment_status: string
-    refund_account_holder_name: string
-    refund_account_number: string
-    refund_bank_name: string
-    refund_bank_branch_address: string
-    refund_bank_ifsc: string
+    applicant_account_holder_name: string
+    applicant_account_number: string
+    applicant_bank_name: string
+    applicant_bank_branch_address: string
+    applicant_bank_ifsc: string
     application_submission_date: Date | string
     application_status: string
     rejection_remark: string
@@ -21661,6 +21681,8 @@ export namespace Prisma {
     updated_at: Date | string
     scheme_id: bigint | number
     application_number: number
+    aadhar_number: string
+    sub_category: string
   }
 
   export type scheme_applicationUpdateInput = {
@@ -21671,7 +21693,6 @@ export namespace Prisma {
     dob?: DateTimeFieldUpdateOperationsInput | Date | string
     id_type?: StringFieldUpdateOperationsInput | string
     id_number?: StringFieldUpdateOperationsInput | string
-    pan_number?: StringFieldUpdateOperationsInput | string
     permanent_address?: StringFieldUpdateOperationsInput | string
     permanent_address_pincode?: StringFieldUpdateOperationsInput | string
     postal_address?: StringFieldUpdateOperationsInput | string
@@ -21685,16 +21706,16 @@ export namespace Prisma {
     payment_mode?: StringFieldUpdateOperationsInput | string
     dd_id_or_transaction_id?: StringFieldUpdateOperationsInput | string
     dd_date_or_transaction_date?: DateTimeFieldUpdateOperationsInput | Date | string
-    dd_amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    payee_account_holder_name?: StringFieldUpdateOperationsInput | string
-    payee_bank_name?: StringFieldUpdateOperationsInput | string
+    dd_amount_or_transaction_amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    payer_account_holder_name?: StringFieldUpdateOperationsInput | string
+    payer_bank_name?: StringFieldUpdateOperationsInput | string
     payment_proof?: StringFieldUpdateOperationsInput | string
     payment_status?: StringFieldUpdateOperationsInput | string
-    refund_account_holder_name?: StringFieldUpdateOperationsInput | string
-    refund_account_number?: StringFieldUpdateOperationsInput | string
-    refund_bank_name?: StringFieldUpdateOperationsInput | string
-    refund_bank_branch_address?: StringFieldUpdateOperationsInput | string
-    refund_bank_ifsc?: StringFieldUpdateOperationsInput | string
+    applicant_account_holder_name?: StringFieldUpdateOperationsInput | string
+    applicant_account_number?: StringFieldUpdateOperationsInput | string
+    applicant_bank_name?: StringFieldUpdateOperationsInput | string
+    applicant_bank_branch_address?: StringFieldUpdateOperationsInput | string
+    applicant_bank_ifsc?: StringFieldUpdateOperationsInput | string
     application_submission_date?: DateTimeFieldUpdateOperationsInput | Date | string
     application_status?: StringFieldUpdateOperationsInput | string
     rejection_remark?: StringFieldUpdateOperationsInput | string
@@ -21703,6 +21724,8 @@ export namespace Prisma {
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     application_number?: IntFieldUpdateOperationsInput | number
+    aadhar_number?: StringFieldUpdateOperationsInput | string
+    sub_category?: StringFieldUpdateOperationsInput | string
     scheme_scheme?: scheme_schemeUpdateOneRequiredWithoutScheme_applicationNestedInput
   }
 
@@ -21714,7 +21737,6 @@ export namespace Prisma {
     dob?: DateTimeFieldUpdateOperationsInput | Date | string
     id_type?: StringFieldUpdateOperationsInput | string
     id_number?: StringFieldUpdateOperationsInput | string
-    pan_number?: StringFieldUpdateOperationsInput | string
     permanent_address?: StringFieldUpdateOperationsInput | string
     permanent_address_pincode?: StringFieldUpdateOperationsInput | string
     postal_address?: StringFieldUpdateOperationsInput | string
@@ -21728,16 +21750,16 @@ export namespace Prisma {
     payment_mode?: StringFieldUpdateOperationsInput | string
     dd_id_or_transaction_id?: StringFieldUpdateOperationsInput | string
     dd_date_or_transaction_date?: DateTimeFieldUpdateOperationsInput | Date | string
-    dd_amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    payee_account_holder_name?: StringFieldUpdateOperationsInput | string
-    payee_bank_name?: StringFieldUpdateOperationsInput | string
+    dd_amount_or_transaction_amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    payer_account_holder_name?: StringFieldUpdateOperationsInput | string
+    payer_bank_name?: StringFieldUpdateOperationsInput | string
     payment_proof?: StringFieldUpdateOperationsInput | string
     payment_status?: StringFieldUpdateOperationsInput | string
-    refund_account_holder_name?: StringFieldUpdateOperationsInput | string
-    refund_account_number?: StringFieldUpdateOperationsInput | string
-    refund_bank_name?: StringFieldUpdateOperationsInput | string
-    refund_bank_branch_address?: StringFieldUpdateOperationsInput | string
-    refund_bank_ifsc?: StringFieldUpdateOperationsInput | string
+    applicant_account_holder_name?: StringFieldUpdateOperationsInput | string
+    applicant_account_number?: StringFieldUpdateOperationsInput | string
+    applicant_bank_name?: StringFieldUpdateOperationsInput | string
+    applicant_bank_branch_address?: StringFieldUpdateOperationsInput | string
+    applicant_bank_ifsc?: StringFieldUpdateOperationsInput | string
     application_submission_date?: DateTimeFieldUpdateOperationsInput | Date | string
     application_status?: StringFieldUpdateOperationsInput | string
     rejection_remark?: StringFieldUpdateOperationsInput | string
@@ -21747,6 +21769,8 @@ export namespace Prisma {
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     scheme_id?: BigIntFieldUpdateOperationsInput | bigint | number
     application_number?: IntFieldUpdateOperationsInput | number
+    aadhar_number?: StringFieldUpdateOperationsInput | string
+    sub_category?: StringFieldUpdateOperationsInput | string
   }
 
   export type scheme_applicationCreateManyInput = {
@@ -21757,7 +21781,6 @@ export namespace Prisma {
     dob: Date | string
     id_type: string
     id_number: string
-    pan_number: string
     permanent_address: string
     permanent_address_pincode: string
     postal_address: string
@@ -21771,16 +21794,16 @@ export namespace Prisma {
     payment_mode: string
     dd_id_or_transaction_id: string
     dd_date_or_transaction_date: Date | string
-    dd_amount: Decimal | DecimalJsLike | number | string
-    payee_account_holder_name: string
-    payee_bank_name: string
+    dd_amount_or_transaction_amount: Decimal | DecimalJsLike | number | string
+    payer_account_holder_name: string
+    payer_bank_name: string
     payment_proof: string
     payment_status: string
-    refund_account_holder_name: string
-    refund_account_number: string
-    refund_bank_name: string
-    refund_bank_branch_address: string
-    refund_bank_ifsc: string
+    applicant_account_holder_name: string
+    applicant_account_number: string
+    applicant_bank_name: string
+    applicant_bank_branch_address: string
+    applicant_bank_ifsc: string
     application_submission_date: Date | string
     application_status: string
     rejection_remark: string
@@ -21790,6 +21813,8 @@ export namespace Prisma {
     updated_at: Date | string
     scheme_id: bigint | number
     application_number: number
+    aadhar_number: string
+    sub_category: string
   }
 
   export type scheme_applicationUpdateManyMutationInput = {
@@ -21800,7 +21825,6 @@ export namespace Prisma {
     dob?: DateTimeFieldUpdateOperationsInput | Date | string
     id_type?: StringFieldUpdateOperationsInput | string
     id_number?: StringFieldUpdateOperationsInput | string
-    pan_number?: StringFieldUpdateOperationsInput | string
     permanent_address?: StringFieldUpdateOperationsInput | string
     permanent_address_pincode?: StringFieldUpdateOperationsInput | string
     postal_address?: StringFieldUpdateOperationsInput | string
@@ -21814,16 +21838,16 @@ export namespace Prisma {
     payment_mode?: StringFieldUpdateOperationsInput | string
     dd_id_or_transaction_id?: StringFieldUpdateOperationsInput | string
     dd_date_or_transaction_date?: DateTimeFieldUpdateOperationsInput | Date | string
-    dd_amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    payee_account_holder_name?: StringFieldUpdateOperationsInput | string
-    payee_bank_name?: StringFieldUpdateOperationsInput | string
+    dd_amount_or_transaction_amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    payer_account_holder_name?: StringFieldUpdateOperationsInput | string
+    payer_bank_name?: StringFieldUpdateOperationsInput | string
     payment_proof?: StringFieldUpdateOperationsInput | string
     payment_status?: StringFieldUpdateOperationsInput | string
-    refund_account_holder_name?: StringFieldUpdateOperationsInput | string
-    refund_account_number?: StringFieldUpdateOperationsInput | string
-    refund_bank_name?: StringFieldUpdateOperationsInput | string
-    refund_bank_branch_address?: StringFieldUpdateOperationsInput | string
-    refund_bank_ifsc?: StringFieldUpdateOperationsInput | string
+    applicant_account_holder_name?: StringFieldUpdateOperationsInput | string
+    applicant_account_number?: StringFieldUpdateOperationsInput | string
+    applicant_bank_name?: StringFieldUpdateOperationsInput | string
+    applicant_bank_branch_address?: StringFieldUpdateOperationsInput | string
+    applicant_bank_ifsc?: StringFieldUpdateOperationsInput | string
     application_submission_date?: DateTimeFieldUpdateOperationsInput | Date | string
     application_status?: StringFieldUpdateOperationsInput | string
     rejection_remark?: StringFieldUpdateOperationsInput | string
@@ -21832,6 +21856,8 @@ export namespace Prisma {
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     application_number?: IntFieldUpdateOperationsInput | number
+    aadhar_number?: StringFieldUpdateOperationsInput | string
+    sub_category?: StringFieldUpdateOperationsInput | string
   }
 
   export type scheme_applicationUncheckedUpdateManyInput = {
@@ -21842,7 +21868,6 @@ export namespace Prisma {
     dob?: DateTimeFieldUpdateOperationsInput | Date | string
     id_type?: StringFieldUpdateOperationsInput | string
     id_number?: StringFieldUpdateOperationsInput | string
-    pan_number?: StringFieldUpdateOperationsInput | string
     permanent_address?: StringFieldUpdateOperationsInput | string
     permanent_address_pincode?: StringFieldUpdateOperationsInput | string
     postal_address?: StringFieldUpdateOperationsInput | string
@@ -21856,16 +21881,16 @@ export namespace Prisma {
     payment_mode?: StringFieldUpdateOperationsInput | string
     dd_id_or_transaction_id?: StringFieldUpdateOperationsInput | string
     dd_date_or_transaction_date?: DateTimeFieldUpdateOperationsInput | Date | string
-    dd_amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    payee_account_holder_name?: StringFieldUpdateOperationsInput | string
-    payee_bank_name?: StringFieldUpdateOperationsInput | string
+    dd_amount_or_transaction_amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    payer_account_holder_name?: StringFieldUpdateOperationsInput | string
+    payer_bank_name?: StringFieldUpdateOperationsInput | string
     payment_proof?: StringFieldUpdateOperationsInput | string
     payment_status?: StringFieldUpdateOperationsInput | string
-    refund_account_holder_name?: StringFieldUpdateOperationsInput | string
-    refund_account_number?: StringFieldUpdateOperationsInput | string
-    refund_bank_name?: StringFieldUpdateOperationsInput | string
-    refund_bank_branch_address?: StringFieldUpdateOperationsInput | string
-    refund_bank_ifsc?: StringFieldUpdateOperationsInput | string
+    applicant_account_holder_name?: StringFieldUpdateOperationsInput | string
+    applicant_account_number?: StringFieldUpdateOperationsInput | string
+    applicant_bank_name?: StringFieldUpdateOperationsInput | string
+    applicant_bank_branch_address?: StringFieldUpdateOperationsInput | string
+    applicant_bank_ifsc?: StringFieldUpdateOperationsInput | string
     application_submission_date?: DateTimeFieldUpdateOperationsInput | Date | string
     application_status?: StringFieldUpdateOperationsInput | string
     rejection_remark?: StringFieldUpdateOperationsInput | string
@@ -21875,6 +21900,8 @@ export namespace Prisma {
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     scheme_id?: BigIntFieldUpdateOperationsInput | bigint | number
     application_number?: IntFieldUpdateOperationsInput | number
+    aadhar_number?: StringFieldUpdateOperationsInput | string
+    sub_category?: StringFieldUpdateOperationsInput | string
   }
 
   export type scheme_schemeCreateInput = {
@@ -21892,9 +21919,9 @@ export namespace Prisma {
     company: string
     Lig_plot_count: number
     ews_plot_count: number
-    reserved_rate: number
     next_application_number: number
     application_number_start: number
+    reserved_price: number
     scheme_application?: scheme_applicationCreateNestedManyWithoutScheme_schemeInput
     scheme_schemefiles?: scheme_schemefilesCreateNestedManyWithoutScheme_schemeInput
   }
@@ -21914,9 +21941,9 @@ export namespace Prisma {
     company: string
     Lig_plot_count: number
     ews_plot_count: number
-    reserved_rate: number
     next_application_number: number
     application_number_start: number
+    reserved_price: number
     scheme_application?: scheme_applicationUncheckedCreateNestedManyWithoutScheme_schemeInput
     scheme_schemefiles?: scheme_schemefilesUncheckedCreateNestedManyWithoutScheme_schemeInput
   }
@@ -21936,9 +21963,9 @@ export namespace Prisma {
     company?: StringFieldUpdateOperationsInput | string
     Lig_plot_count?: IntFieldUpdateOperationsInput | number
     ews_plot_count?: IntFieldUpdateOperationsInput | number
-    reserved_rate?: IntFieldUpdateOperationsInput | number
     next_application_number?: IntFieldUpdateOperationsInput | number
     application_number_start?: IntFieldUpdateOperationsInput | number
+    reserved_price?: IntFieldUpdateOperationsInput | number
     scheme_application?: scheme_applicationUpdateManyWithoutScheme_schemeNestedInput
     scheme_schemefiles?: scheme_schemefilesUpdateManyWithoutScheme_schemeNestedInput
   }
@@ -21958,9 +21985,9 @@ export namespace Prisma {
     company?: StringFieldUpdateOperationsInput | string
     Lig_plot_count?: IntFieldUpdateOperationsInput | number
     ews_plot_count?: IntFieldUpdateOperationsInput | number
-    reserved_rate?: IntFieldUpdateOperationsInput | number
     next_application_number?: IntFieldUpdateOperationsInput | number
     application_number_start?: IntFieldUpdateOperationsInput | number
+    reserved_price?: IntFieldUpdateOperationsInput | number
     scheme_application?: scheme_applicationUncheckedUpdateManyWithoutScheme_schemeNestedInput
     scheme_schemefiles?: scheme_schemefilesUncheckedUpdateManyWithoutScheme_schemeNestedInput
   }
@@ -21980,9 +22007,9 @@ export namespace Prisma {
     company: string
     Lig_plot_count: number
     ews_plot_count: number
-    reserved_rate: number
     next_application_number: number
     application_number_start: number
+    reserved_price: number
   }
 
   export type scheme_schemeUpdateManyMutationInput = {
@@ -22000,9 +22027,9 @@ export namespace Prisma {
     company?: StringFieldUpdateOperationsInput | string
     Lig_plot_count?: IntFieldUpdateOperationsInput | number
     ews_plot_count?: IntFieldUpdateOperationsInput | number
-    reserved_rate?: IntFieldUpdateOperationsInput | number
     next_application_number?: IntFieldUpdateOperationsInput | number
     application_number_start?: IntFieldUpdateOperationsInput | number
+    reserved_price?: IntFieldUpdateOperationsInput | number
   }
 
   export type scheme_schemeUncheckedUpdateManyInput = {
@@ -22020,9 +22047,9 @@ export namespace Prisma {
     company?: StringFieldUpdateOperationsInput | string
     Lig_plot_count?: IntFieldUpdateOperationsInput | number
     ews_plot_count?: IntFieldUpdateOperationsInput | number
-    reserved_rate?: IntFieldUpdateOperationsInput | number
     next_application_number?: IntFieldUpdateOperationsInput | number
     application_number_start?: IntFieldUpdateOperationsInput | number
+    reserved_price?: IntFieldUpdateOperationsInput | number
   }
 
   export type scheme_schemefilesCreateInput = {
@@ -22887,6 +22914,11 @@ export namespace Prisma {
     mobile_number: string
   }
 
+  export type scheme_applicationScheme_idApplication_numberCompoundUniqueInput = {
+    scheme_id: bigint | number
+    application_number: number
+  }
+
   export type scheme_applicationCountOrderByAggregateInput = {
     id?: SortOrder
     mobile_number?: SortOrder
@@ -22895,7 +22927,6 @@ export namespace Prisma {
     dob?: SortOrder
     id_type?: SortOrder
     id_number?: SortOrder
-    pan_number?: SortOrder
     permanent_address?: SortOrder
     permanent_address_pincode?: SortOrder
     postal_address?: SortOrder
@@ -22909,16 +22940,16 @@ export namespace Prisma {
     payment_mode?: SortOrder
     dd_id_or_transaction_id?: SortOrder
     dd_date_or_transaction_date?: SortOrder
-    dd_amount?: SortOrder
-    payee_account_holder_name?: SortOrder
-    payee_bank_name?: SortOrder
+    dd_amount_or_transaction_amount?: SortOrder
+    payer_account_holder_name?: SortOrder
+    payer_bank_name?: SortOrder
     payment_proof?: SortOrder
     payment_status?: SortOrder
-    refund_account_holder_name?: SortOrder
-    refund_account_number?: SortOrder
-    refund_bank_name?: SortOrder
-    refund_bank_branch_address?: SortOrder
-    refund_bank_ifsc?: SortOrder
+    applicant_account_holder_name?: SortOrder
+    applicant_account_number?: SortOrder
+    applicant_bank_name?: SortOrder
+    applicant_bank_branch_address?: SortOrder
+    applicant_bank_ifsc?: SortOrder
     application_submission_date?: SortOrder
     application_status?: SortOrder
     rejection_remark?: SortOrder
@@ -22928,6 +22959,8 @@ export namespace Prisma {
     updated_at?: SortOrder
     scheme_id?: SortOrder
     application_number?: SortOrder
+    aadhar_number?: SortOrder
+    sub_category?: SortOrder
   }
 
   export type scheme_applicationAvgOrderByAggregateInput = {
@@ -22935,7 +22968,7 @@ export namespace Prisma {
     registration_fees?: SortOrder
     processing_fees?: SortOrder
     total_payable_amount?: SortOrder
-    dd_amount?: SortOrder
+    dd_amount_or_transaction_amount?: SortOrder
     scheme_id?: SortOrder
     application_number?: SortOrder
   }
@@ -22948,7 +22981,6 @@ export namespace Prisma {
     dob?: SortOrder
     id_type?: SortOrder
     id_number?: SortOrder
-    pan_number?: SortOrder
     permanent_address?: SortOrder
     permanent_address_pincode?: SortOrder
     postal_address?: SortOrder
@@ -22962,16 +22994,16 @@ export namespace Prisma {
     payment_mode?: SortOrder
     dd_id_or_transaction_id?: SortOrder
     dd_date_or_transaction_date?: SortOrder
-    dd_amount?: SortOrder
-    payee_account_holder_name?: SortOrder
-    payee_bank_name?: SortOrder
+    dd_amount_or_transaction_amount?: SortOrder
+    payer_account_holder_name?: SortOrder
+    payer_bank_name?: SortOrder
     payment_proof?: SortOrder
     payment_status?: SortOrder
-    refund_account_holder_name?: SortOrder
-    refund_account_number?: SortOrder
-    refund_bank_name?: SortOrder
-    refund_bank_branch_address?: SortOrder
-    refund_bank_ifsc?: SortOrder
+    applicant_account_holder_name?: SortOrder
+    applicant_account_number?: SortOrder
+    applicant_bank_name?: SortOrder
+    applicant_bank_branch_address?: SortOrder
+    applicant_bank_ifsc?: SortOrder
     application_submission_date?: SortOrder
     application_status?: SortOrder
     rejection_remark?: SortOrder
@@ -22981,6 +23013,8 @@ export namespace Prisma {
     updated_at?: SortOrder
     scheme_id?: SortOrder
     application_number?: SortOrder
+    aadhar_number?: SortOrder
+    sub_category?: SortOrder
   }
 
   export type scheme_applicationMinOrderByAggregateInput = {
@@ -22991,7 +23025,6 @@ export namespace Prisma {
     dob?: SortOrder
     id_type?: SortOrder
     id_number?: SortOrder
-    pan_number?: SortOrder
     permanent_address?: SortOrder
     permanent_address_pincode?: SortOrder
     postal_address?: SortOrder
@@ -23005,16 +23038,16 @@ export namespace Prisma {
     payment_mode?: SortOrder
     dd_id_or_transaction_id?: SortOrder
     dd_date_or_transaction_date?: SortOrder
-    dd_amount?: SortOrder
-    payee_account_holder_name?: SortOrder
-    payee_bank_name?: SortOrder
+    dd_amount_or_transaction_amount?: SortOrder
+    payer_account_holder_name?: SortOrder
+    payer_bank_name?: SortOrder
     payment_proof?: SortOrder
     payment_status?: SortOrder
-    refund_account_holder_name?: SortOrder
-    refund_account_number?: SortOrder
-    refund_bank_name?: SortOrder
-    refund_bank_branch_address?: SortOrder
-    refund_bank_ifsc?: SortOrder
+    applicant_account_holder_name?: SortOrder
+    applicant_account_number?: SortOrder
+    applicant_bank_name?: SortOrder
+    applicant_bank_branch_address?: SortOrder
+    applicant_bank_ifsc?: SortOrder
     application_submission_date?: SortOrder
     application_status?: SortOrder
     rejection_remark?: SortOrder
@@ -23024,6 +23057,8 @@ export namespace Prisma {
     updated_at?: SortOrder
     scheme_id?: SortOrder
     application_number?: SortOrder
+    aadhar_number?: SortOrder
+    sub_category?: SortOrder
   }
 
   export type scheme_applicationSumOrderByAggregateInput = {
@@ -23031,7 +23066,7 @@ export namespace Prisma {
     registration_fees?: SortOrder
     processing_fees?: SortOrder
     total_payable_amount?: SortOrder
-    dd_amount?: SortOrder
+    dd_amount_or_transaction_amount?: SortOrder
     scheme_id?: SortOrder
     application_number?: SortOrder
   }
@@ -23087,18 +23122,18 @@ export namespace Prisma {
     company?: SortOrder
     Lig_plot_count?: SortOrder
     ews_plot_count?: SortOrder
-    reserved_rate?: SortOrder
     next_application_number?: SortOrder
     application_number_start?: SortOrder
+    reserved_price?: SortOrder
   }
 
   export type scheme_schemeAvgOrderByAggregateInput = {
     id?: SortOrder
     Lig_plot_count?: SortOrder
     ews_plot_count?: SortOrder
-    reserved_rate?: SortOrder
     next_application_number?: SortOrder
     application_number_start?: SortOrder
+    reserved_price?: SortOrder
   }
 
   export type scheme_schemeMaxOrderByAggregateInput = {
@@ -23116,9 +23151,9 @@ export namespace Prisma {
     company?: SortOrder
     Lig_plot_count?: SortOrder
     ews_plot_count?: SortOrder
-    reserved_rate?: SortOrder
     next_application_number?: SortOrder
     application_number_start?: SortOrder
+    reserved_price?: SortOrder
   }
 
   export type scheme_schemeMinOrderByAggregateInput = {
@@ -23136,18 +23171,18 @@ export namespace Prisma {
     company?: SortOrder
     Lig_plot_count?: SortOrder
     ews_plot_count?: SortOrder
-    reserved_rate?: SortOrder
     next_application_number?: SortOrder
     application_number_start?: SortOrder
+    reserved_price?: SortOrder
   }
 
   export type scheme_schemeSumOrderByAggregateInput = {
     id?: SortOrder
     Lig_plot_count?: SortOrder
     ews_plot_count?: SortOrder
-    reserved_rate?: SortOrder
     next_application_number?: SortOrder
     application_number_start?: SortOrder
+    reserved_price?: SortOrder
   }
 
   export type scheme_schemefilesScheme_idNameCompoundUniqueInput = {
@@ -25326,9 +25361,9 @@ export namespace Prisma {
     company: string
     Lig_plot_count: number
     ews_plot_count: number
-    reserved_rate: number
     next_application_number: number
     application_number_start: number
+    reserved_price: number
     scheme_schemefiles?: scheme_schemefilesCreateNestedManyWithoutScheme_schemeInput
   }
 
@@ -25347,9 +25382,9 @@ export namespace Prisma {
     company: string
     Lig_plot_count: number
     ews_plot_count: number
-    reserved_rate: number
     next_application_number: number
     application_number_start: number
+    reserved_price: number
     scheme_schemefiles?: scheme_schemefilesUncheckedCreateNestedManyWithoutScheme_schemeInput
   }
 
@@ -25384,9 +25419,9 @@ export namespace Prisma {
     company?: StringFieldUpdateOperationsInput | string
     Lig_plot_count?: IntFieldUpdateOperationsInput | number
     ews_plot_count?: IntFieldUpdateOperationsInput | number
-    reserved_rate?: IntFieldUpdateOperationsInput | number
     next_application_number?: IntFieldUpdateOperationsInput | number
     application_number_start?: IntFieldUpdateOperationsInput | number
+    reserved_price?: IntFieldUpdateOperationsInput | number
     scheme_schemefiles?: scheme_schemefilesUpdateManyWithoutScheme_schemeNestedInput
   }
 
@@ -25405,9 +25440,9 @@ export namespace Prisma {
     company?: StringFieldUpdateOperationsInput | string
     Lig_plot_count?: IntFieldUpdateOperationsInput | number
     ews_plot_count?: IntFieldUpdateOperationsInput | number
-    reserved_rate?: IntFieldUpdateOperationsInput | number
     next_application_number?: IntFieldUpdateOperationsInput | number
     application_number_start?: IntFieldUpdateOperationsInput | number
+    reserved_price?: IntFieldUpdateOperationsInput | number
     scheme_schemefiles?: scheme_schemefilesUncheckedUpdateManyWithoutScheme_schemeNestedInput
   }
 
@@ -25419,7 +25454,6 @@ export namespace Prisma {
     dob: Date | string
     id_type: string
     id_number: string
-    pan_number: string
     permanent_address: string
     permanent_address_pincode: string
     postal_address: string
@@ -25433,16 +25467,16 @@ export namespace Prisma {
     payment_mode: string
     dd_id_or_transaction_id: string
     dd_date_or_transaction_date: Date | string
-    dd_amount: Decimal | DecimalJsLike | number | string
-    payee_account_holder_name: string
-    payee_bank_name: string
+    dd_amount_or_transaction_amount: Decimal | DecimalJsLike | number | string
+    payer_account_holder_name: string
+    payer_bank_name: string
     payment_proof: string
     payment_status: string
-    refund_account_holder_name: string
-    refund_account_number: string
-    refund_bank_name: string
-    refund_bank_branch_address: string
-    refund_bank_ifsc: string
+    applicant_account_holder_name: string
+    applicant_account_number: string
+    applicant_bank_name: string
+    applicant_bank_branch_address: string
+    applicant_bank_ifsc: string
     application_submission_date: Date | string
     application_status: string
     rejection_remark: string
@@ -25451,6 +25485,8 @@ export namespace Prisma {
     created_at: Date | string
     updated_at: Date | string
     application_number: number
+    aadhar_number: string
+    sub_category: string
   }
 
   export type scheme_applicationUncheckedCreateWithoutScheme_schemeInput = {
@@ -25461,7 +25497,6 @@ export namespace Prisma {
     dob: Date | string
     id_type: string
     id_number: string
-    pan_number: string
     permanent_address: string
     permanent_address_pincode: string
     postal_address: string
@@ -25475,16 +25510,16 @@ export namespace Prisma {
     payment_mode: string
     dd_id_or_transaction_id: string
     dd_date_or_transaction_date: Date | string
-    dd_amount: Decimal | DecimalJsLike | number | string
-    payee_account_holder_name: string
-    payee_bank_name: string
+    dd_amount_or_transaction_amount: Decimal | DecimalJsLike | number | string
+    payer_account_holder_name: string
+    payer_bank_name: string
     payment_proof: string
     payment_status: string
-    refund_account_holder_name: string
-    refund_account_number: string
-    refund_bank_name: string
-    refund_bank_branch_address: string
-    refund_bank_ifsc: string
+    applicant_account_holder_name: string
+    applicant_account_number: string
+    applicant_bank_name: string
+    applicant_bank_branch_address: string
+    applicant_bank_ifsc: string
     application_submission_date: Date | string
     application_status: string
     rejection_remark: string
@@ -25493,6 +25528,8 @@ export namespace Prisma {
     created_at: Date | string
     updated_at: Date | string
     application_number: number
+    aadhar_number: string
+    sub_category: string
   }
 
   export type scheme_applicationCreateOrConnectWithoutScheme_schemeInput = {
@@ -25556,7 +25593,6 @@ export namespace Prisma {
     dob?: DateTimeFilter<"scheme_application"> | Date | string
     id_type?: StringFilter<"scheme_application"> | string
     id_number?: StringFilter<"scheme_application"> | string
-    pan_number?: StringFilter<"scheme_application"> | string
     permanent_address?: StringFilter<"scheme_application"> | string
     permanent_address_pincode?: StringFilter<"scheme_application"> | string
     postal_address?: StringFilter<"scheme_application"> | string
@@ -25570,16 +25606,16 @@ export namespace Prisma {
     payment_mode?: StringFilter<"scheme_application"> | string
     dd_id_or_transaction_id?: StringFilter<"scheme_application"> | string
     dd_date_or_transaction_date?: DateTimeFilter<"scheme_application"> | Date | string
-    dd_amount?: DecimalFilter<"scheme_application"> | Decimal | DecimalJsLike | number | string
-    payee_account_holder_name?: StringFilter<"scheme_application"> | string
-    payee_bank_name?: StringFilter<"scheme_application"> | string
+    dd_amount_or_transaction_amount?: DecimalFilter<"scheme_application"> | Decimal | DecimalJsLike | number | string
+    payer_account_holder_name?: StringFilter<"scheme_application"> | string
+    payer_bank_name?: StringFilter<"scheme_application"> | string
     payment_proof?: StringFilter<"scheme_application"> | string
     payment_status?: StringFilter<"scheme_application"> | string
-    refund_account_holder_name?: StringFilter<"scheme_application"> | string
-    refund_account_number?: StringFilter<"scheme_application"> | string
-    refund_bank_name?: StringFilter<"scheme_application"> | string
-    refund_bank_branch_address?: StringFilter<"scheme_application"> | string
-    refund_bank_ifsc?: StringFilter<"scheme_application"> | string
+    applicant_account_holder_name?: StringFilter<"scheme_application"> | string
+    applicant_account_number?: StringFilter<"scheme_application"> | string
+    applicant_bank_name?: StringFilter<"scheme_application"> | string
+    applicant_bank_branch_address?: StringFilter<"scheme_application"> | string
+    applicant_bank_ifsc?: StringFilter<"scheme_application"> | string
     application_submission_date?: DateTimeFilter<"scheme_application"> | Date | string
     application_status?: StringFilter<"scheme_application"> | string
     rejection_remark?: StringFilter<"scheme_application"> | string
@@ -25589,6 +25625,8 @@ export namespace Prisma {
     updated_at?: DateTimeFilter<"scheme_application"> | Date | string
     scheme_id?: BigIntFilter<"scheme_application"> | bigint | number
     application_number?: IntFilter<"scheme_application"> | number
+    aadhar_number?: StringFilter<"scheme_application"> | string
+    sub_category?: StringFilter<"scheme_application"> | string
   }
 
   export type scheme_schemefilesUpsertWithWhereUniqueWithoutScheme_schemeInput = {
@@ -25633,9 +25671,9 @@ export namespace Prisma {
     company: string
     Lig_plot_count: number
     ews_plot_count: number
-    reserved_rate: number
     next_application_number: number
     application_number_start: number
+    reserved_price: number
     scheme_application?: scheme_applicationCreateNestedManyWithoutScheme_schemeInput
   }
 
@@ -25654,9 +25692,9 @@ export namespace Prisma {
     company: string
     Lig_plot_count: number
     ews_plot_count: number
-    reserved_rate: number
     next_application_number: number
     application_number_start: number
+    reserved_price: number
     scheme_application?: scheme_applicationUncheckedCreateNestedManyWithoutScheme_schemeInput
   }
 
@@ -25691,9 +25729,9 @@ export namespace Prisma {
     company?: StringFieldUpdateOperationsInput | string
     Lig_plot_count?: IntFieldUpdateOperationsInput | number
     ews_plot_count?: IntFieldUpdateOperationsInput | number
-    reserved_rate?: IntFieldUpdateOperationsInput | number
     next_application_number?: IntFieldUpdateOperationsInput | number
     application_number_start?: IntFieldUpdateOperationsInput | number
+    reserved_price?: IntFieldUpdateOperationsInput | number
     scheme_application?: scheme_applicationUpdateManyWithoutScheme_schemeNestedInput
   }
 
@@ -25712,9 +25750,9 @@ export namespace Prisma {
     company?: StringFieldUpdateOperationsInput | string
     Lig_plot_count?: IntFieldUpdateOperationsInput | number
     ews_plot_count?: IntFieldUpdateOperationsInput | number
-    reserved_rate?: IntFieldUpdateOperationsInput | number
     next_application_number?: IntFieldUpdateOperationsInput | number
     application_number_start?: IntFieldUpdateOperationsInput | number
+    reserved_price?: IntFieldUpdateOperationsInput | number
     scheme_application?: scheme_applicationUncheckedUpdateManyWithoutScheme_schemeNestedInput
   }
 
@@ -26069,7 +26107,6 @@ export namespace Prisma {
     dob: Date | string
     id_type: string
     id_number: string
-    pan_number: string
     permanent_address: string
     permanent_address_pincode: string
     postal_address: string
@@ -26083,16 +26120,16 @@ export namespace Prisma {
     payment_mode: string
     dd_id_or_transaction_id: string
     dd_date_or_transaction_date: Date | string
-    dd_amount: Decimal | DecimalJsLike | number | string
-    payee_account_holder_name: string
-    payee_bank_name: string
+    dd_amount_or_transaction_amount: Decimal | DecimalJsLike | number | string
+    payer_account_holder_name: string
+    payer_bank_name: string
     payment_proof: string
     payment_status: string
-    refund_account_holder_name: string
-    refund_account_number: string
-    refund_bank_name: string
-    refund_bank_branch_address: string
-    refund_bank_ifsc: string
+    applicant_account_holder_name: string
+    applicant_account_number: string
+    applicant_bank_name: string
+    applicant_bank_branch_address: string
+    applicant_bank_ifsc: string
     application_submission_date: Date | string
     application_status: string
     rejection_remark: string
@@ -26101,6 +26138,8 @@ export namespace Prisma {
     created_at: Date | string
     updated_at: Date | string
     application_number: number
+    aadhar_number: string
+    sub_category: string
   }
 
   export type scheme_schemefilesCreateManyScheme_schemeInput = {
@@ -26118,7 +26157,6 @@ export namespace Prisma {
     dob?: DateTimeFieldUpdateOperationsInput | Date | string
     id_type?: StringFieldUpdateOperationsInput | string
     id_number?: StringFieldUpdateOperationsInput | string
-    pan_number?: StringFieldUpdateOperationsInput | string
     permanent_address?: StringFieldUpdateOperationsInput | string
     permanent_address_pincode?: StringFieldUpdateOperationsInput | string
     postal_address?: StringFieldUpdateOperationsInput | string
@@ -26132,16 +26170,16 @@ export namespace Prisma {
     payment_mode?: StringFieldUpdateOperationsInput | string
     dd_id_or_transaction_id?: StringFieldUpdateOperationsInput | string
     dd_date_or_transaction_date?: DateTimeFieldUpdateOperationsInput | Date | string
-    dd_amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    payee_account_holder_name?: StringFieldUpdateOperationsInput | string
-    payee_bank_name?: StringFieldUpdateOperationsInput | string
+    dd_amount_or_transaction_amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    payer_account_holder_name?: StringFieldUpdateOperationsInput | string
+    payer_bank_name?: StringFieldUpdateOperationsInput | string
     payment_proof?: StringFieldUpdateOperationsInput | string
     payment_status?: StringFieldUpdateOperationsInput | string
-    refund_account_holder_name?: StringFieldUpdateOperationsInput | string
-    refund_account_number?: StringFieldUpdateOperationsInput | string
-    refund_bank_name?: StringFieldUpdateOperationsInput | string
-    refund_bank_branch_address?: StringFieldUpdateOperationsInput | string
-    refund_bank_ifsc?: StringFieldUpdateOperationsInput | string
+    applicant_account_holder_name?: StringFieldUpdateOperationsInput | string
+    applicant_account_number?: StringFieldUpdateOperationsInput | string
+    applicant_bank_name?: StringFieldUpdateOperationsInput | string
+    applicant_bank_branch_address?: StringFieldUpdateOperationsInput | string
+    applicant_bank_ifsc?: StringFieldUpdateOperationsInput | string
     application_submission_date?: DateTimeFieldUpdateOperationsInput | Date | string
     application_status?: StringFieldUpdateOperationsInput | string
     rejection_remark?: StringFieldUpdateOperationsInput | string
@@ -26150,6 +26188,8 @@ export namespace Prisma {
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     application_number?: IntFieldUpdateOperationsInput | number
+    aadhar_number?: StringFieldUpdateOperationsInput | string
+    sub_category?: StringFieldUpdateOperationsInput | string
   }
 
   export type scheme_applicationUncheckedUpdateWithoutScheme_schemeInput = {
@@ -26160,7 +26200,6 @@ export namespace Prisma {
     dob?: DateTimeFieldUpdateOperationsInput | Date | string
     id_type?: StringFieldUpdateOperationsInput | string
     id_number?: StringFieldUpdateOperationsInput | string
-    pan_number?: StringFieldUpdateOperationsInput | string
     permanent_address?: StringFieldUpdateOperationsInput | string
     permanent_address_pincode?: StringFieldUpdateOperationsInput | string
     postal_address?: StringFieldUpdateOperationsInput | string
@@ -26174,16 +26213,16 @@ export namespace Prisma {
     payment_mode?: StringFieldUpdateOperationsInput | string
     dd_id_or_transaction_id?: StringFieldUpdateOperationsInput | string
     dd_date_or_transaction_date?: DateTimeFieldUpdateOperationsInput | Date | string
-    dd_amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    payee_account_holder_name?: StringFieldUpdateOperationsInput | string
-    payee_bank_name?: StringFieldUpdateOperationsInput | string
+    dd_amount_or_transaction_amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    payer_account_holder_name?: StringFieldUpdateOperationsInput | string
+    payer_bank_name?: StringFieldUpdateOperationsInput | string
     payment_proof?: StringFieldUpdateOperationsInput | string
     payment_status?: StringFieldUpdateOperationsInput | string
-    refund_account_holder_name?: StringFieldUpdateOperationsInput | string
-    refund_account_number?: StringFieldUpdateOperationsInput | string
-    refund_bank_name?: StringFieldUpdateOperationsInput | string
-    refund_bank_branch_address?: StringFieldUpdateOperationsInput | string
-    refund_bank_ifsc?: StringFieldUpdateOperationsInput | string
+    applicant_account_holder_name?: StringFieldUpdateOperationsInput | string
+    applicant_account_number?: StringFieldUpdateOperationsInput | string
+    applicant_bank_name?: StringFieldUpdateOperationsInput | string
+    applicant_bank_branch_address?: StringFieldUpdateOperationsInput | string
+    applicant_bank_ifsc?: StringFieldUpdateOperationsInput | string
     application_submission_date?: DateTimeFieldUpdateOperationsInput | Date | string
     application_status?: StringFieldUpdateOperationsInput | string
     rejection_remark?: StringFieldUpdateOperationsInput | string
@@ -26192,6 +26231,8 @@ export namespace Prisma {
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     application_number?: IntFieldUpdateOperationsInput | number
+    aadhar_number?: StringFieldUpdateOperationsInput | string
+    sub_category?: StringFieldUpdateOperationsInput | string
   }
 
   export type scheme_applicationUncheckedUpdateManyWithoutScheme_schemeInput = {
@@ -26202,7 +26243,6 @@ export namespace Prisma {
     dob?: DateTimeFieldUpdateOperationsInput | Date | string
     id_type?: StringFieldUpdateOperationsInput | string
     id_number?: StringFieldUpdateOperationsInput | string
-    pan_number?: StringFieldUpdateOperationsInput | string
     permanent_address?: StringFieldUpdateOperationsInput | string
     permanent_address_pincode?: StringFieldUpdateOperationsInput | string
     postal_address?: StringFieldUpdateOperationsInput | string
@@ -26216,16 +26256,16 @@ export namespace Prisma {
     payment_mode?: StringFieldUpdateOperationsInput | string
     dd_id_or_transaction_id?: StringFieldUpdateOperationsInput | string
     dd_date_or_transaction_date?: DateTimeFieldUpdateOperationsInput | Date | string
-    dd_amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    payee_account_holder_name?: StringFieldUpdateOperationsInput | string
-    payee_bank_name?: StringFieldUpdateOperationsInput | string
+    dd_amount_or_transaction_amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    payer_account_holder_name?: StringFieldUpdateOperationsInput | string
+    payer_bank_name?: StringFieldUpdateOperationsInput | string
     payment_proof?: StringFieldUpdateOperationsInput | string
     payment_status?: StringFieldUpdateOperationsInput | string
-    refund_account_holder_name?: StringFieldUpdateOperationsInput | string
-    refund_account_number?: StringFieldUpdateOperationsInput | string
-    refund_bank_name?: StringFieldUpdateOperationsInput | string
-    refund_bank_branch_address?: StringFieldUpdateOperationsInput | string
-    refund_bank_ifsc?: StringFieldUpdateOperationsInput | string
+    applicant_account_holder_name?: StringFieldUpdateOperationsInput | string
+    applicant_account_number?: StringFieldUpdateOperationsInput | string
+    applicant_bank_name?: StringFieldUpdateOperationsInput | string
+    applicant_bank_branch_address?: StringFieldUpdateOperationsInput | string
+    applicant_bank_ifsc?: StringFieldUpdateOperationsInput | string
     application_submission_date?: DateTimeFieldUpdateOperationsInput | Date | string
     application_status?: StringFieldUpdateOperationsInput | string
     rejection_remark?: StringFieldUpdateOperationsInput | string
@@ -26234,6 +26274,8 @@ export namespace Prisma {
     created_at?: DateTimeFieldUpdateOperationsInput | Date | string
     updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
     application_number?: IntFieldUpdateOperationsInput | number
+    aadhar_number?: StringFieldUpdateOperationsInput | string
+    sub_category?: StringFieldUpdateOperationsInput | string
   }
 
   export type scheme_schemefilesUpdateWithoutScheme_schemeInput = {
