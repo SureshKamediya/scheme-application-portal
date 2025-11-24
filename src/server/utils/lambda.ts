@@ -5,6 +5,7 @@ import {
 } from "@aws-sdk/client-lambda";
 import type { PdfPayload } from "~/types/pdfPayload";
 import logger from "~/server/utils/logger";
+import { NodeHttpHandler } from "@smithy/node-http-handler";
 // import { env } from "~/env";
 
 export interface LambdaPdfResponse {
@@ -123,9 +124,14 @@ function extractBucketFromResponse(data: unknown): string | null {
 function createLambdaClient() {
   const config: {
     region: string;
+    requestHandler: NodeHttpHandler;
     credentials?: { accessKeyId: string; secretAccessKey: string };
   } = {
     region: process.env.AWS_REGION ?? "ap-south-1",
+    requestHandler: new NodeHttpHandler({
+      connectionTimeout: 300_000, // 300s
+      socketTimeout: 300_000, // 300s
+    }),
   };
 
   const accessKey = process.env.AWS_ACCESS_KEY_ID;
@@ -226,7 +232,10 @@ export async function invokePdfGenerator(
     } catch (parseError) {
       logger.error(
         {
-          error: parseError instanceof Error ? parseError.message : String(parseError),
+          error:
+            parseError instanceof Error
+              ? parseError.message
+              : String(parseError),
           payload: String(result.Payload).slice(0, 500),
         },
         "Error parsing Lambda response",
@@ -252,10 +261,7 @@ export async function invokePdfGenerator(
       );
     }
 
-    logger.info(
-      { fileKey, bucket },
-      "PDF generated successfully by Lambda",
-    );
+    logger.info({ fileKey, bucket }, "PDF generated successfully by Lambda");
 
     return {
       success: true,

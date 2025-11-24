@@ -21,10 +21,7 @@ interface LogPayload {
 async function sendLogToServer(payload: LogPayload): Promise<void> {
   try {
     // Only send logs in production or if explicitly enabled
-    if (
-      process.env.NODE_ENV !== "production" &&
-      !process.env.NEXT_PUBLIC_ENABLE_CLIENT_LOGS
-    ) {
+    if (process.env.NODE_ENV !== "production") {
       return;
     }
 
