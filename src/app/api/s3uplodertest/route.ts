@@ -1,9 +1,10 @@
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import crypto from "crypto";
 
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || "ap-south-1",
+  region: process.env.AWS_REGION ?? "ap-south-1",
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   return NextResponse.json({
     status: "ok",
-    environment: process.env.NODE_ENV || "development",
-    bucketConfigured: !!BUCKET_NAME,
+    environment: process.env.NODE_ENV ?? "development",
+    bucketConfigured: Boolean(BUCKET_NAME),
   });
 }

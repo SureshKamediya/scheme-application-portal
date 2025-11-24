@@ -12,7 +12,7 @@ export default function UploadPage() {
   } | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
+    if (e.target.files?.[0]) {
       setFile(e.target.files[0]);
       setResult(null);
     }
@@ -20,7 +20,7 @@ export default function UploadPage() {
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+    if (e.dataTransfer?.files?.[0]) {
       setFile(e.dataTransfer.files[0]);
       setResult(null);
     }
@@ -49,11 +49,11 @@ export default function UploadPage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to upload file");
+        const errorData = (await response.json()) as { error?: string };
+        throw new Error(errorData.error ?? "Failed to upload file");
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as { fileUrl: string };
       setProgress(100);
 
       setResult({
