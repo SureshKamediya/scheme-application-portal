@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
+// import { useState } from "react";
 
 export default function S3UploadPage() {
-  const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [result, setResult] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
+  // const [file, setFile] = useState<File | null>(null);
+  // const [uploading, setUploading] = useState(false);
+  // const [progress, setProgress] = useState(0);
+  // const [result, setResult] = useState<{
+  //   type: "success" | "error";
+  //   message: string;
+  // } | null>(null);
 
   //   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   //     if (e.target.files?.[0]) {

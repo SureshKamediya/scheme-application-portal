@@ -13,6 +13,7 @@ import {
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import logger from "~/server/utils/logger";
 
 // let s3Client: S3Client = null as unknown as S3Client;
 
@@ -77,7 +78,10 @@ export async function uploadToS3(
   // const bucketName = process.env.AWS_S3_BUCKET_NAME ?? "scheme-application-files";
 
   if (!bucketName) {
-    console.warn("AWS_S3_BUCKET_NAME not configured, skipping S3 upload");
+    logger.warn(
+      { key, contentType },
+      "AWS_S3_BUCKET_NAME not configured, skipping S3 upload",
+    );
     return null;
   }
 
@@ -91,12 +95,18 @@ export async function uploadToS3(
 
     await s3Client.send(command);
 
-    console.log(`File uploaded to S3: s3://${bucketName}/${key}`);
+    logger.info(
+      { bucket: bucketName, key },
+      "File uploaded to S3 successfully",
+    );
 
     // Return presigned URL for the uploaded file
     return await getPresignedUrl(key, 3600);
   } catch (error) {
-    console.error("S3 upload error:", error);
+    logger.error(
+      { key, error: error instanceof Error ? error.message : String(error) },
+      "S3 upload error",
+    );
     throw error;
   }
 }
@@ -115,12 +125,13 @@ export async function getPresignedUrl(
     process.env.AWS_S3_BUCKET_NAME ?? "scheme-application-files";
 
   if (!bucketName) {
-    console.warn(
+    logger.warn(
+      { key },
       "AWS_S3_BUCKET_NAME not configured, cannot generate presigned URL",
     );
     return null;
   }
-  console.log(`Generating presigned URL for s3://${bucketName}/${key}`);
+  logger.debug({ bucket: bucketName, key }, "Generating presigned URL");
   try {
     const command = new GetObjectCommand({
       Bucket: bucketName,
@@ -130,10 +141,13 @@ export async function getPresignedUrl(
     const url = await getSignedUrl(s3Client, command, {
       expiresIn: expirationSeconds,
     });
-    console.log(`Presigned URL generated: ${url}`);
+    logger.debug({ key }, "Presigned URL generated successfully");
     return url;
   } catch (error) {
-    console.error("Error generating presigned URL:", error);
+    logger.error(
+      { key, error: error instanceof Error ? error.message : String(error) },
+      "Error generating presigned URL",
+    );
     throw error;
   }
 }
@@ -151,13 +165,17 @@ export async function getPresignedUploadUrl(
   expirationSeconds = 300,
 ): Promise<string | null> {
   if (!bucketName) {
-    console.warn(
+    logger.warn(
+      { key },
       "AWS_S3_BUCKET_NAME not configured, cannot generate presigned URL",
     );
     return null;
   }
 
-  console.log(`Generating presigned upload URL for s3://${bucketName}/${key}`);
+  logger.debug(
+    { bucket: bucketName, key, contentType },
+    "Generating presigned upload URL",
+  );
 
   try {
     const command = new PutObjectCommand({
@@ -170,10 +188,13 @@ export async function getPresignedUploadUrl(
       expiresIn: expirationSeconds,
     });
 
-    console.log(`Presigned upload URL generated: ${url}`);
+    logger.debug({ key }, "Presigned upload URL generated successfully");
     return url;
   } catch (error) {
-    console.error("Error generating presigned upload URL:", error);
+    logger.error(
+      { key, error: error instanceof Error ? error.message : String(error) },
+      "Error generating presigned upload URL",
+    );
     throw error;
   }
 }
@@ -193,7 +214,7 @@ export async function deleteFromS3(key: string): Promise<void> {
   const bucketName =
     process.env.AWS_S3_BUCKET_NAME ?? "scheme-application-files";
   if (!isS3Configured()) {
-    console.warn("AWS S3 not configured");
+    logger.warn({ key }, "AWS S3 not configured");
     return;
   }
 
@@ -204,8 +225,12 @@ export async function deleteFromS3(key: string): Promise<void> {
     });
 
     await s3Client.send(command);
+    logger.info({ key }, "File deleted from S3 successfully");
   } catch (error) {
-    console.error("Error deleting file from S3:", error);
+    logger.error(
+      { key, error: error instanceof Error ? error.message : String(error) },
+      "Error deleting file from S3",
+    );
     throw new Error("Failed to delete file from S3");
   }
 }

@@ -1,8 +1,10 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
-
-console.log("Check — DATABASE_URL exists:", process.env.DATABASE_URL ? "YES" : "NO");
+console.log(
+  "Check — DATABASE_URL exists:",
+  process.env.DATABASE_URL ? "YES" : "NO",
+);
 export const env = createEnv({
   /**
    * Specify your server-side environment variables schema here. This way you can ensure the app
@@ -18,6 +20,8 @@ export const env = createEnv({
     AWS_ACCESS_KEY_ID: z.string().optional(),
     AWS_SECRET_ACCESS_KEY: z.string().optional(),
     AWS_S3_BUCKET_NAME: z.string().optional(),
+    // Logging Configuration
+    LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("debug"),
   },
 
   /**
@@ -26,7 +30,11 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    // NEXT_PUBLIC_CLIENTVAR: z.string().default("default-client-var-value"),
+    // Logging Configuration
+    NEXT_PUBLIC_ENABLE_CLIENT_LOGS: z
+      .enum(["true", "false"])
+      .default("true")
+      .transform((val) => val === "true"),
   },
 
   /**
@@ -40,6 +48,8 @@ export const env = createEnv({
     AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
     AWS_S3_BUCKET_NAME: process.env.AWS_S3_BUCKET_NAME,
+    LOG_LEVEL: process.env.LOG_LEVEL,
+    NEXT_PUBLIC_ENABLE_CLIENT_LOGS: process.env.NEXT_PUBLIC_ENABLE_CLIENT_LOGS,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**

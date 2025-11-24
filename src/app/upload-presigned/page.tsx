@@ -1,16 +1,16 @@
 "use client";
 
-import { useState } from "react";
+// import { useState } from "react";
 
 export default function UploadPage() {
-  const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [uploadTime, setUploadTime] = useState<number | null>(null);
-  const [result, setResult] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
+  // const [file, setFile] = useState<File | null>(null);
+  // const [uploading, setUploading] = useState(false);
+  // const [progress, setProgress] = useState(0);
+  // const [uploadTime, setUploadTime] = useState<number | null>(null);
+  // const [result, setResult] = useState<{
+  //   type: "success" | "error";
+  //   message: string;
+  // } | null>(null);
 
   // const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   //   if (e.target.files && e.target.files[0]) {

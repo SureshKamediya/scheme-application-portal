@@ -4,6 +4,7 @@ import {
   // type LambdaClientConfig,
 } from "@aws-sdk/client-lambda";
 import type { PdfPayload } from "~/types/pdfPayload";
+import logger from "~/server/utils/logger";
 // import { env } from "~/env";
 
 export interface LambdaPdfResponse {
@@ -132,14 +133,15 @@ function createLambdaClient() {
 
   // Only add explicit credentials if both are present
   if (accessKey && secretKey) {
-    console.log("Using explicit AWS credentials for Lambda client.");
+    logger.debug({}, "Using explicit AWS credentials for Lambda client");
     config.credentials = {
       accessKeyId: accessKey,
       secretAccessKey: secretKey,
     };
   } else {
-    console.warn(
-      "AWS credentials not found in environment variables. Using default credentials provider (IAM role).",
+    logger.warn(
+      {},
+      "AWS credentials not found in environment variables. Using default credentials provider (IAM role)",
     );
   }
 
@@ -160,6 +162,11 @@ export async function invokePdfGenerator(
     process.env.LAMBDA_FUNCTION_NAME ??
     "application_acknowledgement_pdf_generator_2";
 
+  logger.debug(
+    { functionName, payloadKeys: Object.keys(payload) },
+    "Invoking PDF generator Lambda",
+  );
+
   try {
     const command = new InvokeCommand({
       FunctionName: functionName,
@@ -168,8 +175,9 @@ export async function invokePdfGenerator(
 
     const result = await lambdaClient.send(command);
 
-    console.log(
-      `Lambda invoked: ${functionName}, StatusCode: ${result.StatusCode}`,
+    logger.info(
+      { functionName, statusCode: result.StatusCode },
+      "Lambda invoked successfully",
     );
 
     // Parse the nested JSON response from Lambda
@@ -182,12 +190,12 @@ export async function invokePdfGenerator(
       if (payloadData instanceof Uint8Array) {
         const decoder = new TextDecoder();
         payloadData = decoder.decode(payloadData);
-        console.log("Decoded Uint8Array payload:", payloadData);
+        logger.debug({}, "Decoded Uint8Array payload from Lambda");
       }
 
       // First level parse
       if (typeof payloadData === "string") {
-        console.log("Parsing Lambda payload string");
+        logger.debug({}, "Parsing Lambda payload string");
         payloadData = JSON.parse(payloadData);
       }
 
@@ -206,7 +214,7 @@ export async function invokePdfGenerator(
 
           // Parse body if it's a JSON string
           if (typeof bodyContent === "string") {
-            console.log("Parsing body as JSON string");
+            logger.debug({}, "Parsing body as JSON string");
             bodyContent = JSON.parse(bodyContent);
           }
 
@@ -216,34 +224,53 @@ export async function invokePdfGenerator(
         }
       }
     } catch (parseError) {
-      console.error("Error parsing Lambda response:", parseError);
-      console.error("Raw payload:", result.Payload);
+      logger.error(
+        {
+          error: parseError instanceof Error ? parseError.message : String(parseError),
+          payload: String(result.Payload).slice(0, 500),
+        },
+        "Error parsing Lambda response",
+      );
       throw new Error(
         `Failed to parse Lambda PDF generation response: ${parseError instanceof Error ? parseError.message : "Unknown error"}`,
       );
     }
 
-    console.log("Parsed Lambda response:", JSON.stringify(parsedBody));
+    logger.debug({}, "Parsed Lambda response successfully");
 
     // Extract file_key from the parsed response
     const fileKey = extractFileKeyFromResponse(parsedBody);
     const bucket = extractBucketFromResponse(parsedBody);
 
     if (!fileKey) {
-      console.error(
-        "Invalid Lambda response structure - missing file_key:",
-        parsedBody,
+      logger.error(
+        { parsedBody: JSON.stringify(parsedBody) },
+        "Invalid Lambda response structure - missing file_key",
       );
       throw new Error(
         "Lambda returned invalid response structure - missing file_key",
       );
     }
 
+    logger.info(
+      { fileKey, bucket },
+      "PDF generated successfully by Lambda",
+    );
+
     return {
       success: true,
       file_key: fileKey,
       bucket: bucket ?? process.env.AWS_S3_BUCKET_NAME ?? "default",
     };
+  } catch (error) {
+    logger.error(
+      {
+        functionName,
+        error: error instanceof Error ? error.message : String(error),
+      },
+      "Lambda invocation failed",
+    );
+    throw error;
   } finally {
     lambdaClient.destroy();
   }

@@ -1,14 +1,11 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import {
-  uploadToS3,
-  getPresignedUrl,
-  getPresignedUploadUrl,
-} from "~/server/utils/s3";
+import { getPresignedUrl, getPresignedUploadUrl } from "~/server/utils/s3";
 import { generateS3Key } from "~/utils/fileUpload";
 import { invokePdfGenerator } from "~/server/utils/lambda";
 import type { PdfPayload } from "~/types/pdfPayload";
+import logger from "~/server/utils/logger";
 
 /**
  * Input mirrors the prisma `scheme_application` fields used here.
@@ -175,12 +172,21 @@ export const applicationRouter = createTRPCRouter({
     .input(ApplicationInput)
     .mutation(async ({ ctx, input }) => {
       try {
+        logger.debug(
+          { mobileNumber: input.mobile_number, schemeId: input.scheme_id },
+          "Creating new application",
+        );
+
         // Verify the scheme exists
         const scheme = await ctx.db.scheme_scheme.findUnique({
           where: { id: input.scheme_id },
         });
 
         if (!scheme) {
+          logger.warn(
+            { schemeId: input.scheme_id },
+            "Scheme not found for application creation",
+          );
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Scheme not found",
@@ -196,6 +202,14 @@ export const applicationRouter = createTRPCRouter({
         });
 
         if (existingApp) {
+          logger.warn(
+            {
+              mobileNumber: input.mobile_number,
+              schemeId: input.scheme_id,
+              existingApplicationNumber: existingApp.application_number,
+            },
+            "Duplicate application attempt for mobile and scheme",
+          );
           throw new TRPCError({
             code: "CONFLICT",
             message:
@@ -252,11 +266,24 @@ export const applicationRouter = createTRPCRouter({
         });
 
         if (!application) {
+          logger.error(
+            { schemeId: input.scheme_id },
+            "Transaction failed, application not created",
+          );
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Transaction failed, application not created",
           });
         }
+
+        logger.info(
+          {
+            applicationNumber: application.application_number,
+            mobileNumber: input.mobile_number,
+            schemeId: input.scheme_id,
+          },
+          "Application created successfully",
+        );
 
         return application;
       } catch (error) {
@@ -265,7 +292,14 @@ export const applicationRouter = createTRPCRouter({
           throw error;
         }
 
-        // Log unexpected errors
+        logger.error(
+          {
+            mobileNumber: input.mobile_number,
+            schemeId: input.scheme_id,
+            error: error instanceof Error ? error.message : String(error),
+          },
+          "Failed to create application",
+        ); // Log unexpected errors
         console.error("Application creation error:", error);
 
         throw new TRPCError({
@@ -476,11 +510,20 @@ export const applicationRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       try {
+        logger.debug(
+          { applicationId: input.application_id },
+          "Starting PDF download process",
+        );
+
         const application = await ctx.db.scheme_application.findUnique({
           where: { id: BigInt(input.application_id) },
         });
 
         if (!application) {
+          logger.warn(
+            { applicationId: input.application_id },
+            "Application not found for PDF download",
+          );
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Application not found",
@@ -489,13 +532,21 @@ export const applicationRouter = createTRPCRouter({
 
         // Check if PDF has been generated and stored
         if (!application.application_pdf) {
+          logger.info(
+            { applicationId: input.application_id },
+            "PDF not yet generated, returning NOT_FOUND",
+          );
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Application PDF not available for download",
           });
         }
 
-        console.log("Application PDF key found:", application.application_pdf);
+        logger.debug(
+          { fileKey: application.application_pdf },
+          "Application PDF key found, generating presigned URL",
+        );
+
         // Get presigned URL from S3 for the stored file key
         const presignedUrl = await getPresignedUrl(
           application.application_pdf,
@@ -503,12 +554,24 @@ export const applicationRouter = createTRPCRouter({
         );
 
         if (!presignedUrl) {
+          logger.error(
+            { fileKey: application.application_pdf },
+            "Failed to generate presigned URL",
+          );
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to generate presigned URL",
           });
         }
-        console.log("Presigned URL generated:", presignedUrl);
+
+        logger.info(
+          {
+            applicationId: input.application_id,
+            applicationNumber: application.application_number,
+          },
+          "Presigned URL generated successfully",
+        );
+
         return {
           downloadUrl: presignedUrl,
           filename: `application_${application.application_number}.pdf`,
@@ -518,7 +581,13 @@ export const applicationRouter = createTRPCRouter({
           throw error;
         }
 
-        console.error("Download PDF error:", error);
+        logger.error(
+          {
+            applicationId: input.application_id,
+            error: error instanceof Error ? error.message : String(error),
+          },
+          "Download PDF error",
+        );
 
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -541,6 +610,14 @@ export const applicationRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       try {
+        logger.debug(
+          {
+            mobileNumber: input.mobile_number,
+            schemeId: input.scheme_id,
+          },
+          "Starting PDF generation process",
+        );
+
         // Determine application ID from input or query database
         let applicationId = input.application_id;
 
@@ -555,6 +632,13 @@ export const applicationRouter = createTRPCRouter({
           });
 
           if (!application) {
+            logger.warn(
+              {
+                mobileNumber: input.mobile_number,
+                schemeId: input.scheme_id,
+              },
+              "Application not found for PDF generation",
+            );
             throw new TRPCError({
               code: "NOT_FOUND",
               message: "Application not found",
@@ -563,6 +647,11 @@ export const applicationRouter = createTRPCRouter({
 
           applicationId = Number(application.id);
         }
+
+        logger.debug(
+          { applicationId },
+          "Enriching PDF payload with scheme data",
+        );
 
         // Enrich payload with scheme data
         const scheme = await ctx.db.scheme_scheme.findUnique({
@@ -618,27 +707,39 @@ export const applicationRouter = createTRPCRouter({
           print_date: new Date().toISOString().split("T")[0],
         };
 
+        logger.debug({}, "Invoking Lambda to generate PDF");
+
         // Invoke Lambda to generate PDF
         const lambdaResult = await invokePdfGenerator(payload);
 
         if (!lambdaResult.success || !lambdaResult.file_key) {
+          logger.error({ applicationId }, "Lambda failed to generate PDF");
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Lambda failed to generate PDF",
           });
         }
 
-        console.log(
-          "PDF generated by Lambda, file key:",
-          lambdaResult.file_key,
+        logger.info(
+          {
+            fileKey: lambdaResult.file_key,
+            bucket: lambdaResult.bucket,
+            applicationId,
+          },
+          "PDF generated by Lambda successfully",
         );
+
         // Update application with the S3 file key path
         await ctx.db.scheme_application.update({
           where: { id: BigInt(applicationId) },
           data: { application_pdf: lambdaResult.file_key },
         });
 
-        console.log("Application updated with PDF file key in database");
+        logger.info(
+          { fileKey: lambdaResult.file_key, applicationId },
+          "Application updated with PDF file key in database",
+        );
+
         return {
           success: true,
           file_key: lambdaResult.file_key,
@@ -650,7 +751,12 @@ export const applicationRouter = createTRPCRouter({
           throw error;
         }
 
-        console.error("PDF generation error:", error);
+        logger.error(
+          {
+            error: error instanceof Error ? error.message : String(error),
+          },
+          "PDF generation error",
+        );
 
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -677,6 +783,15 @@ export const applicationRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       try {
+        logger.debug(
+          {
+            filename: input.filename,
+            mimeType: input.mimeType,
+            applicationNumber: input.applicationNumber,
+          },
+          "Requesting presigned upload URL",
+        );
+
         // Validate file type
         const allowedMimeTypes = [
           "application/pdf",
@@ -685,6 +800,10 @@ export const applicationRouter = createTRPCRouter({
           "image/jpg",
         ];
         if (!allowedMimeTypes.includes(input.mimeType)) {
+          logger.warn(
+            { mimeType: input.mimeType },
+            "Unsupported file type requested",
+          );
           throw new TRPCError({
             code: "BAD_REQUEST",
             message:
@@ -699,15 +818,26 @@ export const applicationRouter = createTRPCRouter({
           input.schemeId,
         );
 
+        logger.debug({ s3Key }, "Generated S3 key for upload");
+
         // Get presigned URL for upload
         const presignedUrl = await getPresignedUploadUrl(s3Key, input.mimeType);
 
         if (!presignedUrl) {
+          logger.error({ s3Key }, "Failed to generate presigned upload URL");
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to generate presigned upload URL",
           });
         }
+
+        logger.info(
+          {
+            applicationNumber: input.applicationNumber,
+            filename: input.filename,
+          },
+          "Presigned upload URL generated successfully",
+        );
 
         return {
           success: true,
@@ -720,7 +850,13 @@ export const applicationRouter = createTRPCRouter({
           throw error;
         }
 
-        console.error("Get presigned URL error:", error);
+        logger.error(
+          {
+            applicationNumber: input.applicationNumber,
+            error: error instanceof Error ? error.message : String(error),
+          },
+          "Failed to get presigned upload URL",
+        );
 
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
