@@ -18,22 +18,28 @@ export default async function ApplicationPage({
 
     return (
       <HydrateClient>
-        <main className="min-h-screen p-8 bg-gray-50">
-          <ApplicationDetails application={application} applicationId={applicationId} />
+        <main className="min-h-screen bg-gray-50 p-8">
+          <ApplicationDetails
+            application={application}
+            applicationId={applicationId}
+          />
         </main>
       </HydrateClient>
     );
   } catch (error) {
     return (
-      <main className="min-h-screen p-8 bg-gray-50">
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-red-50 border border-red-200 rounded-md p-4">
+      <main className="min-h-screen bg-gray-50 p-8">
+        <div className="mx-auto max-w-2xl">
+          <div className="rounded-md border border-red-200 bg-red-50 p-4">
             <p className="text-red-800">
               {error instanceof Error ? error.message : "Application not found"}
             </p>
           </div>
           <div className="mt-4">
-            <a href="/application-lookup" className="text-blue-600 hover:underline">
+            <a
+              href="/application-lookup"
+              className="text-blue-600 hover:underline"
+            >
               Back to application lookup
             </a>
           </div>

@@ -3,6 +3,8 @@
  * Integrates with AWS S3 for secure cloud storage
  */
 
+import { FILE_UPLOAD_CONFIG } from "~/app/_components/utils/applicationConstants";
+
 export interface UploadedFile {
   filename: string;
   size: number;
@@ -32,26 +34,26 @@ export async function fileToBase64(file: File): Promise<string> {
 }
 
 /**
- * Validate file before upload
+ * Validate file before upload using centralized FILE_UPLOAD_CONFIG
  * @param file - File to validate
- * @param maxSizeMB - Maximum file size in MB
- * @param allowedTypes - Allowed MIME types
  * @returns Error message if invalid, empty string if valid
  */
-export function validateFile(
-  file: File,
-  maxSizeMB = 5,
-  allowedTypes: string[] = ["application/pdf", "image/jpeg", "image/png"]
-): string {
+export function validateFile(file: File): string {
   // Check file size
-  const maxSizeBytes = maxSizeMB * 1024 * 1024;
+  const maxSizeBytes = FILE_UPLOAD_CONFIG.maxSizeInMB * 1024 * 1024;
   if (file.size > maxSizeBytes) {
-    return `File size must be less than ${maxSizeMB}MB`;
+    return `File size must be less than ${FILE_UPLOAD_CONFIG.maxSizeInMB}MB`;
   }
 
   // Check file type
-  if (!allowedTypes.includes(file.type)) {
-    return `File type must be one of: ${allowedTypes.join(", ")}`;
+  if (!FILE_UPLOAD_CONFIG.allowedMimeTypes.includes(file.type)) {
+    return `File type must be one of: ${FILE_UPLOAD_CONFIG.allowedMimeTypes.join(", ")}`;
+  }
+
+  // Check file extension
+  const fileExtension = `.${file.name.split(".").pop()}`.toLowerCase();
+  if (!FILE_UPLOAD_CONFIG.allowedExtensions.includes(fileExtension)) {
+    return `File extension must be one of: ${FILE_UPLOAD_CONFIG.allowedExtensions.join(", ")}`;
   }
 
   return "";
@@ -89,9 +91,8 @@ export function formatFileSize(bytes: number): string {
 export function generateS3Key(
   applicationNumber: number | string,
   originalFilename: string,
-  schemeId: number | string
+  schemeId: number | string,
 ): string {
-  const timestamp = Date.now();
   const ext = originalFilename.split(".").pop() ?? "bin";
-  return `applications/${schemeId}/payment_proofs/payment_proofs_${schemeId}_${applicationNumber}_${timestamp}.${ext}`;
+  return `applications/${schemeId}/payment_proofs/payment_proofs_${schemeId}_${applicationNumber}.${ext}`;
 }

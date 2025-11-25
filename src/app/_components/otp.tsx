@@ -1,118 +1,30 @@
 "use client";
 
-import { useState } from "react";
-import { api } from "~/trpc/react";
 import { ApplicationForm } from "./application";
-
-interface OTPFormProps {
-  schemeId?: number;
-  schemeName?: string;
-  termsAndConditionsFileName?: string;
-}
+import { useOTPForm } from "./hooks/useOTPForm";
+import type { OTPFormProps } from "./types";
 
 export function OTPForm({
   schemeId = 1,
   schemeName = "Default-Scheme",
-  termsAndConditionsFileName = ""
+  termsAndConditionsFileName = "",
 }: OTPFormProps = {}) {
-  const [mobileNumber, setMobileNumber] = useState("");
-  const [otp, setOtp] = useState("");
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [status, setStatus] = useState<{
-    type: "success" | "error" | "info";
-    message: string;
-  } | null>(null);
-  const [step, setStep] = useState<0 | 1 | 2 | 3>(0); // 0: input, 1: verify, 2: verified, 3: application
-
-  const generateOtp = api.otp.generate.useMutation({
-    onSuccess: () => {
-      setStatus({
-        type: "success",
-        message: "OTP sent to your mobile number.",
-      });
-      setStep(1);
-    },
-    onError: (error) => {
-      let message = "Failed to generate OTP";
-
-      if (error.data?.code === "INTERNAL_SERVER_ERROR") {
-        message = error.message;
-      } else if (error.message) {
-        message = error.message;
-      }
-
-      setStatus({
-        type: "error",
-        message,
-      });
-    },
-  });
-
-  const verifyOtp = api.otp.verify.useMutation({
-    onSuccess: () => {
-      setStatus({
-        type: "success",
-        message: "OTP verified successfully!",
-      });
-      // Directly move to application form after successful verification
-      setTimeout(() => {
-        setStep(3);
-      }, 500);
-    },
-    onError: (error) => {
-      let message = "Invalid OTP. Please try again.";
-
-      if (error.data?.code === "INTERNAL_SERVER_ERROR") {
-        message = error.message;
-      } else if (error.message) {
-        message = error.message;
-      }
-
-      setStatus({
-        type: "error",
-        message,
-      });
-      // Keep user on verify step so they can retry
-    },
-  });
-
-  const handleGenerateOtp = async () => {
-    if (mobileNumber?.length !== 10) {
-      setStatus({
-        type: "error",
-        message: "Please enter a valid 10-digit mobile number",
-      });
-      return;
-    }
-
-    if (!termsAccepted) {
-      setStatus({
-        type: "error",
-        message: "Please accept the Terms and Conditions to proceed",
-      });
-      return;
-    }
-
-    await generateOtp.mutateAsync({
-      mobile_number: mobileNumber,
-      scheme_id: schemeId,
-    });
-  };
-
-  const handleVerifyOtp = async () => {
-    if (otp?.length !== 6) {
-      setStatus({
-        type: "error",
-        message: "Please enter a valid 6-digit OTP",
-      });
-      return;
-    }
-
-    await verifyOtp.mutateAsync({
-      mobile_number: mobileNumber,
-      otp,
-    });
-  };
+  const {
+    mobileNumber,
+    setMobileNumber,
+    otp,
+    setOtp,
+    termsAccepted,
+    setTermsAccepted,
+    status,
+    setStatus,
+    step,
+    setStep,
+    generateOtp,
+    verifyOtp,
+    handleGenerateOtp,
+    handleVerifyOtp,
+  } = useOTPForm({ schemeId, schemeName, termsAndConditionsFileName });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -278,7 +190,7 @@ export function OTPForm({
           {step === 0 && (
             <button
               type="submit"
-              disabled={generateOtp.isPending || !termsAccepted }
+              disabled={generateOtp.isPending || !termsAccepted}
               className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400"
             >
               {generateOtp.isPending ? "Sending..." : "Generate OTP"}

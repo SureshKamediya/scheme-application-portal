@@ -15,52 +15,35 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import logger from "~/server/utils/logger";
 
-// let s3Client: S3Client = null as unknown as S3Client;
+function createS3Client() {
+  const config: {
+    region: string;
+    credentials?: { accessKeyId: string; secretAccessKey: string };
+  } = {
+    region: process.env.AWS_REGION ?? "ap-south-1",
+  };
 
-// if(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
-//   console.log("AWS credentials found in environment variables. Using explicit credentials provider.");
-//   s3Client = new S3Client({
-//     region: process.env.AWS_REGION ?? "ap-south-1",
-//     credentials: {
-//       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-//       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-//     },
-//   });
-// } else{
-//   console.warn("AWS credentials not found in environment variables. Using default credentials provider.");
-//   s3Client = new S3Client({
-//     region: process.env.AWS_REGION ?? "ap-south-1",
-//   });
-// }
+  const accessKey = process.env.AWS_ACCESS_KEY_ID;
+  const secretKey = process.env.AWS_SECRET_ACCESS_KEY;
 
-// function getS3Client(): S3Client {
-//   const config: S3ClientConfig = {
-//     region: process.env.AWS_REGION ?? "ap-south-1",
-//   };
+  // Only add explicit credentials if both are present
+  if (accessKey && secretKey) {
+    logger.debug({}, "Using explicit AWS credentials for S3 client");
+    config.credentials = {
+      accessKeyId: accessKey,
+      secretAccessKey: secretKey,
+    };
+  } else {
+    logger.warn(
+      {},
+      "AWS credentials not found in environment variables. Using default credentials provider (IAM role)",
+    );
+  }
 
-//   const accessKey = env.AWS_ACCESS_KEY_ID;
-//   const secretKey = env.AWS_SECRET_ACCESS_KEY;
+  return new S3Client(config);
+}
 
-//   if (accessKey && secretKey) {
-//     console.log("Using explicit AWS credentials for S3 client.");
-//     config.credentials = {
-//       accessKeyId: accessKey,
-//       secretAccessKey: secretKey,
-//     };
-//   }
-//   // If keys are missing, the 'credentials' property is omitted,
-//   // allowing the SDK to fall back to the IAM role (the next step in the chain).
-
-//   return new S3Client(config);
-// }
-
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION ?? "ap-south-1",
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
-});
+const s3Client = createS3Client();
 const bucketName = process.env.AWS_S3_BUCKET_NAME!;
 
 /**

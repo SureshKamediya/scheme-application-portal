@@ -4,43 +4,16 @@ import React, { useState } from "react";
 import { api } from "~/trpc/react";
 import { validateFile, formatFileSize } from "~/utils/fileUpload";
 import { ApplicationLookup } from "./applicationLookup";
-
-type FormState = {
-  mobile_number: string;
-  applicant_name: string;
-  father_or_husband_name: string;
-  dob: string;
-  id_type: string;
-  id_number: string;
-  aadhar_number: string;
-  permanent_address: string;
-  permanent_address_pincode: string;
-  postal_address: string;
-  postal_address_pincode: string;
-  email: string;
-  annual_income: string;
-  plot_category: string;
-  sub_category: string;
-  registration_fees: string;
-  processing_fees: string;
-  total_payable_amount: string;
-  payment_mode: string;
-  dd_id_or_transaction_id: string;
-  dd_date_or_transaction_date: string;
-  dd_amount_or_transaction_amount: string;
-  payer_account_holder_name: string;
-  payer_bank_name: string;
-  payment_proof: string;
-  applicant_account_holder_name: string;
-  applicant_account_number: string;
-  applicant_bank_name: string;
-  applicant_bank_branch_address: string;
-  applicant_bank_ifsc: string;
-  scheme_id: number;
-  scheme_name: string;
-};
-
-type ValidationErrors = Record<string, string>;
+import { validateStep as validateFormStep } from "./utils/validation";
+import { calculateFeesAndCategory } from "./utils/fees";
+import {
+  ID_TYPES,
+  INCOME_RANGES,
+  SUB_CATEGORIES,
+  PAYMENT_MODES,
+  STATUS_MESSAGES,
+} from "./utils/applicationConstants";
+import type { FormState, ValidationErrors } from "./types";
 
 export function ApplicationForm({
   initialSchemeId = 1,
@@ -111,28 +84,8 @@ export function ApplicationForm({
         try {
           setStatus({
             type: "info",
-            message: "Getting upload URL...",
+            message: STATUS_MESSAGES.GETTING_UPLOAD_URL,
           });
-
-          // const fileBuffer = await new Promise<string>((resolve, reject) => {
-          //   const reader = new FileReader();
-          //   reader.onload = () => {
-          //     const result = reader.result as string;
-          //     const base64Content = result.split(",")[1] ?? "";
-          //     resolve(base64Content);
-          //   };
-          //   reader.onerror = () => reject(new Error("Failed to read file"));
-          //   reader.readAsDataURL(uploadedFile.file);
-          // });
-
-          // const uploadResult = await uploadPaymentProof.mutateAsync({
-          //   applicationNumber: application.application_number,
-          //   schemeName: state.scheme_name,
-          //   schemeId: state.scheme_id,
-          //   filename: uploadedFile.name,
-          //   fileBuffer: fileBuffer,
-          //   mimeType: uploadedFile.file.type,
-          // });
 
           // Step 1: Get presigned URL from server
           const presignedUrlResponse =
@@ -144,12 +97,12 @@ export function ApplicationForm({
             });
 
           if (!presignedUrlResponse.success) {
-            throw new Error("Failed to get presigned URL");
+            throw new Error(STATUS_MESSAGES.ERROR_GETTING_URL);
           }
 
           setStatus({
             type: "info",
-            message: "Uploading payment proof to cloud storage...",
+            message: STATUS_MESSAGES.UPLOADING,
           });
 
           // Step 2: Upload file directly to S3 using presigned URL
@@ -172,21 +125,23 @@ export function ApplicationForm({
               errorText,
             );
             throw new Error(
-              `Failed to upload file to S3: ${uploadResponse.status}`,
+              STATUS_MESSAGES.ERROR_UPLOADING(uploadResponse.status),
             );
           }
 
           setStatus({
             type: "success",
-            message: `Application submitted successfully! Your application number is ${application.application_number}`,
+            message: STATUS_MESSAGES.SUCCESS(
+              String(application.application_number),
+            ),
           });
 
-          console.log("File uploaded successfully to S3");
+          console.log(STATUS_MESSAGES.FILE_UPLOAD_SUCCESS);
         } catch (uploadError) {
           const errorMessage =
             uploadError instanceof Error
               ? uploadError.message
-              : "File upload failed";
+              : STATUS_MESSAGES.ERROR_UPLOAD;
 
           console.error("File upload error:", uploadError);
 
@@ -238,7 +193,6 @@ export function ApplicationForm({
     },
   });
 
-  // const uploadPaymentProof = api.application.uploadPaymentProof.useMutation();
   // Add mutation for getting presigned URL
   const getPresignedUrlMutation =
     api.application.getPresignedUploadUrl.useMutation({
@@ -251,208 +205,38 @@ export function ApplicationForm({
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >,
-  ) => setState((s) => ({ ...s, [e.target.name]: e.target.value }));
+  ): void =>
+    setState((s: FormState) => ({ ...s, [e.target.name]: e.target.value }));
 
-  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0];
     if (file) {
       const error = validateFile(file);
       if (error) {
-        setErrors((prev) => ({ ...prev, payment_proof: error }));
+        setErrors((prev: ValidationErrors) => ({
+          ...prev,
+          payment_proof: error,
+        }));
         return;
       }
 
-      setState((s) => ({ ...s, payment_proof: file.name }));
+      setState((s: FormState) => ({ ...s, payment_proof: file.name }));
       setUploadedFile({
         name: file.name,
         size: formatFileSize(file.size),
         file: file,
       });
 
-      setErrors((prev) => ({ ...prev, payment_proof: "" }));
+      setErrors((prev: ValidationErrors) => ({ ...prev, payment_proof: "" }));
       setStatus({
         type: "success",
-        message: "Payment proof file selected.",
+        message: STATUS_MESSAGES.FILE_SELECTED,
       });
     }
   };
 
   const validateStep = (currentStep: number): ValidationErrors => {
-    const newErrors: ValidationErrors = {};
-
-    const onlyAlpha = /^[A-Za-z\s]+$/;
-    const onlyAlphanumeric = /^[A-Za-z0-9\s]+$/;
-    const mobileRegex = /^\d{10}$/;
-    const pincodeRegex = /^\d{6}$/;
-    const aadharRegex = /^\d{12}$/;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (currentStep === 0) {
-      if (!state.applicant_name.trim()) {
-        newErrors.applicant_name = "Applicant name is required";
-      } else if (!onlyAlpha.test(state.applicant_name)) {
-        newErrors.applicant_name = "Applicant name should contain only letters";
-      }
-
-      if (!state.father_or_husband_name.trim()) {
-        newErrors.father_or_husband_name = "Father/Husband name is required";
-      } else if (!onlyAlpha.test(state.father_or_husband_name)) {
-        newErrors.father_or_husband_name =
-          "Father/Husband name should contain only letters";
-      }
-
-      if (!state.dob) {
-        newErrors.dob = "Date of birth is required";
-      }
-
-      if (!mobileRegex.test(state.mobile_number)) {
-        newErrors.mobile_number = "Mobile number must be 10 digits";
-      }
-
-      if (!state.email.trim()) {
-        newErrors.email = "Email is required";
-      } else if (!emailRegex.test(state.email)) {
-        newErrors.email = "Please enter a valid email address";
-      }
-
-      if (!state.id_type.trim()) {
-        newErrors.id_type = "ID type is required";
-      }
-
-      if (!state.id_number.trim()) {
-        newErrors.id_number = "ID number is required";
-      } else if (!onlyAlphanumeric.test(state.id_number)) {
-        newErrors.id_number = "ID number should be alphanumeric";
-      } else if (state.id_number.trim().length > 20) {
-        newErrors.id_number = "ID number is too long-max 20 characters allowed";
-      }
-
-      if (!state.aadhar_number.trim()) {
-        newErrors.aadhar_number = "Aadhar number is required";
-      } else if (!aadharRegex.test(state.aadhar_number.toUpperCase())) {
-        newErrors.aadhar_number =
-          "Enter a valid Aadhar number, it must be 12 digits";
-      }
-
-      if (!state.permanent_address.trim()) {
-        newErrors.permanent_address = "Permanent address is required";
-      }
-
-      if (!state.permanent_address_pincode.trim()) {
-        newErrors.permanent_address_pincode =
-          "Permanent address pincode is required";
-      } else if (!pincodeRegex.test(state.permanent_address_pincode)) {
-        newErrors.permanent_address_pincode =
-          "Permanent address pincode must be 6 digits";
-      }
-
-      if (!state.postal_address.trim()) {
-        newErrors.postal_address = "Postal address is required";
-      }
-
-      if (!state.postal_address_pincode.trim()) {
-        newErrors.postal_address_pincode = "Postal address pincode is required";
-      } else if (!pincodeRegex.test(state.postal_address_pincode)) {
-        newErrors.postal_address_pincode =
-          "Postal address pincode must be 6 digits";
-      }
-    }
-
-    if (currentStep === 1) {
-      if (!state.annual_income.trim()) {
-        newErrors.annual_income = "Annual income is required";
-      }
-
-      if (!state.payment_mode.trim()) {
-        newErrors.payment_mode = "Payment mode is required";
-      }
-
-      if (!state.dd_id_or_transaction_id.trim()) {
-        newErrors.dd_id_or_transaction_id = "DD/Transaction ID is required";
-      } else if (!onlyAlphanumeric.test(state.dd_id_or_transaction_id)) {
-        newErrors.dd_id_or_transaction_id =
-          "DD/Transaction ID should be alphanumeric";
-      }
-
-      if (!state.dd_date_or_transaction_date) {
-        newErrors.dd_date_or_transaction_date =
-          "DD/Transaction date is required";
-      }
-
-      if (
-        !state.dd_amount_or_transaction_amount ||
-        Number(state.dd_amount_or_transaction_amount) <= 0
-      ) {
-        newErrors.dd_amount_or_transaction_amount =
-          "Enter a valid payment amount";
-      } else if (
-        Number(state.dd_amount_or_transaction_amount) !==
-        Number(state.total_payable_amount)
-      ) {
-        newErrors.dd_amount_or_transaction_amount = `Payment amount must be ₹${state.total_payable_amount}`;
-      }
-
-      if (!state.payer_account_holder_name.trim()) {
-        newErrors.payer_account_holder_name =
-          "Payer account holder name is required";
-      } else if (!onlyAlpha.test(state.payer_account_holder_name)) {
-        newErrors.payer_account_holder_name =
-          "Payer account holder name should contain only letters";
-      }
-
-      if (!state.payer_bank_name.trim()) {
-        newErrors.payer_bank_name = "Payer bank name is required";
-      } else if (!onlyAlpha.test(state.payer_bank_name)) {
-        newErrors.payer_bank_name =
-          "Payer bank name should contain only letters";
-      }
-
-      if (!state.payment_proof.trim()) {
-        newErrors.payment_proof = "Payment proof is required";
-      }
-    }
-
-    if (currentStep === 2) {
-      if (!state.applicant_account_holder_name.trim()) {
-        newErrors.applicant_account_holder_name =
-          "Applicant account holder name is required";
-      } else if (!onlyAlpha.test(state.applicant_account_holder_name)) {
-        newErrors.applicant_account_holder_name =
-          "Applicant account holder name should contain only letters";
-      }
-
-      if (!state.applicant_account_number.trim()) {
-        newErrors.applicant_account_number =
-          "Applicant account number is required";
-      } else if (!onlyAlphanumeric.test(state.applicant_account_number)) {
-        newErrors.applicant_account_number =
-          "Applicant account number should be alphanumeric";
-      }
-
-      if (!state.applicant_bank_name.trim()) {
-        newErrors.applicant_bank_name = "Applicant bank name is required";
-      } else if (!onlyAlpha.test(state.applicant_bank_name)) {
-        newErrors.applicant_bank_name =
-          "Applicant bank name should contain only letters";
-      }
-
-      if (!state.applicant_bank_branch_address.trim()) {
-        newErrors.applicant_bank_branch_address =
-          "Applicant bank branch address is required";
-      }
-
-      if (!state.applicant_bank_ifsc.trim()) {
-        newErrors.applicant_bank_ifsc = "Applicant bank IFSC is required";
-      } else if (!onlyAlphanumeric.test(state.applicant_bank_ifsc)) {
-        newErrors.applicant_bank_ifsc =
-          "Applicant bank IFSC should be alphanumeric";
-      } else if (state.applicant_bank_ifsc.trim().length > 11) {
-        newErrors.applicant_bank_ifsc =
-          "Applicant bank IFSC is too long-max 11 characters allowed";
-      }
-    }
-
-    return newErrors;
+    return validateFormStep(currentStep, state);
   };
 
   const handleNext = (e?: React.FormEvent) => {
@@ -654,10 +438,11 @@ export function ApplicationForm({
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
                   >
                     <option value="">Select</option>
-                    <option value="aadhaar">Pan Card</option>
-                    <option value="voter">Voter ID</option>
-                    <option value="driving">Driving License</option>
-                    <option value="rationCard">Ration Card</option>
+                    {ID_TYPES.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
                   </select>
                   {errors.id_type && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">
@@ -749,7 +534,7 @@ export function ApplicationForm({
                       }
                       onChange={(e) => {
                         if (e.target.checked) {
-                          setState((s) => ({
+                          setState((s: FormState) => ({
                             ...s,
                             postal_address: s.permanent_address,
                             postal_address_pincode: s.permanent_address_pincode,
@@ -813,33 +598,26 @@ export function ApplicationForm({
                     value={state.annual_income}
                     onChange={(e) => {
                       const income = e.target.value;
-                      let category = "";
-                      let regFees = "";
-
-                      if (income === "0-3 lakh") {
-                        category = "EWS";
-                        regFees = "10000.00";
-                      } else if (income === "3-6 lakh") {
-                        category = "LIG";
-                        regFees = "20000.00";
+                      const calculation = calculateFeesAndCategory(income);
+                      if (calculation) {
+                        setState((s: FormState) => ({
+                          ...s,
+                          annual_income: income,
+                          plot_category: calculation.category,
+                          registration_fees: calculation.registrationFees,
+                          processing_fees: calculation.processingFees,
+                          total_payable_amount: calculation.totalAmount,
+                        }));
                       }
-
-                      setState((s) => ({
-                        ...s,
-                        annual_income: income,
-                        plot_category: category,
-                        registration_fees: regFees,
-                        processing_fees: "500.00",
-                        total_payable_amount: regFees
-                          ? String(Number(regFees) + 500.0)
-                          : "",
-                      }));
                     }}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
                   >
                     <option value="">Select</option>
-                    <option value="0-3 lakh">0 to 3 lakh</option>
-                    <option value="3-6 lakh">3 to 6 lakh</option>
+                    {INCOME_RANGES.map((income) => (
+                      <option key={income.value} value={income.value}>
+                        {income.label}
+                      </option>
+                    ))}
                   </select>
                   {errors.annual_income && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">
@@ -859,38 +637,21 @@ export function ApplicationForm({
 
                 <div>
                   <label className="mb-1 block text-xs sm:text-sm">
-                    Sub category
+                    <span className="text-red-500">*</span> Sub category
                   </label>
                   <select
                     name="sub_category"
                     value={state.sub_category}
                     onChange={onChange}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
+                    required
                   >
                     <option value="">Select</option>
-                    <option value="unReserved">Un-Reserved</option>
-                    <option value="unReservedDestituteAndLandlessSingle">
-                      Un-Reserved(Destitute & Landless Single)
-                    </option>
-                    <option value="unReservedHandicapped">
-                      Un-Reserved Handicapped
-                    </option>
-                    <option value="governmentEmployees">
-                      Government Employees
-                    </option>
-                    <option value="journalist">Journalist</option>
-                    <option value="otherSoldiers">
-                      Other Soldiers(including ex-servicemen)
-                    </option>
-                    <option value="scheduledCaste">Scheduled Caste</option>
-                    <option value="scheduledTribe">Scheduled Tribe</option>
-                    <option value="soldierHandicapped">
-                      Soldier Handicapped
-                    </option>
-                    <option value="soldierWidowAndDependent">
-                      Soldier(Widow & Dependent)
-                    </option>
-                    <option value="transgender">Transgender</option>
+                    {SUB_CATEGORIES.map((category) => (
+                      <option key={category.value} value={category.value}>
+                        {category.label}
+                      </option>
+                    ))}
                   </select>
                   {errors.id_type && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">
@@ -942,10 +703,14 @@ export function ApplicationForm({
                     value={state.payment_mode}
                     onChange={onChange}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
+                    required
                   >
                     <option value="">Select</option>
-                    <option value="dd">DD</option>
-                    <option value="upi">UPI</option>
+                    {PAYMENT_MODES.map((mode) => (
+                      <option key={mode.value} value={mode.value}>
+                        {mode.label}
+                      </option>
+                    ))}
                   </select>
                   {errors.payment_mode && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">
@@ -1054,6 +819,7 @@ export function ApplicationForm({
                       onChange={onFileChange}
                       className="block w-full text-xs text-gray-500 file:mr-3 file:rounded file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-blue-700 hover:file:bg-blue-100 sm:text-sm sm:file:mr-4 sm:file:px-4 sm:file:py-2 sm:file:text-sm"
                       accept=".pdf,.jpg,.jpeg,.png"
+                      required
                     />
                   </div>
                   {errors.payment_proof && (

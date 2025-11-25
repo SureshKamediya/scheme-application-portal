@@ -1,24 +1,17 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { api } from "~/trpc/react";
+import React, { useState } from "react";
+
 import { OTPForm } from "./otp";
 import Link from "next/link";
 import { ApplicationLookup } from "./applicationLookup";
-
-interface SchemeFile {
-  id: bigint;
-  name: string | null;
-  file_choice: string;
-  file: string | null;
-}
-
-type SchemeFileArray = SchemeFile[] | undefined;
+import { useSchemeDetail } from "./hooks/useSchemeDetail";
+import type { SchemeDetailProps, SchemeFile } from "./types";
 
 const S3_BUCKET = "scheme-application-files";
 const S3_REGION = "ap-south-1";
 
-export function SchemeDetail({ schemeId }: { schemeId: number }) {
+export function SchemeDetail({ schemeId }: SchemeDetailProps) {
   const [submittedApplicationData, setSubmittedApplicationData] = useState<{
     mobile_number: string;
     application_number: string;
@@ -27,39 +20,14 @@ export function SchemeDetail({ schemeId }: { schemeId: number }) {
   } | null>(null);
 
   const {
-    data: scheme,
+    scheme,
     isLoading,
     error,
-  } = api.scheme.getById.useQuery({
-    schemeId,
-  });
+    termsAndConditionsFileName,
+    isApplicationOpen,
+  } = useSchemeDetail(schemeId);
 
   const [showApplyForm, setShowApplyForm] = useState(false);
-  const [termsAndConditionsFileName, setTermsAndConditionsFileName] = useState<string | null>(null);
-
-  useEffect(() => {
-    const schemeFiles: SchemeFileArray = scheme?.scheme_schemefiles ?? [];
-    if (schemeFiles.length > 0) {
-      // 2. Safely search for the terms document
-      const termsDoc = schemeFiles.find(
-        (file: SchemeFile) => {
-          const isMatchByName = file.name?.toLowerCase().includes("terms");
-          const isMatchByChoice = file.file_choice?.toLowerCase().includes("terms");
-          
-          return isMatchByName ?? isMatchByChoice;
-        }
-      );
-
-      const hasFileAndEnv = termsDoc?.file && S3_BUCKET && S3_REGION;   
-      if (hasFileAndEnv) {
-        const s3BaseUrl = `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/`;
-        const fullS3Url = `${s3BaseUrl}${termsDoc.file}`;
-        setTermsAndConditionsFileName(fullS3Url);
-      } else {
-        setTermsAndConditionsFileName(null);
-      }
-    }
-  }, [scheme]);
 
   if (isLoading) {
     return (
@@ -93,16 +61,14 @@ export function SchemeDetail({ schemeId }: { schemeId: number }) {
         >
           ← Back to Scheme Details
         </button>
-        <OTPForm schemeId={Number(scheme.id)} schemeName={scheme.name}  termsAndConditionsFileName={termsAndConditionsFileName ?? ""}/>
+        <OTPForm
+          schemeId={Number(scheme.id)}
+          schemeName={scheme.name}
+          termsAndConditionsFileName={termsAndConditionsFileName ?? ""}
+        />
       </div>
     );
   }
-
-  const isApplicationOpen =
-    scheme.application_open_date &&
-    scheme.application_close_date &&
-    new Date() >= new Date(scheme.application_open_date) &&
-    new Date() <= new Date(scheme.application_close_date);
 
   return (
     <div>
@@ -201,7 +167,9 @@ export function SchemeDetail({ schemeId }: { schemeId: number }) {
                   {scheme.reserved_price !== undefined && (
                     <div>
                       <p className="text-sm text-gray-600">Reserved Price</p>
-                      <p className="text-gray-900">{scheme.reserved_price}</p>
+                      <p className="text-gray-900">
+                        {`${scheme.reserved_price}`}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -290,14 +258,14 @@ export function SchemeDetail({ schemeId }: { schemeId: number }) {
 
             {/* Right Column - Files */}
             <div>
-              {scheme.scheme_schemefiles && scheme.scheme_schemefiles.length > 0 ? (
+              {scheme.scheme_schemefiles &&
+              scheme.scheme_schemefiles.length > 0 ? (
                 <div className="sticky top-6 rounded-lg bg-white p-6 shadow-sm">
                   <h2 className="mb-4 text-xl font-semibold text-gray-900">
                     Scheme Documents
                   </h2>
                   <div className="space-y-3">
                     {scheme.scheme_schemefiles.map((file: SchemeFile) => {
-                      
                       let fullS3Url = "";
 
                       // Check for existence before constructing the URL

@@ -259,6 +259,11 @@ export const applicationRouter = createTRPCRouter({
               application_status: "pending",
               rejection_remark: "",
               lottery_status: "pending",
+              payment_proof: generateS3Key(
+                applicationNumber,
+                input.payment_proof,
+                input.scheme_id,
+              ),
             },
           });
 
@@ -311,96 +316,6 @@ export const applicationRouter = createTRPCRouter({
         });
       }
     }),
-
-  /**
-   * Upload payment proof file to S3
-   * Input: applicationId, filename, fileBuffer (base64), mimeType
-   * Output: S3 URL or filename if S3 not configured
-   */
-  // uploadPaymentProof: publicProcedure
-  //   .input(
-  //     z.object({
-  //       applicationNumber: z.number().int("Application number must be an integer"),
-  //       schemeName: z.string().max(255, "Scheme name too long"),
-  //       schemeId: z.number().int("Scheme ID must be an integer"),
-  //       filename: z.string().max(255, "Filename too long"),
-  //       fileBuffer: z.string().describe("File content as base64 string"),
-  //       mimeType: z.string().max(50, "MIME type too long"),
-  //     }),
-  //   )
-  //   .mutation(async ({ input }) => {
-  //     try {
-  //       // Validate file type
-  //       console.log("Validating file MIME type:", input.mimeType);
-  //       const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png","image/jpg"];
-  //       if (!allowedMimeTypes.includes(input.mimeType)) {
-  //         throw new TRPCError({
-  //           code: "BAD_REQUEST",
-  //           message:
-  //             "File type not allowed. Only PDF, JPEG, JPG, and PNG are supported.",
-  //         });
-  //       }
-
-  //       // Convert base64 to buffer
-  //       const buffer = Buffer.from(input.fileBuffer, "base64");
-
-  //       // Validate file size (max 5MB)
-  //       const maxSizeBytes = 5 * 1024 * 1024; // 5MB
-  //       if (buffer.length > maxSizeBytes) {
-  //         throw new TRPCError({
-  //           code: "BAD_REQUEST",
-  //           message: "File size exceeds 5MB limit",
-  //         });
-  //       }
-  //       console.log("File buffer size (bytes):", buffer.length);
-  //       // Generate S3 key
-  //       const s3Key = generateS3Key(
-  //         input.applicationNumber,
-  //         input.filename,
-  //         input.schemeId,
-  //       );
-
-  //       console.log("Uploading payment proof to S3 with key:", s3Key);
-  //       // Upload to S3
-  //       const s3Url = await uploadToS3(s3Key, buffer, input.mimeType);
-
-  //       if (!s3Url) {
-  //         // S3 not configured, return filename as fallback
-  //         console.warn(
-  //           "S3 not configured, returning filename as payment_proof",
-  //         );
-  //         return {
-  //           success: true,
-  //           url: input.filename,
-  //           key: s3Key,
-  //           bucket: null,
-  //         };
-  //       }
-
-  //       return {
-  //         success: true,
-  //         url: s3Url,
-  //         key: s3Key,
-  //         bucket: true, // Indicates file was uploaded to S3
-  //       };
-  //     } catch (error) {
-  //       // Re-throw TRPC errors as-is
-  //       if (error instanceof TRPCError) {
-  //         throw error;
-  //       }
-
-  //       // Log unexpected errors
-  //       console.error("Payment proof upload error:", error);
-
-  //       throw new TRPCError({
-  //         code: "INTERNAL_SERVER_ERROR",
-  //         message:
-  //           error instanceof Error
-  //             ? error.message
-  //             : "Failed to upload payment proof",
-  //       });
-  //     }
-  //   }),
 
   /**
    * Get application by mobile number and application number and scheme name
@@ -664,7 +579,9 @@ export const applicationRouter = createTRPCRouter({
           scheme_name: scheme?.name ?? "",
           scheme_address: scheme?.address ?? "",
           application_number: applicationId,
-          application_submission_date: new Date().toISOString().split("T")[0],
+          application_submission_date:
+            input.application_submission_date ??
+            new Date().toISOString().split("T")[0],
           applicant_name: input.applicant_name,
           father_or_husband_name: input.father_or_husband_name,
           dob: input.dob,
@@ -672,9 +589,10 @@ export const applicationRouter = createTRPCRouter({
           id_type: input.id_type,
           id_number: input.id_number,
           pan_number: "ABCDE1234F", // PAN not collected currently, have to replace with aadhar number
-          permanent_address: "abcd", // temporary placeholder
+          aadhar_number: input.aadhar_number,
+          permanent_address: input.permanent_address,
           permanent_address_pincode: input.permanent_address_pincode,
-          postal_address: "abcd", // temporary placeholder
+          postal_address: input.postal_address,
           postal_address_pincode: input.postal_address_pincode,
           annual_income: input.annual_income,
           plot_category: input.plot_category,
