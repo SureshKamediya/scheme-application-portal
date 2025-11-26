@@ -5,47 +5,79 @@
  */
 
 // ID Types for applicant identification
+export const COMPANY_CHOICES = [
+    {value: "riyasat-infra", label: "Riyasat Infra Developers Pvt. Ltd."},
+    {value: "riyasat-infratech", label:"Riyasat Infratech Developers LLP"},
+    {value: "new-path", label: "New Path Developers LLP"},
+    {value: "gokul-kripa", label: 'Gokul Kripa Colonizers and Developers Pvt. Ltd.'},
+    {value: 'other', label: 'other'}
+]
+
 export const ID_TYPES = [
-  { value: "panCard", label: "Pan Card" },
-  { value: "voterId", label: "Voter ID" },
-  { value: "drivingLicense", label: "Driving License" },
-  { value: "rationCard", label: "Ration Card" },
+  { value: "PAN_CARD", label: "Pan Card" },
+  { value: "VOTER_ID", label: "Voter ID Card" },
+  { value: "DRIVING_LICENSE", label: "Driving License" },
+  { value: "RATION_CARD", label: "Ration Card" },
 ];
 
 // Annual Income ranges
 export const INCOME_RANGES = [
-  { value: "0-3 lakh", label: "0 to 3 lakh" },
-  { value: "3-6 lakh", label: "3 to 6 lakh" },
+  { value: "0L_3L", label: "0 to 3 Lakhs" },
+  { value: "3L_6L", label: "3 Lakhs to 6 Lakhs" },
 ];
+
+export const PLOT_CATEGORY_CHOICES = [
+    {value: 'EWS', label: 'Economically Weaker Section'},
+    {value: 'LIG', label: 'Low Income Group'},
+]
 
 // Applicant Sub Categories
 export const SUB_CATEGORIES = [
-  { value: "unReserved", label: "Un-Reserved" },
+  { value: "un-reserved", label: "Un-Reserved" },
   {
-    value: "unReservedDestituteAndLandlessSingle",
+    value: "un-reserved-dls",
     label: "Un-Reserved(Destitute & Landless Single)",
   },
-  { value: "unReservedHandicapped", label: "Un-Reserved Handicapped" },
-  { value: "governmentEmployees", label: "Government Employees" },
+  { value: "un-reserved-handicapped", label: "Un-Reserved Handicapped" },
+  { value: "government-employees", label: "Government Employees" },
   { value: "journalist", label: "Journalist" },
   {
-    value: "otherSoldiers",
-    label: "Other Soldiers(including ex-servicemen)",
+    value: "other-soldiers",
+    label: "Other Soldiers (including ex-servicemen)",
   },
-  { value: "scheduledCaste", label: "Scheduled Caste" },
-  { value: "scheduledTribe", label: "Scheduled Tribe" },
-  { value: "soldierHandicapped", label: "Soldier Handicapped" },
+  { value: "scheduled-caste", label: "Scheduled Caste" },
+  { value: "scheduled-tribe", label: "Scheduled Tribe" },
+  { value: "soldier-handicapped", label: "Soldier Handicapped" },
   {
-    value: "soldierWidowAndDependent",
-    label: "Soldier(Widow & Dependent)",
+    value: "soldier-widow-dependent",
+    label: "Soldier (Widow & Dependent)",
   },
   { value: "transgender", label: "Transgender" },
 ];
 
 // Payment Modes
 export const PAYMENT_MODES = [
-  { value: "dd", label: "DD" },
-  { value: "upi", label: "UPI" },
+  { value: "DD", label: "Demand Draft" },
+  { value: "UPI", label: "UPI" },
+];
+
+export const APPLICATION_STATUS_CHOICES = [
+    { value: 'PENDING', label: 'Pending' },
+    { value: 'ACCEPTED', label: 'Accepted' },
+    { value: 'REJECTED', label: 'Rejected' },
+];
+
+export const PAYMENT_STATUS_CHOICES = [
+  { value: 'PENDING', label: 'Pending' },
+  { value: 'VERIFIED', label: 'Verified' },
+  { value: 'FAILED', label: 'Failed' },
+];
+
+export const LOTTERY_STATUS_CHOICES = [
+    { value: 'NOT_CONDUCTED', label: 'Not Conducted' },
+    { value: 'SELECTED', label: 'Selected' },
+    { value: 'NOT_SELECTED', label: 'Not Selected' },
+    { value: 'WAITLISTED', label: 'Waitlisted' },
 ];
 
 // Application Form Steps
