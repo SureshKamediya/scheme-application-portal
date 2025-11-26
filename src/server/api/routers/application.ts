@@ -7,6 +7,7 @@ import { invokePdfGenerator } from "~/server/utils/lambda";
 import type { PdfPayload } from "~/types/pdfPayload";
 import logger from "~/server/utils/logger";
 import { VALUE_TO_LABEL_MAP } from "~/app/_components/utils/applicationConstants";
+import { sendApplicationSuccessSMS } from "~/server/utils/sms";
 
 /**
  * Input mirrors the prisma `scheme_application` fields used here.
@@ -290,6 +291,40 @@ export const applicationRouter = createTRPCRouter({
           },
           "Application created successfully",
         );
+
+        // Send confirmation SMS (non-blocking - log errors but don't fail the request)
+        const plotCategoryLabel =
+          VALUE_TO_LABEL_MAP.plotCategory[application.plot_category ?? ""] ??
+          application.plot_category ??
+          "Unknown";
+
+        const smsSent = await sendApplicationSuccessSMS(
+          application.mobile_number,
+          application.applicant_name,
+          plotCategoryLabel,
+          scheme.name ?? "Unknown Scheme",
+          application.application_number,
+        );
+
+        if (!smsSent.success) {
+          logger.warn(
+            {
+              applicationNumber: application.application_number,
+              mobileNumber: application.mobile_number,
+              error: smsSent.error,
+            },
+            "Failed to send application confirmation SMS",
+          );
+        } else {
+          logger.info(
+            {
+              applicationNumber: application.application_number,
+              mobileNumber: application.mobile_number,
+              messageId: smsSent.messageId,
+            },
+            "Application confirmation SMS sent successfully",
+          );
+        }
 
         return application;
       } catch (error) {

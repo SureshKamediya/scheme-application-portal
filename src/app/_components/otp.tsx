@@ -20,10 +20,12 @@ export function OTPForm({
     setStatus,
     step,
     setStep,
+    otpTimeout,
     generateOtp,
     verifyOtp,
     handleGenerateOtp,
     handleVerifyOtp,
+    stopOtpTimeout,
   } = useOTPForm({ schemeId, schemeName, termsAndConditionsFileName });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -72,10 +74,35 @@ export function OTPForm({
               ? "bg-green-100 text-green-800"
               : status.type === "error"
                 ? "bg-red-100 text-red-800"
-                : "bg-blue-100 text-blue-800"
+                : status.type === "warning"
+                  ? "bg-yellow-100 text-yellow-800"
+                  : "bg-blue-100 text-blue-800"
           }`}
         >
           {status.message}
+        </div>
+      )}
+
+      {/* OTP Timeout Indicator */}
+      {otpTimeout.isActive && step === 1 && (
+        <div className="rounded-md bg-blue-50 p-3">
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-medium text-blue-900">
+              OTP Expires in:
+            </div>
+            <div className="text-lg font-bold text-blue-600">
+              {Math.floor(otpTimeout.remainingSeconds / 60)}:
+              {String(otpTimeout.remainingSeconds % 60).padStart(2, "0")}
+            </div>
+          </div>
+          <div className="mt-2 h-1 w-full rounded-full bg-blue-200">
+            <div
+              className="h-1 rounded-full bg-blue-600 transition-all duration-300"
+              style={{
+                width: `${(otpTimeout.remainingSeconds / 300) * 100}%`,
+              }}
+            />
+          </div>
         </div>
       )}
 
@@ -176,6 +203,7 @@ export function OTPForm({
                 setStep(0);
                 setOtp("");
                 setStatus(null);
+                stopOtpTimeout();
               }}
               disabled={verifyOtp.isPending}
               className="rounded bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 disabled:bg-gray-300 disabled:opacity-60"

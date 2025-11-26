@@ -9,7 +9,6 @@ import { calculateFeesAndCategory } from "./utils/fees";
 import {
   ID_TYPES,
   INCOME_RANGES,
-  PLOT_CATEGORY_CHOICES,
   SUB_CATEGORIES,
   PAYMENT_MODES,
   STATUS_MESSAGES,
