@@ -7,6 +7,7 @@ import Link from "next/link";
 import { ApplicationLookup } from "./applicationLookup";
 import { useSchemeDetail } from "./hooks/useSchemeDetail";
 import type { SchemeDetailProps, SchemeFile } from "./types";
+import { VALUE_TO_LABEL_MAP } from "./utils/applicationConstants";
 
 const S3_BUCKET = "scheme-application-files";
 const S3_REGION = "ap-south-1";
@@ -93,7 +94,9 @@ export function SchemeDetail({ schemeId }: SchemeDetailProps) {
           <div className="mb-6 rounded-lg bg-white p-6 shadow-sm">
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="mb-1 text-sm text-gray-600">{scheme.company}</p>
+                <p className="mb-1 text-sm text-gray-600">
+                  {VALUE_TO_LABEL_MAP.company[scheme?.company ?? ""] ?? ""}
+                </p>
                 <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
                   {scheme.name}
                 </h1>

@@ -126,6 +126,7 @@ export function useApplicationDetails(applicationId: number) {
         email: String(fullApplication.email ?? ""),
         annual_income: String(fullApplication.annual_income ?? ""),
         plot_category: String(fullApplication.plot_category ?? ""),
+        sub_category: String(fullApplication.sub_category ?? ""),
         registration_fees: String(fullApplication.registration_fees ?? "0.00"),
         processing_fees: String(fullApplication.processing_fees ?? "0.00"),
         total_payable_amount: String(

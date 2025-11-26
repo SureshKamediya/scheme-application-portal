@@ -12,13 +12,13 @@ export interface IncomeCalculation {
 const PROCESSING_FEES = "500.00";
 
 const INCOME_CATEGORIES: Record<string, IncomeCalculation> = {
-  "0-3 lakh": {
+  "0L_3L": {
     category: "EWS",
     registrationFees: "10000.00",
     processingFees: PROCESSING_FEES,
     totalAmount: "10500.00",
   },
-  "3-6 lakh": {
+  "3L_6L": {
     category: "LIG",
     registrationFees: "20000.00",
     processingFees: PROCESSING_FEES,

@@ -13,6 +13,7 @@ export interface ApplicationData {
   dob: Date | null;
   email: string | null;
   plot_category: string | null;
+  sub_category: string | null;
   annual_income: string | null;
   application_submission_date: Date | null;
   payment_mode: string | null;
@@ -68,6 +69,7 @@ export interface GeneratePdfPayload {
   email: string;
   annual_income: string;
   plot_category: string;
+  sub_category: string;
   registration_fees: string;
   processing_fees: string;
   total_payable_amount: string;

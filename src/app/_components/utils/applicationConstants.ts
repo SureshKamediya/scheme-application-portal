@@ -6,12 +6,15 @@
 
 // ID Types for applicant identification
 export const COMPANY_CHOICES = [
-    {value: "riyasat-infra", label: "Riyasat Infra Developers Pvt. Ltd."},
-    {value: "riyasat-infratech", label:"Riyasat Infratech Developers LLP"},
-    {value: "new-path", label: "New Path Developers LLP"},
-    {value: "gokul-kripa", label: 'Gokul Kripa Colonizers and Developers Pvt. Ltd.'},
-    {value: 'other', label: 'other'}
-]
+  { value: "riyasat-infra", label: "Riyasat Infra Developers Pvt. Ltd." },
+  { value: "riyasat-infratech", label: "Riyasat Infratech Developers LLP" },
+  { value: "new-path", label: "New Path Developers LLP" },
+  {
+    value: "gokul-kripa",
+    label: "Gokul Kripa Colonizers and Developers Pvt. Ltd.",
+  },
+  { value: "other", label: "other" },
+];
 
 export const ID_TYPES = [
   { value: "PAN_CARD", label: "Pan Card" },
@@ -27,9 +30,9 @@ export const INCOME_RANGES = [
 ];
 
 export const PLOT_CATEGORY_CHOICES = [
-    {value: 'EWS', label: 'Economically Weaker Section'},
-    {value: 'LIG', label: 'Low Income Group'},
-]
+  { value: "EWS", label: "Economically Weaker Section" },
+  { value: "LIG", label: "Low Income Group" },
+];
 
 // Applicant Sub Categories
 export const SUB_CATEGORIES = [
@@ -62,22 +65,22 @@ export const PAYMENT_MODES = [
 ];
 
 export const APPLICATION_STATUS_CHOICES = [
-    { value: 'PENDING', label: 'Pending' },
-    { value: 'ACCEPTED', label: 'Accepted' },
-    { value: 'REJECTED', label: 'Rejected' },
+  { value: "PENDING", label: "Pending" },
+  { value: "ACCEPTED", label: "Accepted" },
+  { value: "REJECTED", label: "Rejected" },
 ];
 
 export const PAYMENT_STATUS_CHOICES = [
-  { value: 'PENDING', label: 'Pending' },
-  { value: 'VERIFIED', label: 'Verified' },
-  { value: 'FAILED', label: 'Failed' },
+  { value: "PENDING", label: "Pending" },
+  { value: "VERIFIED", label: "Verified" },
+  { value: "FAILED", label: "Failed" },
 ];
 
 export const LOTTERY_STATUS_CHOICES = [
-    { value: 'NOT_CONDUCTED', label: 'Not Conducted' },
-    { value: 'SELECTED', label: 'Selected' },
-    { value: 'NOT_SELECTED', label: 'Not Selected' },
-    { value: 'WAITLISTED', label: 'Waitlisted' },
+  { value: "NOT_CONDUCTED", label: "Not Conducted" },
+  { value: "SELECTED", label: "Selected" },
+  { value: "NOT_SELECTED", label: "Not Selected" },
+  { value: "WAITLISTED", label: "Waitlisted" },
 ];
 
 // Application Form Steps
@@ -182,3 +185,75 @@ export function getSubCategoryLabel(value: string): string {
 export function getPaymentModeLabel(value: string): string {
   return PAYMENT_MODES.find((item) => item.value === value)?.label ?? value;
 }
+
+export function getCompanyLabel(value: string): string {
+  return COMPANY_CHOICES.find((item) => item.value === value)?.label ?? value;
+}
+
+export function getPlotCategoryLabel(value: string): string {
+  return (
+    PLOT_CATEGORY_CHOICES.find((item) => item.value === value)?.label ?? value
+  );
+}
+
+export function getApplicationStatusLabel(value: string): string {
+  return (
+    APPLICATION_STATUS_CHOICES.find((item) => item.value === value)?.label ??
+    value
+  );
+}
+
+export function getPaymentStatusLabel(value: string): string {
+  return (
+    PAYMENT_STATUS_CHOICES.find((item) => item.value === value)?.label ?? value
+  );
+}
+
+export function getLotteryStatusLabel(value: string): string {
+  return (
+    LOTTERY_STATUS_CHOICES.find((item) => item.value === value)?.label ?? value
+  );
+}
+
+/**
+ * Mapping object for quick value-to-label lookups across all choice types
+ * Usage: VALUE_TO_LABEL_MAP.idType['PAN_CARD'] or VALUE_TO_LABEL_MAP.company['riyasat-infra']
+ */
+export const VALUE_TO_LABEL_MAP = {
+  idType: ID_TYPES.reduce(
+    (acc, item) => ({ ...acc, [item.value]: item.label }),
+    {} as Record<string, string>,
+  ),
+  incomeRange: INCOME_RANGES.reduce(
+    (acc, item) => ({ ...acc, [item.value]: item.label }),
+    {} as Record<string, string>,
+  ),
+  company: COMPANY_CHOICES.reduce(
+    (acc, item) => ({ ...acc, [item.value]: item.label }),
+    {} as Record<string, string>,
+  ),
+  plotCategory: PLOT_CATEGORY_CHOICES.reduce(
+    (acc, item) => ({ ...acc, [item.value]: item.label }),
+    {} as Record<string, string>,
+  ),
+  subCategory: SUB_CATEGORIES.reduce(
+    (acc, item) => ({ ...acc, [item.value]: item.label }),
+    {} as Record<string, string>,
+  ),
+  paymentMode: PAYMENT_MODES.reduce(
+    (acc, item) => ({ ...acc, [item.value]: item.label }),
+    {} as Record<string, string>,
+  ),
+  applicationStatus: APPLICATION_STATUS_CHOICES.reduce(
+    (acc, item) => ({ ...acc, [item.value]: item.label }),
+    {} as Record<string, string>,
+  ),
+  paymentStatus: PAYMENT_STATUS_CHOICES.reduce(
+    (acc, item) => ({ ...acc, [item.value]: item.label }),
+    {} as Record<string, string>,
+  ),
+  lotteryStatus: LOTTERY_STATUS_CHOICES.reduce(
+    (acc, item) => ({ ...acc, [item.value]: item.label }),
+    {} as Record<string, string>,
+  ),
+};
