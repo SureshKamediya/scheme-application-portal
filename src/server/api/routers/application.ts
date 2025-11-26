@@ -179,10 +179,29 @@ export const applicationRouter = createTRPCRouter({
           "Creating new application",
         );
 
-        // Verify the scheme exists
-        const scheme = await ctx.db.scheme_scheme.findUnique({
-          where: { id: input.scheme_id },
-        });
+        // Check scheme exists and validate all unique constraints in a single query
+        const [scheme, existingApps] = await Promise.all([
+          ctx.db.scheme_scheme.findUnique({
+            where: { id: input.scheme_id },
+          }),
+          ctx.db.scheme_application.findMany({
+            where: {
+              scheme_id: input.scheme_id,
+              OR: [
+                { mobile_number: input.mobile_number },
+                { aadhar_number: input.aadhar_number },
+                { applicant_account_number: input.applicant_account_number },
+              ],
+            },
+            select: {
+              id: true,
+              mobile_number: true,
+              aadhar_number: true,
+              applicant_account_number: true,
+              application_number: true,
+            },
+          }),
+        ]);
 
         if (!scheme) {
           logger.warn(
@@ -195,28 +214,58 @@ export const applicationRouter = createTRPCRouter({
           });
         }
 
-        // Check if an application already exists for this mobile and scheme
-        const existingApp = await ctx.db.scheme_application.findFirst({
-          where: {
-            mobile_number: input.mobile_number,
-            scheme_id: input.scheme_id,
-          },
-        });
+        // Check for conflicts and provide specific error messages
+        for (const existingApp of existingApps) {
+          if (existingApp.mobile_number === input.mobile_number) {
+            logger.warn(
+              {
+                mobileNumber: input.mobile_number,
+                schemeId: input.scheme_id,
+                existingApplicationNumber: existingApp.application_number,
+              },
+              "Duplicate application attempt for mobile and scheme",
+            );
+            throw new TRPCError({
+              code: "CONFLICT",
+              message:
+                "An application already exists for this mobile number and scheme",
+            });
+          }
 
-        if (existingApp) {
-          logger.warn(
-            {
-              mobileNumber: input.mobile_number,
-              schemeId: input.scheme_id,
-              existingApplicationNumber: existingApp.application_number,
-            },
-            "Duplicate application attempt for mobile and scheme",
-          );
-          throw new TRPCError({
-            code: "CONFLICT",
-            message:
-              "An application already exists for this mobile number and scheme",
-          });
+          if (existingApp.aadhar_number === input.aadhar_number) {
+            logger.warn(
+              {
+                schemeId: input.scheme_id,
+                aadharNumber: input.aadhar_number,
+                existingApplicationNumber: existingApp.application_number,
+              },
+              "Duplicate application attempt for aadhar and scheme",
+            );
+            throw new TRPCError({
+              code: "CONFLICT",
+              message:
+                "An application with this Aadhar number already exists for this scheme",
+            });
+          }
+
+          if (
+            existingApp.applicant_account_number ===
+            input.applicant_account_number
+          ) {
+            logger.warn(
+              {
+                schemeId: input.scheme_id,
+                accountNumber: input.applicant_account_number,
+                existingApplicationNumber: existingApp.application_number,
+              },
+              "Duplicate application attempt for account number and scheme",
+            );
+            throw new TRPCError({
+              code: "CONFLICT",
+              message:
+                "An application with this account number already exists for this scheme",
+            });
+          }
         }
 
         // Transactionally reserve an application number from the scheme and create the application.

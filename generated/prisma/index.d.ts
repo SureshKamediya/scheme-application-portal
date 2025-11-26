@@ -20607,6 +20607,8 @@ export namespace Prisma {
     id?: bigint | number
     scheme_id_mobile_number?: scheme_applicationScheme_idMobile_numberCompoundUniqueInput
     scheme_id_application_number?: scheme_applicationScheme_idApplication_numberCompoundUniqueInput
+    scheme_id_aadhar_number?: scheme_applicationScheme_idAadhar_numberCompoundUniqueInput
+    scheme_id_applicant_account_number?: scheme_applicationScheme_idApplicant_account_numberCompoundUniqueInput
     AND?: scheme_applicationWhereInput | scheme_applicationWhereInput[]
     OR?: scheme_applicationWhereInput[]
     NOT?: scheme_applicationWhereInput | scheme_applicationWhereInput[]
@@ -20651,7 +20653,7 @@ export namespace Prisma {
     aadhar_number?: StringFilter<"scheme_application"> | string
     sub_category?: StringFilter<"scheme_application"> | string
     scheme_scheme?: XOR<Scheme_schemeScalarRelationFilter, scheme_schemeWhereInput>
-  }, "id" | "scheme_id_mobile_number" | "scheme_id_application_number">
+  }, "id" | "scheme_id_mobile_number" | "scheme_id_application_number" | "scheme_id_aadhar_number" | "scheme_id_applicant_account_number">
 
   export type scheme_applicationOrderByWithAggregationInput = {
     id?: SortOrder
@@ -22917,6 +22919,16 @@ export namespace Prisma {
   export type scheme_applicationScheme_idApplication_numberCompoundUniqueInput = {
     scheme_id: bigint | number
     application_number: number
+  }
+
+  export type scheme_applicationScheme_idAadhar_numberCompoundUniqueInput = {
+    scheme_id: bigint | number
+    aadhar_number: string
+  }
+
+  export type scheme_applicationScheme_idApplicant_account_numberCompoundUniqueInput = {
+    scheme_id: bigint | number
+    applicant_account_number: string
   }
 
   export type scheme_applicationCountOrderByAggregateInput = {

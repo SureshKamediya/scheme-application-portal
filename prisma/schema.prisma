@@ -180,6 +180,8 @@ model scheme_application {
 
   @@unique([scheme_id, mobile_number], map: "scheme_application_scheme_id_mobile_number_e06b8860_uniq")
   @@unique([scheme_id, application_number], map: "scheme_application_scheme_id_application_number_02984c63_uniq")
+  @@unique([scheme_id, aadhar_number], map: "scheme_application_scheme_id_aadhar_number_eae98f37_uniq")
+  @@unique([scheme_id, applicant_account_number], map: "scheme_application_scheme_id_applicant_acco_7cce961f_uniq")
   @@index([scheme_id], map: "scheme_application_scheme_id_9ba561fc")
   @@index([application_number], map: "scheme_application_application_number_60278761")
 }
