@@ -19,6 +19,7 @@ export interface PdfPayload {
   postal_address_pincode?: string;
   annual_income?: string | number;
   plot_category?: string;
+  sub_category?: string;
   registration_fees?: number;
   processing_fees?: number;
   total_payable_amount?: number;

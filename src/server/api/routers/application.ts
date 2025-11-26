@@ -6,6 +6,8 @@ import { generateS3Key } from "~/utils/fileUpload";
 import { invokePdfGenerator } from "~/server/utils/lambda";
 import type { PdfPayload } from "~/types/pdfPayload";
 import logger from "~/server/utils/logger";
+import { VALUE_TO_LABEL_MAP } from "~/app/_components/utils/applicationConstants";
+import { sendApplicationSuccessSMS } from "~/server/utils/sms";
 
 /**
  * Input mirrors the prisma `scheme_application` fields used here.
@@ -177,10 +179,29 @@ export const applicationRouter = createTRPCRouter({
           "Creating new application",
         );
 
-        // Verify the scheme exists
-        const scheme = await ctx.db.scheme_scheme.findUnique({
-          where: { id: input.scheme_id },
-        });
+        // Check scheme exists and validate all unique constraints in a single query
+        const [scheme, existingApps] = await Promise.all([
+          ctx.db.scheme_scheme.findUnique({
+            where: { id: input.scheme_id },
+          }),
+          ctx.db.scheme_application.findMany({
+            where: {
+              scheme_id: input.scheme_id,
+              OR: [
+                { mobile_number: input.mobile_number },
+                { aadhar_number: input.aadhar_number },
+                { applicant_account_number: input.applicant_account_number },
+              ],
+            },
+            select: {
+              id: true,
+              mobile_number: true,
+              aadhar_number: true,
+              applicant_account_number: true,
+              application_number: true,
+            },
+          }),
+        ]);
 
         if (!scheme) {
           logger.warn(
@@ -193,28 +214,58 @@ export const applicationRouter = createTRPCRouter({
           });
         }
 
-        // Check if an application already exists for this mobile and scheme
-        const existingApp = await ctx.db.scheme_application.findFirst({
-          where: {
-            mobile_number: input.mobile_number,
-            scheme_id: input.scheme_id,
-          },
-        });
+        // Check for conflicts and provide specific error messages
+        for (const existingApp of existingApps) {
+          if (existingApp.mobile_number === input.mobile_number) {
+            logger.warn(
+              {
+                mobileNumber: input.mobile_number,
+                schemeId: input.scheme_id,
+                existingApplicationNumber: existingApp.application_number,
+              },
+              "Duplicate application attempt for mobile and scheme",
+            );
+            throw new TRPCError({
+              code: "CONFLICT",
+              message:
+                "An application already exists for this mobile number and scheme",
+            });
+          }
 
-        if (existingApp) {
-          logger.warn(
-            {
-              mobileNumber: input.mobile_number,
-              schemeId: input.scheme_id,
-              existingApplicationNumber: existingApp.application_number,
-            },
-            "Duplicate application attempt for mobile and scheme",
-          );
-          throw new TRPCError({
-            code: "CONFLICT",
-            message:
-              "An application already exists for this mobile number and scheme",
-          });
+          if (existingApp.aadhar_number === input.aadhar_number) {
+            logger.warn(
+              {
+                schemeId: input.scheme_id,
+                aadharNumber: input.aadhar_number,
+                existingApplicationNumber: existingApp.application_number,
+              },
+              "Duplicate application attempt for aadhar and scheme",
+            );
+            throw new TRPCError({
+              code: "CONFLICT",
+              message:
+                "An application with this Aadhar number already exists for this scheme",
+            });
+          }
+
+          if (
+            existingApp.applicant_account_number ===
+            input.applicant_account_number
+          ) {
+            logger.warn(
+              {
+                schemeId: input.scheme_id,
+                accountNumber: input.applicant_account_number,
+                existingApplicationNumber: existingApp.application_number,
+              },
+              "Duplicate application attempt for account number and scheme",
+            );
+            throw new TRPCError({
+              code: "CONFLICT",
+              message:
+                "An application with this account number already exists for this scheme",
+            });
+          }
         }
 
         // Transactionally reserve an application number from the scheme and create the application.
@@ -289,6 +340,40 @@ export const applicationRouter = createTRPCRouter({
           },
           "Application created successfully",
         );
+
+        // Send confirmation SMS (non-blocking - log errors but don't fail the request)
+        const plotCategoryLabel =
+          VALUE_TO_LABEL_MAP.plotCategory[application.plot_category ?? ""] ??
+          application.plot_category ??
+          "Unknown";
+
+        const smsSent = await sendApplicationSuccessSMS(
+          application.mobile_number,
+          application.applicant_name,
+          plotCategoryLabel,
+          scheme.name ?? "Unknown Scheme",
+          application.application_number,
+        );
+
+        if (!smsSent.success) {
+          logger.warn(
+            {
+              applicationNumber: application.application_number,
+              mobileNumber: application.mobile_number,
+              error: smsSent.error,
+            },
+            "Failed to send application confirmation SMS",
+          );
+        } else {
+          logger.info(
+            {
+              applicationNumber: application.application_number,
+              mobileNumber: application.mobile_number,
+              messageId: smsSent.messageId,
+            },
+            "Application confirmation SMS sent successfully",
+          );
+        }
 
         return application;
       } catch (error) {
@@ -574,7 +659,8 @@ export const applicationRouter = createTRPCRouter({
         });
 
         const payload: PdfPayload = {
-          scheme_company: scheme?.company,
+          scheme_company:
+            VALUE_TO_LABEL_MAP.company[scheme?.company ?? ""] ?? "",
           scheme_id: input.scheme_id,
           scheme_name: scheme?.name ?? "",
           scheme_address: scheme?.address ?? "",
@@ -586,35 +672,34 @@ export const applicationRouter = createTRPCRouter({
           father_or_husband_name: input.father_or_husband_name,
           dob: input.dob,
           mobile_number: input.mobile_number,
-          id_type: input.id_type,
+          id_type: VALUE_TO_LABEL_MAP.idType[input?.id_type ?? ""] ?? "",
           id_number: input.id_number,
-          pan_number: "ABCDE1234F", // PAN not collected currently, have to replace with aadhar number
           aadhar_number: input.aadhar_number,
           permanent_address: input.permanent_address,
           permanent_address_pincode: input.permanent_address_pincode,
           postal_address: input.postal_address,
           postal_address_pincode: input.postal_address_pincode,
-          annual_income: input.annual_income,
-          plot_category: input.plot_category,
+          annual_income:
+            VALUE_TO_LABEL_MAP.incomeRange[input?.annual_income ?? ""] ?? "",
+          plot_category:
+            VALUE_TO_LABEL_MAP.plotCategory[input?.plot_category ?? ""] ?? "",
+          sub_category:
+            VALUE_TO_LABEL_MAP.subCategory[input?.sub_category ?? ""] ?? "",
           registration_fees:
             parseFloat(String(input.registration_fees || 0)) || 0,
           processing_fees: parseFloat(String(input.processing_fees || 0)) || 0,
           total_payable_amount:
             parseFloat(String(input.total_payable_amount || 0)) || 0,
-          payment_mode: input.payment_mode,
-          payment_status: input.payment_status,
+          payment_mode:
+            VALUE_TO_LABEL_MAP.paymentMode[input?.payment_mode ?? ""] ?? "",
+          payment_status:
+            VALUE_TO_LABEL_MAP.paymentStatus[
+              input?.payment_status ?? "PENDING"
+            ] ?? "Pending",
           dd_id_or_transaction_id: input.dd_id_or_transaction_id,
           dd_date_or_transaction_date: input.dd_date_or_transaction_date,
-          dd_amount:
-            parseFloat(String(input.dd_amount_or_transaction_amount || 0)) || 0,
           dd_amount_or_transaction_amount:
             parseFloat(String(input.dd_amount_or_transaction_amount || 0)) || 0,
-          payee_account_holder_name: input.payer_account_holder_name, // have to change names in pdf payload
-          payee_bank_name: input.payer_bank_name,
-          refund_account_holder: input.applicant_account_holder_name,
-          refund_account_number: input.applicant_account_number,
-          refund_bank_name: input.applicant_bank_name,
-          refund_bank_ifsc: input.applicant_bank_ifsc,
           payer_account_holder_name: input.applicant_account_holder_name,
           payer_bank_name: input.applicant_bank_name,
           applicant_account_holder_name: input.applicant_account_holder_name,

@@ -77,6 +77,7 @@ export function ApplicationForm({
     file: File;
   } | null>(null);
   const [errors, setErrors] = useState<ValidationErrors>({});
+  const today = new Date().toISOString().split("T")[0];
 
   const createApplication = api.application.create.useMutation({
     onSuccess: async (application) => {
@@ -363,6 +364,7 @@ export function ApplicationForm({
                     onChange={onChange}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
                     placeholder="Full name"
+                    required
                   />
                   {errors.applicant_name && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">
@@ -382,6 +384,7 @@ export function ApplicationForm({
                     onChange={onChange}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
                     placeholder="Father or Husband name"
+                    required
                   />
                   {errors.father_or_husband_name && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">
@@ -399,6 +402,8 @@ export function ApplicationForm({
                     type="date"
                     value={state.dob}
                     onChange={onChange}
+                    max={today}
+                    required
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
                   />
                   {errors.dob && (
@@ -419,6 +424,7 @@ export function ApplicationForm({
                     onChange={onChange}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
                     placeholder="you@example.com"
+                    required
                   />
                   {errors.email && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">
@@ -436,6 +442,7 @@ export function ApplicationForm({
                     value={state.id_type}
                     onChange={onChange}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
+                    required
                   >
                     <option value="">Select</option>
                     {ID_TYPES.map((type) => (
@@ -461,6 +468,7 @@ export function ApplicationForm({
                     onChange={onChange}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
                     placeholder="ID number"
+                    required
                   />
                   {errors.id_number && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">
@@ -479,6 +487,7 @@ export function ApplicationForm({
                     onChange={onChange}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
                     placeholder="Aadhar number"
+                    required
                   />
                   {errors.aadhar_number && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">
@@ -497,6 +506,7 @@ export function ApplicationForm({
                     onChange={onChange}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
                     rows={2}
+                    required
                   />
                   {errors.permanent_address && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">
@@ -515,6 +525,7 @@ export function ApplicationForm({
                     value={state.permanent_address_pincode}
                     onChange={onChange}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
+                    required
                   />
                   {errors.permanent_address_pincode && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">
@@ -557,6 +568,7 @@ export function ApplicationForm({
                     onChange={onChange}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
                     rows={2}
+                    required
                   />
                   {errors.postal_address && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">
@@ -575,6 +587,7 @@ export function ApplicationForm({
                     value={state.postal_address_pincode}
                     onChange={onChange}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
+                    required
                   />
                   {errors.postal_address_pincode && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">
@@ -611,6 +624,7 @@ export function ApplicationForm({
                       }
                     }}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
+                    required
                   >
                     <option value="">Select</option>
                     {INCOME_RANGES.map((income) => (
@@ -728,6 +742,7 @@ export function ApplicationForm({
                     value={state.dd_id_or_transaction_id}
                     onChange={onChange}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
+                    required
                   />
                   {errors.dd_id_or_transaction_id && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">
@@ -746,7 +761,9 @@ export function ApplicationForm({
                     type="date"
                     value={state.dd_date_or_transaction_date}
                     onChange={onChange}
+                    max={today}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
+                    required
                   />
                   {errors.dd_date_or_transaction_date && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">
@@ -766,6 +783,7 @@ export function ApplicationForm({
                     value={state.dd_amount_or_transaction_amount}
                     onChange={onChange}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
+                    required
                   />
                   {errors.dd_amount && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">
@@ -784,6 +802,7 @@ export function ApplicationForm({
                     value={state.payer_account_holder_name}
                     onChange={onChange}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
+                    required
                   />
                   {errors.payer_account_holder_name && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">
@@ -801,6 +820,7 @@ export function ApplicationForm({
                     value={state.payer_bank_name}
                     onChange={onChange}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
+                    required
                   />
                   {errors.payer_bank_name && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">
@@ -844,9 +864,9 @@ export function ApplicationForm({
           {step === 2 && (
             <section className="space-y-3 sm:space-y-4">
               <div className="mb-3 text-xs text-gray-700 sm:mb-4 sm:text-sm">
-                Please provide your bank account details for refund purposes.
-                Ensure that the information is accurate to avoid any delays in
-                processing refunds.
+                Please provide the applicant bank account details for refund
+                purposes. Ensure that the information is accurate to avoid any
+                delays in processing refunds.
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                 <div>
@@ -858,6 +878,7 @@ export function ApplicationForm({
                     value={state.applicant_account_holder_name}
                     onChange={onChange}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
+                    required
                   />
                   {errors.applicant_account_holder_name && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">
@@ -875,6 +896,7 @@ export function ApplicationForm({
                     value={state.applicant_account_number}
                     onChange={onChange}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
+                    required
                   />
                   {errors.applicant_account_number && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">
@@ -892,6 +914,7 @@ export function ApplicationForm({
                     value={state.applicant_bank_name}
                     onChange={onChange}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
+                    required
                   />
                   {errors.applicant_bank_name && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">
@@ -909,6 +932,7 @@ export function ApplicationForm({
                     value={state.applicant_bank_branch_address}
                     onChange={onChange}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
+                    required
                   />
                   {errors.applicant_bank_branch_address && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">
@@ -926,6 +950,7 @@ export function ApplicationForm({
                     value={state.applicant_bank_ifsc}
                     onChange={onChange}
                     className="w-full rounded border px-2 py-1.5 text-sm sm:px-3 sm:py-2"
+                    required
                   />
                   {errors.applicant_bank_ifsc && (
                     <p className="mt-1 text-xs text-red-600 sm:text-sm">

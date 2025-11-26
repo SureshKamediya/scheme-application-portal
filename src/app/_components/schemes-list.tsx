@@ -3,6 +3,7 @@
 import React from "react";
 import { api } from "~/trpc/react";
 import Link from "next/link";
+import { VALUE_TO_LABEL_MAP } from "./utils/applicationConstants";
 
 export function SchemesList() {
   const { data: schemes, isLoading, error } = api.scheme.getAll.useQuery();
@@ -10,8 +11,8 @@ export function SchemesList() {
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="text-center py-12">
+      <div className="mx-auto max-w-7xl p-6">
+        <div className="py-12 text-center">
           <p className="text-lg text-gray-500">Loading schemes...</p>
         </div>
       </div>
@@ -20,9 +21,11 @@ export function SchemesList() {
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="mx-auto max-w-7xl p-6">
         <div className="rounded-md bg-red-50 p-4">
-          <p className="text-sm text-red-800">Failed to load schemes. Please try again later.</p>
+          <p className="text-sm text-red-800">
+            Failed to load schemes. Please try again later.
+          </p>
         </div>
       </div>
     );
@@ -30,22 +33,28 @@ export function SchemesList() {
 
   if (!schemes || schemes.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="text-center py-12">
-          <p className="text-lg text-gray-500">No schemes available at this time.</p>
+      <div className="mx-auto max-w-7xl p-6">
+        <div className="py-12 text-center">
+          <p className="text-lg text-gray-500">
+            No schemes available at this time.
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="mx-auto max-w-7xl p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Available Schemes</h1>
-        <p className="text-gray-600">Select a scheme to view details and apply</p>
+        <h1 className="mb-2 text-3xl font-bold text-gray-900">
+          Available Schemes
+        </h1>
+        <p className="text-gray-600">
+          Select a scheme to view details and apply
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {schemes.map((scheme) => {
           const isOpen =
             scheme.application_open_date &&
@@ -59,11 +68,11 @@ export function SchemesList() {
               href={`/schemes/${scheme.id}`}
               className="group"
             >
-              <div className="rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-lg transition-shadow p-6 cursor-pointer h-full flex flex-col">
+              <div className="flex h-full cursor-pointer flex-col rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-lg">
                 {/* Scheme Status Badge */}
                 <div className="mb-4 flex items-start justify-between">
                   <span className="text-sm font-medium text-gray-600">
-                    {scheme.company}
+                    {VALUE_TO_LABEL_MAP.company[scheme?.company ?? ""] ?? ""}
                   </span>
                   {isOpen ? (
                     <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
@@ -77,26 +86,26 @@ export function SchemesList() {
                 </div>
 
                 {/* Scheme Name */}
-                <h2 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                <h2 className="mb-2 text-xl font-semibold text-gray-900 transition-colors group-hover:text-blue-600">
                   {scheme.name}
                 </h2>
 
                 {/* Address */}
                 {scheme.address && (
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                  <p className="mb-3 line-clamp-2 text-sm text-gray-600">
                     📍 {scheme.address}
                   </p>
                 )}
 
                 {/* Phone */}
                 {scheme.phone && (
-                  <p className="text-sm text-gray-600 mb-4">
+                  <p className="mb-4 text-sm text-gray-600">
                     📞 {scheme.phone}
                   </p>
                 )}
 
                 {/* Plot Counts */}
-                <div className="grid grid-cols-2 gap-2 mb-4 py-3 border-t border-b border-gray-100">
+                <div className="mb-4 grid grid-cols-2 gap-2 border-t border-b border-gray-100 py-3">
                   <div>
                     <p className="text-xs text-gray-500">LIG Plots</p>
                     <p className="text-lg font-semibold text-gray-900">
@@ -112,20 +121,29 @@ export function SchemesList() {
                 </div>
 
                 {/* Dates */}
-                <div className="text-xs text-gray-500 mb-4 space-y-1">
+                <div className="mb-4 space-y-1 text-xs text-gray-500">
                   {scheme.application_open_date && (
                     <p>
-                      Opens: {new Date(scheme.application_open_date).toLocaleDateString()}
+                      Opens:{" "}
+                      {new Date(
+                        scheme.application_open_date,
+                      ).toLocaleDateString()}
                     </p>
                   )}
                   {scheme.application_close_date && (
                     <p>
-                      Closes: {new Date(scheme.application_close_date).toLocaleDateString()}
+                      Closes:{" "}
+                      {new Date(
+                        scheme.application_close_date,
+                      ).toLocaleDateString()}
                     </p>
                   )}
                   {scheme.lottery_result_date && (
                     <p>
-                      Lottery Result Date: {new Date(scheme.lottery_result_date).toLocaleDateString()}
+                      Lottery Result Date:{" "}
+                      {new Date(
+                        scheme.lottery_result_date,
+                      ).toLocaleDateString()}
                     </p>
                   )}
                 </div>

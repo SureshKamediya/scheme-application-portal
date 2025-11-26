@@ -11,6 +11,11 @@ export interface OTPFormProps {
 }
 
 export interface OTPStatus {
-  type: "success" | "error" | "info";
+  type: "success" | "error" | "info" | "warning";
   message: string;
+}
+
+export interface OTPTimeout {
+  isActive: boolean;
+  remainingSeconds: number;
 }

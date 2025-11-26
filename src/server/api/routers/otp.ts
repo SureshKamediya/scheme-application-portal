@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { randomUUID } from "crypto";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import sendSms from "~/utils/sms";
+import { sendOTPSMS } from "~/server/utils/sms";
+import logger from "~/server/utils/logger";
 
 const OTPInput = z.object({
   mobile_number: z.string().length(10),
@@ -9,57 +10,70 @@ const OTPInput = z.object({
 });
 
 export const otpRouter = createTRPCRouter({
-  generate: publicProcedure
-    .input(OTPInput)
-    .mutation(async ({ ctx, input }) => {
-      const { mobile_number, scheme_id } = input;
+  generate: publicProcedure.input(OTPInput).mutation(async ({ ctx, input }) => {
+    const { mobile_number, scheme_id } = input;
 
-      // If application already exists, stop
-      const existing = await ctx.db.scheme_application.findFirst({
-        where: { mobile_number, scheme_id },
-      });
-      if (existing) {
-        throw new Error(
-          "Application already exists for this mobile number and scheme."
-        );
-      }
+    // If application already exists, stop
+    const existing = await ctx.db.scheme_application.findFirst({
+      where: { mobile_number, scheme_id },
+    });
+    if (existing) {
+      throw new Error(
+        "Application already exists for this mobile number and scheme.",
+      );
+    }
 
-      // Limit OTP requests — 5 OTPs max within 30 mins for this mobile
-      const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000);
-      const otpCount = await ctx.db.oTP_otp.count({
-        where: {
-          mobile_number,
-          created_at: { gte: thirtyMinAgo },
-        },
-      });
-      if (otpCount >= 5) throw new Error("Too many OTP requests. Try later.");
+    // Limit OTP requests — 5 OTPs max within 30 mins for this mobile
+    const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000);
+    const otpCount = await ctx.db.oTP_otp.count({
+      where: {
+        mobile_number,
+        created_at: { gte: thirtyMinAgo },
+      },
+    });
+    if (otpCount >= 7) throw new Error("Too many OTP requests. Try later.");
 
-      //const code = Math.floor(100000 + Math.random() * 900000).toString();
-      const code = "123456"; // For testing purposes
-      const expires = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    // const code = "123456"; // For testing purposes
+    const expires = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
 
-      const otpRecord = await ctx.db.oTP_otp.create({
-        data: {
-          id: randomUUID(),
-          code,
-          mobile_number,
-          expires_at: expires,
-          is_used: false,
-          created_at: new Date(),
-        },
-      });
+    const otpRecord = await ctx.db.oTP_otp.create({
+      data: {
+        id: randomUUID(),
+        code,
+        mobile_number,
+        expires_at: expires,
+        is_used: false,
+        created_at: new Date(),
+      },
+    });
 
-      await sendSms(mobile_number, `Your OTP is ${code}`);
+    // Send OTP via SMS - must succeed
+    const smsSent = await sendOTPSMS(mobile_number, code);
+    if (!smsSent.success) {
+      logger.error(
+        { mobile_number, otpId: otpRecord.id, error: smsSent.error },
+        "Failed to send OTP SMS",
+      );
+      throw new Error(
+        "Failed to send OTP. Please check your mobile number and try again.",
+      );
+    }
 
-      return { otp_id: otpRecord.id, message: "OTP sent successfully" };
-    }),
+    logger.info(
+      { mobile_number, otpId: otpRecord.id, messageId: smsSent.messageId },
+      "OTP SMS sent successfully",
+    );
+
+    return { otp_id: otpRecord.id, message: "OTP sent successfully" };
+  }),
 
   verify: publicProcedure
     .input(
       z.object({
         mobile_number: z.string().length(10),
         otp: z.string().length(6),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { mobile_number, otp } = input;
@@ -90,7 +104,7 @@ export const otpRouter = createTRPCRouter({
 
       // 2. Safely extract the first IP address from the comma-separated list.
       //    If the header is null/empty, fall back to "0.0.0.0" as a placeholder.
-      const clientIp = xForwardedFor?.split(',')[0]?.trim() ?? "0.0.0.0";
+      const clientIp = xForwardedFor?.split(",")[0]?.trim() ?? "0.0.0.0";
 
       await ctx.db.otp_attempt.create({
         data: {

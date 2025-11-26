@@ -2,10 +2,14 @@
  * Custom hook for OTP form functionality
  */
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { api } from "~/trpc/react";
 import { clientLogger } from "~/utils/clientLogger";
-import type { OTPStatus, OTPStep } from "~/app/_components/types/otp.types";
+import type {
+  OTPStatus,
+  OTPStep,
+  OTPTimeout,
+} from "~/app/_components/types/otp.types";
 
 interface UseOTPFormOptions {
   schemeId?: number;
@@ -20,26 +24,28 @@ export function useOTPForm(options: UseOTPFormOptions = {}) {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [status, setStatus] = useState<OTPStatus | null>(null);
   const [step, setStep] = useState<OTPStep>(0);
+  const [otpTimeout, setOtpTimeout] = useState<OTPTimeout>({
+    isActive: false,
+    remainingSeconds: 0,
+  });
+  const timeoutIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const generateOtp = api.otp.generate.useMutation({
     onSuccess: () => {
       clientLogger.info("OTP generated successfully", { mobileNumber });
       setStatus({
         type: "success",
-        message: "OTP sent to your mobile number.",
+        message: "OTP sent to your mobile number. Valid for 5 minutes.",
       });
       setStep(1);
+      startOtpTimeout();
     },
     onError: (error) => {
       clientLogger.error("Failed to generate OTP", error, { mobileNumber });
-      let message = "Failed to generate OTP";
+      let message = "Error sending OTP. Please try later.";
 
-      if (
-        (error.data as Record<string, unknown>)?.code ===
-        "INTERNAL_SERVER_ERROR"
-      ) {
-        message = error.message;
-      } else if (error.message) {
+      // Extract error message from server response
+      if (error.message) {
         message = error.message;
       }
 
@@ -47,6 +53,8 @@ export function useOTPForm(options: UseOTPFormOptions = {}) {
         type: "error",
         message,
       });
+      // Keep user on step 0 so they can retry
+      setStep(0);
     },
   });
 
@@ -123,7 +131,62 @@ export function useOTPForm(options: UseOTPFormOptions = {}) {
     setStep(0);
     setOtp("");
     setStatus(null);
+    stopOtpTimeout();
   };
+
+  const startOtpTimeout = (): void => {
+    const OTP_TIMEOUT_SECONDS = 300; // 5 minutes
+    setOtpTimeout({
+      isActive: true,
+      remainingSeconds: OTP_TIMEOUT_SECONDS,
+    });
+
+    if (timeoutIntervalRef.current) {
+      clearInterval(timeoutIntervalRef.current);
+    }
+
+    timeoutIntervalRef.current = setInterval(() => {
+      setOtpTimeout((prev) => {
+        if (prev.remainingSeconds <= 1) {
+          if (timeoutIntervalRef.current) {
+            clearInterval(timeoutIntervalRef.current);
+          }
+          setStatus({
+            type: "error",
+            message: "OTP expired. Please generate a new OTP.",
+          });
+          return {
+            isActive: false,
+            remainingSeconds: 0,
+          };
+        }
+        return {
+          isActive: true,
+          remainingSeconds: prev.remainingSeconds - 1,
+        };
+      });
+    }, 1000);
+  };
+
+  const stopOtpTimeout = (): void => {
+    if (timeoutIntervalRef.current) {
+      clearInterval(timeoutIntervalRef.current);
+      timeoutIntervalRef.current = null;
+    }
+    setOtpTimeout({
+      isActive: false,
+      remainingSeconds: 0,
+    });
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutIntervalRef.current) {
+        clearInterval(timeoutIntervalRef.current);
+      }
+    };
+  }, []);
 
   return {
     // State
@@ -137,6 +200,7 @@ export function useOTPForm(options: UseOTPFormOptions = {}) {
     setStatus,
     step,
     setStep,
+    otpTimeout,
     // Mutations
     generateOtp,
     verifyOtp,
@@ -144,5 +208,6 @@ export function useOTPForm(options: UseOTPFormOptions = {}) {
     handleGenerateOtp,
     handleVerifyOtp,
     handleBackToInput,
+    stopOtpTimeout,
   };
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import React from "react";
 import { useApplicationDetails } from "./hooks/useApplicationDetails";
 import type { ApplicationDetailsProps } from "./types";
+import { VALUE_TO_LABEL_MAP } from "./utils/applicationConstants";
 
 export function ApplicationDetails({
   application,
@@ -25,7 +26,12 @@ export function ApplicationDetails({
           Application Number: {application.application_number}
         </p>
         <p className="text-blue-100">
-          Status: {application.application_status}
+          Applicaiton Submission Date:{" "}
+          {application.application_submission_date
+            ? new Date(
+                application.application_submission_date,
+              ).toLocaleDateString()
+            : "N/A"}
         </p>
       </div>
 
@@ -70,9 +76,42 @@ export function ApplicationDetails({
         </div>
       </div>
 
-      {/* Scheme Information */}
       <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-6">
-        <h2 className="text-xl font-semibold">Scheme Information</h2>
+        <h2 className="text-xl font-semibold">Applicant Account Details</h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <p className="text-sm text-gray-600">Account Number</p>
+            <p className="font-medium">
+              {application.applicant_account_number ?? "N/A"}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-sm text-gray-600">Bank Name</p>
+            <p className="font-medium">
+              {application.applicant_bank_name ?? "N/A"}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-sm text-gray-600">Bank Branch Address</p>
+            <p className="font-medium">
+              {application.applicant_bank_branch_address ?? "N/A"}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-sm text-gray-600"> Bank IFSC</p>
+            <p className="font-medium">
+              {application.applicant_bank_ifsc ?? "N/A"}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Payment Information */}
+      <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-6">
+        <h2 className="text-xl font-semibold">Booking Details</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <p className="text-sm text-gray-600">Scheme Name</p>
@@ -82,45 +121,34 @@ export function ApplicationDetails({
           </div>
           <div>
             <p className="text-sm text-gray-600">Plot Category</p>
-            <p className="font-medium">{application.plot_category ?? "N/A"}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600">Annual Income</p>
-            <p className="font-medium">{application.annual_income ?? "N/A"}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600">Applciaiton Submission Date</p>
             <p className="font-medium">
-              {application.application_submission_date
-                ? new Date(
-                    application.application_submission_date,
-                  ).toLocaleDateString()
-                : "N/A"}
+              {VALUE_TO_LABEL_MAP.plotCategory[
+                application?.plot_category ?? ""
+              ] ?? "N/A"}
             </p>
           </div>
-        </div>
-      </div>
-
-      {/* Payment Information */}
-      <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-6">
-        <h2 className="text-xl font-semibold">Payment Information</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <p className="text-sm text-gray-600">Sub Category</p>
+            <p className="font-medium">
+              {VALUE_TO_LABEL_MAP.subCategory[
+                application?.sub_category ?? ""
+              ] ?? "N/A"}
+            </p>
+          </div>
           <div>
             <p className="text-sm text-gray-600">Payment Mode</p>
-            <p className="font-medium">{application.payment_mode ?? "N/A"}</p>
-          </div>
-          {/* <div>
-            <p className="text-sm text-gray-600">Payment Status</p>
-            <p
-              className={`font-medium ${
-                application.payment_status === "success"
-                  ? "text-green-600"
-                  : "text-yellow-600"
-              }`}
-            >
-              {application.payment_status ?? "N/A"}
+            <p className="font-medium">
+              {VALUE_TO_LABEL_MAP.paymentMode[
+                application?.payment_mode ?? ""
+              ] ?? "N/A"}
             </p>
-          </div> */}
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">DD/ Transaction Id</p>
+            <p className="font-medium">
+              {application.dd_id_or_transaction_id ?? "N/A"}
+            </p>
+          </div>
           <div>
             <p className="text-sm text-gray-600">Registration Fees</p>
             <p className="font-medium">
