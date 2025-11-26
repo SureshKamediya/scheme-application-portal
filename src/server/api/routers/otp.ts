@@ -48,19 +48,22 @@ export const otpRouter = createTRPCRouter({
       },
     });
 
-    // Send OTP via SMS (non-blocking - log errors but don't fail the request)
+    // Send OTP via SMS - must succeed
     const smsSent = await sendOTPSMS(mobile_number, code);
     if (!smsSent.success) {
-      logger.warn(
+      logger.error(
         { mobile_number, otpId: otpRecord.id, error: smsSent.error },
         "Failed to send OTP SMS",
       );
-    } else {
-      logger.info(
-        { mobile_number, otpId: otpRecord.id, messageId: smsSent.messageId },
-        "OTP SMS sent successfully",
+      throw new Error(
+        "Failed to send OTP. Please check your mobile number and try again.",
       );
     }
+
+    logger.info(
+      { mobile_number, otpId: otpRecord.id, messageId: smsSent.messageId },
+      "OTP SMS sent successfully",
+    );
 
     return { otp_id: otpRecord.id, message: "OTP sent successfully" };
   }),

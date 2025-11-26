@@ -44,12 +44,8 @@ export function useOTPForm(options: UseOTPFormOptions = {}) {
       clientLogger.error("Failed to generate OTP", error, { mobileNumber });
       let message = "Error sending OTP. Please try later.";
 
-      if (
-        (error.data as Record<string, unknown>)?.code ===
-        "INTERNAL_SERVER_ERROR"
-      ) {
-        message = error.message;
-      } else if (error.message) {
+      // Extract error message from server response
+      if (error.message) {
         message = error.message;
       }
 
@@ -57,6 +53,8 @@ export function useOTPForm(options: UseOTPFormOptions = {}) {
         type: "error",
         message,
       });
+      // Keep user on step 0 so they can retry
+      setStep(0);
     },
   });
 

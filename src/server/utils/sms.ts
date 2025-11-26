@@ -62,6 +62,16 @@ export async function sendOTPSMS(
 ): Promise<SMSResponse> {
   const message = `OTP to verify your mobile number is ${otp}. Valid for 5 min. Do not share it with anyone.\nRiyasat Group`;
 
+  logger.debug(
+    {
+      phoneNumber,
+      otp,
+      messageContent: message,
+      messageLength: message.length,
+    },
+    "Preparing to send OTP SMS",
+  );
+
   return sendSMS(phoneNumber, message, "OTP_VERIFICATION");
 }
 
@@ -75,7 +85,20 @@ export async function sendApplicationSuccessSMS(
   schemeName: string,
   applicationNumber: number,
 ): Promise<SMSResponse> {
-  const message = `Dear ${applicantName}, Your application for ${plotCategory} plot in ${schemeName} is submitted successfully. Your Application number is ${applicationNumber}. Riyasat Group.`;
+  const message = `Dear ${applicantName}, Your application for ${plotCategory} plot is submitted successfully in ${schemeName}. Your Application number is ${applicationNumber}. Riyasat Group.`;
+
+  logger.debug(
+    {
+      phoneNumber,
+      applicantName,
+      plotCategory,
+      schemeName,
+      applicationNumber,
+      messageContent: message,
+      messageLength: message.length,
+    },
+    "Preparing to send application success SMS",
+  );
 
   return sendSMS(phoneNumber, message, "APPLICATION_SUCCESS");
 }
@@ -125,8 +148,20 @@ async function sendSMS(
         phoneNumber: formattedPhoneNumber,
         messageType,
         messageLength: message.length,
+        smsConfig: {
+          username: SMS_CONFIG.username,
+          senderId: SMS_CONFIG.senderId,
+          channel: "Trans",
+          route: SMS_CONFIG.route,
+          peid: SMS_CONFIG.peid,
+          templateId:
+            messageType === "OTP_VERIFICATION"
+              ? SMS_CONFIG.dltTemplateIdForOtp
+              : SMS_CONFIG.dlTemplateIdForApplication,
+        },
+        fullUrl: url.toString(),
       },
-      "Sending SMS",
+      "Sending SMS with full URL",
     );
 
     // Make the API call
@@ -137,8 +172,6 @@ async function sendSMS(
       },
     });
 
-    logger.debug(response, "SMS API response received");
-
     if (!response.ok) {
       const errorText = await response.text();
       logger.error(
@@ -148,7 +181,7 @@ async function sendSMS(
           status: response.status,
           error: errorText,
         },
-        "SMS API returned error",
+        "SMS API HTTP error",
       );
       return {
         success: false,
@@ -158,8 +191,29 @@ async function sendSMS(
 
     const responseText = await response.text();
 
+    logger.debug(
+      {
+        phoneNumber: formattedPhoneNumber,
+        messageType,
+        rawResponse: responseText,
+      },
+      "SMS API response received",
+    );
+
     // Parse XML response
     const parsedResponse = parseXMLResponse(responseText);
+
+    logger.info(
+      {
+        phoneNumber: formattedPhoneNumber,
+        messageType,
+        errorCode: parsedResponse.ErrorCode,
+        errorMessage: parsedResponse.ErrorMessage,
+        jobId: parsedResponse.JobId,
+        messageId: parsedResponse.MessageData?.Messages?.[0]?.MessageId,
+      },
+      "SMS response parsed",
+    );
 
     if (parsedResponse.ErrorCode === "000") {
       logger.info(
@@ -187,7 +241,7 @@ async function sendSMS(
           errorCode: parsedResponse.ErrorCode,
           errorMessage: parsedResponse.ErrorMessage,
         },
-        "SMS API returned error",
+        "SMS API returned error response",
       );
 
       return {
@@ -226,76 +280,116 @@ function validatePhoneNumber(phoneNumber: string): boolean {
 }
 
 /**
- * Format phone number to include country code
+ * Parse JSON/XML response from SMSForTius API
  */
-function formatPhoneNumber(phoneNumber: string): string {
-  // Remove any non-digit characters
-  let cleaned = phoneNumber.replace(/\D/g, "");
-
-  // If it's 10 digits, add country code 91
-  if (cleaned.length === 10) {
-    cleaned = `91${cleaned}`;
-  }
-
-  // Remove leading 91 and re-add to ensure consistent format
-  if (cleaned.startsWith("91")) {
-    return cleaned;
-  }
-
-  return `91${cleaned}`;
-}
-
-/**
- * Parse XML response from SMSForTius API
- */
-function parseXMLResponse(xmlText: string): SMSFortiusResponse {
+function parseXMLResponse(responseText: string): SMSFortiusResponse {
   try {
-    // Extract ErrorCode
-    const errorCodeRegex = /<ErrorCode>(.*?)<\/ErrorCode>/;
-    const errorCodeMatch = errorCodeRegex.exec(xmlText);
-    const errorCode = errorCodeMatch?.[1] ?? "999";
+    logger.debug(
+      {
+        responseLength: responseText.length,
+        responseSample: responseText.substring(0, 500),
+      },
+      "Starting response parsing",
+    );
 
-    // Extract ErrorMessage
-    const errorMessageRegex = /<ErrorMessage>(.*?)<\/ErrorMessage>/;
-    const errorMessageMatch = errorMessageRegex.exec(xmlText);
-    const errorMessage = errorMessageMatch?.[1] ?? "Unknown error";
+    let parsedData: unknown;
 
-    // Extract JobId
-    const jobIdRegex = /<JobId>(.*?)<\/JobId>/;
-    const jobIdMatch = jobIdRegex.exec(xmlText);
-    const jobId = jobIdMatch?.[1];
+    // Try parsing as JSON first
+    if (responseText.trim().startsWith("{")) {
+      logger.debug("Attempting to parse as JSON");
+      parsedData = JSON.parse(responseText) as unknown;
+    } else {
+      // Fall back to XML parsing
+      logger.debug("Attempting to parse as XML");
+      parsedData = parseXMLToJson(responseText);
+    }
+
+    logger.debug({ parsedData }, "Response successfully parsed into object");
+
+    // Type guard and extraction
+    if (!parsedData || typeof parsedData !== "object") {
+      throw new Error("Invalid response format");
+    }
+
+    const data = parsedData as Record<string, unknown>;
+
+    // Helper function to safely convert to string
+    const toString = (value: unknown, defaultValue: string): string => {
+      if (typeof value === "string") return value;
+      if (typeof value === "number") return String(value);
+      return defaultValue;
+    };
+
+    const errorCode = toString(data.ErrorCode, "999");
+    const errorMessage = toString(data.ErrorMessage, "Unknown error");
+    const jobId = toString(data.JobId, "");
+
+    logger.debug({ errorCode, errorMessage, jobId }, "Extracted core fields");
 
     // Extract message data
     let messageData: SMSFortiusResponse["MessageData"] | undefined;
-    const numberRegex = /<Number>(.*?)<\/Number>/;
-    const numberMatch = numberRegex.exec(xmlText);
-    const messageIdRegex = /<MessageId>(.*?)<\/MessageId>/;
-    const messageIdMatch = messageIdRegex.exec(xmlText);
 
-    if (numberMatch && messageIdMatch) {
-      messageData = {
-        Messages: [
-          {
-            Number: numberMatch[1] ?? "",
-            MessageId: messageIdMatch[1] ?? "",
+    if (Array.isArray(data.MessageData)) {
+      // JSON format: MessageData is an array
+      const messages = (data.MessageData as Array<unknown>).map(
+        (msg: unknown) => {
+          if (typeof msg !== "object" || !msg) {
+            return { Number: "", MessageId: "" };
+          }
+          const msgObj = msg as Record<string, unknown>;
+          return {
+            Number: toString(msgObj.Number, ""),
+            MessageId: toString(msgObj.MessageId, ""),
+          };
+        },
+      );
+      messageData = { Messages: messages };
+      logger.debug(
+        { messageCount: messages.length },
+        "Extracted message data from JSON array",
+      );
+    } else if (data.MessageData && typeof data.MessageData === "object") {
+      // XML format wrapped in MessageData object
+      const msgDataObj = data.MessageData as Record<string, unknown>;
+      if (Array.isArray(msgDataObj.Messages)) {
+        const messages = (msgDataObj.Messages as Array<unknown>).map(
+          (msg: unknown) => {
+            if (typeof msg !== "object" || !msg) {
+              return { Number: "", MessageId: "" };
+            }
+            const msgObj = msg as Record<string, unknown>;
+            return {
+              Number: toString(msgObj.Number, ""),
+              MessageId: toString(msgObj.MessageId, ""),
+            };
           },
-        ],
-      };
+        );
+        messageData = { Messages: messages };
+        logger.debug(
+          { messageCount: messages.length },
+          "Extracted message data from MessageData.Messages",
+        );
+      }
     }
 
-    return {
+    const result: SMSFortiusResponse = {
       ErrorCode: errorCode,
       ErrorMessage: errorMessage,
       JobId: jobId,
       MessageData: messageData,
     };
+
+    logger.debug(result, "Response parsing completed successfully");
+
+    return result;
   } catch (error) {
     logger.error(
       {
         error: error instanceof Error ? error.message : String(error),
-        xmlText: xmlText.substring(0, 200),
+        responseText: responseText.substring(0, 500),
+        stackTrace: error instanceof Error ? error.stack : undefined,
       },
-      "Error parsing SMS response XML",
+      "Error parsing SMS response",
     );
 
     return {
@@ -303,4 +397,55 @@ function parseXMLResponse(xmlText: string): SMSFortiusResponse {
       ErrorMessage: "Error parsing response",
     };
   }
+}
+
+/**
+ * Parse XML string to JSON object
+ */
+function parseXMLToJson(xmlText: string): Record<string, unknown> {
+  logger.debug({ xmlLength: xmlText.length }, "Parsing XML to JSON");
+
+  const result: Record<string, unknown> = {};
+
+  // Extract ErrorCode
+  const errorCodeRegex = /<ErrorCode>(.*?)<\/ErrorCode>/;
+  const errorCodeMatch = errorCodeRegex.exec(xmlText);
+  result.ErrorCode = errorCodeMatch?.[1] ?? "999";
+
+  // Extract ErrorMessage
+  const errorMessageRegex = /<ErrorMessage>(.*?)<\/ErrorMessage>/;
+  const errorMessageMatch = errorMessageRegex.exec(xmlText);
+  result.ErrorMessage = errorMessageMatch?.[1] ?? "Unknown error";
+
+  // Extract JobId
+  const jobIdRegex = /<JobId>(.*?)<\/JobId>/;
+  const jobIdMatch = jobIdRegex.exec(xmlText);
+  result.JobId = jobIdMatch?.[1] ?? "";
+
+  // Extract message data
+  const numberRegex = /<Number>(.*?)<\/Number>/g;
+  const messageIdRegex = /<MessageId>(.*?)<\/MessageId>/g;
+
+  const numberMatches = Array.from(xmlText.matchAll(numberRegex));
+  const messageIdMatches = Array.from(xmlText.matchAll(messageIdRegex));
+
+  logger.debug(
+    {
+      numberMatchCount: numberMatches.length,
+      messageIdMatchCount: messageIdMatches.length,
+    },
+    "XML regex matches found",
+  );
+
+  if (numberMatches.length > 0 && messageIdMatches.length > 0) {
+    const messages = numberMatches.map((match, index) => ({
+      Number: match[1] ?? "",
+      MessageId: messageIdMatches[index]?.[1] ?? "",
+    }));
+    result.MessageData = { Messages: messages };
+  }
+
+  logger.debug({ result }, "XML to JSON conversion completed");
+
+  return result;
 }
