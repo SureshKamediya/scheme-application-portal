@@ -6,7 +6,6 @@ import {
 import type { PdfPayload } from "~/types/pdfPayload";
 import logger from "~/server/utils/logger";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
-// import { env } from "~/env";
 
 export interface LambdaPdfResponse {
   statusCode: number;
@@ -41,11 +40,23 @@ export interface ExternalApiPayload {
   timeout?: number;
 }
 
+interface SMSFortiusResponse {
+  ErrorCode: string;
+  ErrorMessage: string;
+  JobId?: string;
+  MessageData?: {
+    Messages?: Array<{
+      Number: string;
+      MessageId: string;
+    }>;
+  };
+}
+
 export interface ExternalApiResponse {
   success: boolean;
   httpStatusCode?: number;
   contentType?: string;
-  response: string;
+  response: SMSFortiusResponse;
   headers?: Record<string, string>;
   error?: string;
   errorType?: string;

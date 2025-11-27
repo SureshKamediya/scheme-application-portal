@@ -5,7 +5,6 @@
 
 import logger from "~/server/utils/logger";
 import { invokeExternalApiLambda } from "./lambda";
-import type { ExternalApiResponse } from "./lambda";
 
 export interface SendSMSResult {
   success: boolean;
@@ -32,18 +31,6 @@ interface SMSResponse {
   errorCode?: string;
   errorMessage?: string;
   error?: string;
-}
-
-interface SMSFortiusResponse {
-  ErrorCode: string;
-  ErrorMessage: string;
-  JobId?: string;
-  MessageData?: {
-    Messages?: Array<{
-      Number: string;
-      MessageId: string;
-    }>;
-  };
 }
 
 // SMS Service Configuration
@@ -213,7 +200,7 @@ async function sendSMS(
     //   };
     // }
 
-    const responseText = await response.response;
+    const responseText = response.response;
 
     logger.debug(
       {
@@ -225,7 +212,7 @@ async function sendSMS(
     );
 
     // Parse XML response
-    const parsedResponse = parseXMLResponse(responseText);
+    const parsedResponse = responseText;
 
     logger.info(
       {
@@ -306,170 +293,170 @@ function validatePhoneNumber(phoneNumber: string): boolean {
 /**
  * Parse JSON/XML response from SMSForTius API
  */
-function parseXMLResponse(responseText: string): SMSFortiusResponse {
-  try {
-    logger.debug(
-      {
-        responseLength: responseText.length,
-        responseSample: responseText.substring(0, 500),
-      },
-      "Starting response parsing",
-    );
+// function parseXMLResponse(responseText: string): SMSFortiusResponse {
+//   try {
+//     logger.debug(
+//       {
+//         responseLength: responseText.length,
+//         responseSample: responseText.substring(0, 500),
+//       },
+//       "Starting response parsing",
+//     );
 
-    let parsedData: unknown;
+//     let parsedData: unknown;
 
-    // Try parsing as JSON first
-    if (responseText.trim().startsWith("{")) {
-      logger.debug("Attempting to parse as JSON");
-      parsedData = JSON.parse(responseText) as unknown;
-    } else {
-      // Fall back to XML parsing
-      logger.debug("Attempting to parse as XML");
-      parsedData = parseXMLToJson(responseText);
-    }
+//     // Try parsing as JSON first
+//     if (responseText.trim().startsWith("{")) {
+//       logger.debug("Attempting to parse as JSON");
+//       parsedData = JSON.parse(responseText) as unknown;
+//     } else {
+//       // Fall back to XML parsing
+//       logger.debug("Attempting to parse as XML");
+//       parsedData = parseXMLToJson(responseText);
+//     }
 
-    logger.debug({ parsedData }, "Response successfully parsed into object");
+//     logger.debug({ parsedData }, "Response successfully parsed into object");
 
-    // Type guard and extraction
-    if (!parsedData || typeof parsedData !== "object") {
-      throw new Error("Invalid response format");
-    }
+//     // Type guard and extraction
+//     if (!parsedData || typeof parsedData !== "object") {
+//       throw new Error("Invalid response format");
+//     }
 
-    const data = parsedData as Record<string, unknown>;
+//     const data = parsedData as Record<string, unknown>;
 
-    // Helper function to safely convert to string
-    const toString = (value: unknown, defaultValue: string): string => {
-      if (typeof value === "string") return value;
-      if (typeof value === "number") return String(value);
-      return defaultValue;
-    };
+//     // Helper function to safely convert to string
+//     const toString = (value: unknown, defaultValue: string): string => {
+//       if (typeof value === "string") return value;
+//       if (typeof value === "number") return String(value);
+//       return defaultValue;
+//     };
 
-    const errorCode = toString(data.ErrorCode, "999");
-    const errorMessage = toString(data.ErrorMessage, "Unknown error");
-    const jobId = toString(data.JobId, "");
+//     const errorCode = toString(data.ErrorCode, "999");
+//     const errorMessage = toString(data.ErrorMessage, "Unknown error");
+//     const jobId = toString(data.JobId, "");
 
-    logger.debug({ errorCode, errorMessage, jobId }, "Extracted core fields");
+//     logger.debug({ errorCode, errorMessage, jobId }, "Extracted core fields");
 
-    // Extract message data
-    let messageData: SMSFortiusResponse["MessageData"] | undefined;
+//     // Extract message data
+//     let messageData: SMSFortiusResponse["MessageData"] | undefined;
 
-    if (Array.isArray(data.MessageData)) {
-      // JSON format: MessageData is an array
-      const messages = (data.MessageData as Array<unknown>).map(
-        (msg: unknown) => {
-          if (typeof msg !== "object" || !msg) {
-            return { Number: "", MessageId: "" };
-          }
-          const msgObj = msg as Record<string, unknown>;
-          return {
-            Number: toString(msgObj.Number, ""),
-            MessageId: toString(msgObj.MessageId, ""),
-          };
-        },
-      );
-      messageData = { Messages: messages };
-      logger.debug(
-        { messageCount: messages.length },
-        "Extracted message data from JSON array",
-      );
-    } else if (data.MessageData && typeof data.MessageData === "object") {
-      // XML format wrapped in MessageData object
-      const msgDataObj = data.MessageData as Record<string, unknown>;
-      if (Array.isArray(msgDataObj.Messages)) {
-        const messages = (msgDataObj.Messages as Array<unknown>).map(
-          (msg: unknown) => {
-            if (typeof msg !== "object" || !msg) {
-              return { Number: "", MessageId: "" };
-            }
-            const msgObj = msg as Record<string, unknown>;
-            return {
-              Number: toString(msgObj.Number, ""),
-              MessageId: toString(msgObj.MessageId, ""),
-            };
-          },
-        );
-        messageData = { Messages: messages };
-        logger.debug(
-          { messageCount: messages.length },
-          "Extracted message data from MessageData.Messages",
-        );
-      }
-    }
+//     if (Array.isArray(data.MessageData)) {
+//       // JSON format: MessageData is an array
+//       const messages = (data.MessageData as Array<unknown>).map(
+//         (msg: unknown) => {
+//           if (typeof msg !== "object" || !msg) {
+//             return { Number: "", MessageId: "" };
+//           }
+//           const msgObj = msg as Record<string, unknown>;
+//           return {
+//             Number: toString(msgObj.Number, ""),
+//             MessageId: toString(msgObj.MessageId, ""),
+//           };
+//         },
+//       );
+//       messageData = { Messages: messages };
+//       logger.debug(
+//         { messageCount: messages.length },
+//         "Extracted message data from JSON array",
+//       );
+//     } else if (data.MessageData && typeof data.MessageData === "object") {
+//       // XML format wrapped in MessageData object
+//       const msgDataObj = data.MessageData as Record<string, unknown>;
+//       if (Array.isArray(msgDataObj.Messages)) {
+//         const messages = (msgDataObj.Messages as Array<unknown>).map(
+//           (msg: unknown) => {
+//             if (typeof msg !== "object" || !msg) {
+//               return { Number: "", MessageId: "" };
+//             }
+//             const msgObj = msg as Record<string, unknown>;
+//             return {
+//               Number: toString(msgObj.Number, ""),
+//               MessageId: toString(msgObj.MessageId, ""),
+//             };
+//           },
+//         );
+//         messageData = { Messages: messages };
+//         logger.debug(
+//           { messageCount: messages.length },
+//           "Extracted message data from MessageData.Messages",
+//         );
+//       }
+//     }
 
-    const result: SMSFortiusResponse = {
-      ErrorCode: errorCode,
-      ErrorMessage: errorMessage,
-      JobId: jobId,
-      MessageData: messageData,
-    };
+//     const result: SMSFortiusResponse = {
+//       ErrorCode: errorCode,
+//       ErrorMessage: errorMessage,
+//       JobId: jobId,
+//       MessageData: messageData,
+//     };
 
-    logger.debug(result, "Response parsing completed successfully");
+//     logger.debug(result, "Response parsing completed successfully");
 
-    return result;
-  } catch (error) {
-    logger.error(
-      {
-        error: error instanceof Error ? error.message : String(error),
-        responseText: responseText.substring(0, 500),
-        stackTrace: error instanceof Error ? error.stack : undefined,
-      },
-      "Error parsing SMS response",
-    );
+//     return result;
+//   } catch (error) {
+//     logger.error(
+//       {
+//         error: error instanceof Error ? error.message : String(error),
+//         responseText: responseText.substring(0, 500),
+//         stackTrace: error instanceof Error ? error.stack : undefined,
+//       },
+//       "Error parsing SMS response",
+//     );
 
-    return {
-      ErrorCode: "999",
-      ErrorMessage: "Error parsing response",
-    };
-  }
-}
+//     return {
+//       ErrorCode: "999",
+//       ErrorMessage: "Error parsing response",
+//     };
+//   }
+// }
 
-/**
- * Parse XML string to JSON object
- */
-function parseXMLToJson(xmlText: string): Record<string, unknown> {
-  logger.debug({ xmlLength: xmlText.length }, "Parsing XML to JSON");
+// /**
+//  * Parse XML string to JSON object
+//  */
+// function parseXMLToJson(xmlText: string): Record<string, unknown> {
+//   logger.debug({ xmlLength: xmlText.length }, "Parsing XML to JSON");
 
-  const result: Record<string, unknown> = {};
+//   const result: Record<string, unknown> = {};
 
-  // Extract ErrorCode
-  const errorCodeRegex = /<ErrorCode>(.*?)<\/ErrorCode>/;
-  const errorCodeMatch = errorCodeRegex.exec(xmlText);
-  result.ErrorCode = errorCodeMatch?.[1] ?? "999";
+//   // Extract ErrorCode
+//   const errorCodeRegex = /<ErrorCode>(.*?)<\/ErrorCode>/;
+//   const errorCodeMatch = errorCodeRegex.exec(xmlText);
+//   result.ErrorCode = errorCodeMatch?.[1] ?? "999";
 
-  // Extract ErrorMessage
-  const errorMessageRegex = /<ErrorMessage>(.*?)<\/ErrorMessage>/;
-  const errorMessageMatch = errorMessageRegex.exec(xmlText);
-  result.ErrorMessage = errorMessageMatch?.[1] ?? "Unknown error";
+//   // Extract ErrorMessage
+//   const errorMessageRegex = /<ErrorMessage>(.*?)<\/ErrorMessage>/;
+//   const errorMessageMatch = errorMessageRegex.exec(xmlText);
+//   result.ErrorMessage = errorMessageMatch?.[1] ?? "Unknown error";
 
-  // Extract JobId
-  const jobIdRegex = /<JobId>(.*?)<\/JobId>/;
-  const jobIdMatch = jobIdRegex.exec(xmlText);
-  result.JobId = jobIdMatch?.[1] ?? "";
+//   // Extract JobId
+//   const jobIdRegex = /<JobId>(.*?)<\/JobId>/;
+//   const jobIdMatch = jobIdRegex.exec(xmlText);
+//   result.JobId = jobIdMatch?.[1] ?? "";
 
-  // Extract message data
-  const numberRegex = /<Number>(.*?)<\/Number>/g;
-  const messageIdRegex = /<MessageId>(.*?)<\/MessageId>/g;
+//   // Extract message data
+//   const numberRegex = /<Number>(.*?)<\/Number>/g;
+//   const messageIdRegex = /<MessageId>(.*?)<\/MessageId>/g;
 
-  const numberMatches = Array.from(xmlText.matchAll(numberRegex));
-  const messageIdMatches = Array.from(xmlText.matchAll(messageIdRegex));
+//   const numberMatches = Array.from(xmlText.matchAll(numberRegex));
+//   const messageIdMatches = Array.from(xmlText.matchAll(messageIdRegex));
 
-  logger.debug(
-    {
-      numberMatchCount: numberMatches.length,
-      messageIdMatchCount: messageIdMatches.length,
-    },
-    "XML regex matches found",
-  );
+//   logger.debug(
+//     {
+//       numberMatchCount: numberMatches.length,
+//       messageIdMatchCount: messageIdMatches.length,
+//     },
+//     "XML regex matches found",
+//   );
 
-  if (numberMatches.length > 0 && messageIdMatches.length > 0) {
-    const messages = numberMatches.map((match, index) => ({
-      Number: match[1] ?? "",
-      MessageId: messageIdMatches[index]?.[1] ?? "",
-    }));
-    result.MessageData = { Messages: messages };
-  }
+//   if (numberMatches.length > 0 && messageIdMatches.length > 0) {
+//     const messages = numberMatches.map((match, index) => ({
+//       Number: match[1] ?? "",
+//       MessageId: messageIdMatches[index]?.[1] ?? "",
+//     }));
+//     result.MessageData = { Messages: messages };
+//   }
 
-  logger.debug({ result }, "XML to JSON conversion completed");
+//   logger.debug({ result }, "XML to JSON conversion completed");
 
-  return result;
-}
+//   return result;
+// }
