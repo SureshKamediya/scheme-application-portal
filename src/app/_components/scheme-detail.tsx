@@ -25,6 +25,7 @@ export function SchemeDetail({ schemeId }: SchemeDetailProps) {
     isLoading,
     error,
     termsAndConditionsFileName,
+    paymentQRCodeFileName,
     isApplicationOpen,
   } = useSchemeDetail(schemeId);
 
@@ -257,6 +258,39 @@ export function SchemeDetail({ schemeId }: SchemeDetailProps) {
                   )}
                 </div>
               </div>
+
+              {/* Payment QR Code (if exists) */}
+              {paymentQRCodeFileName && (
+                <div className="rounded-lg bg-white p-6 shadow-sm flex flex-col items-center gap-4">
+                  <h2 className="text-xl font-semibold text-gray-900 text-center">
+                    Payment QR Code
+                  </h2>
+
+                  {/* QR Image */}
+                  <img
+                    src={paymentQRCodeFileName}
+                    alt="Payment QR Code"
+                    className="w-60 h-60 object-contain rounded-lg border shadow-sm 
+                              sm:w-72 sm:h-72 md:w-80 md:h-80"
+                  />
+
+                  <p className="text-sm text-gray-600 text-center">
+                    Scan the QR code to pay the scheme amount.
+                  </p>
+
+                  {/* Download button */}
+                  <a
+                    href={paymentQRCodeFileName}
+                    download
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-lg bg-blue-600 text-white px-6 py-2 text-sm font-medium hover:bg-blue-700"
+                  >
+                    Download QR Code
+                  </a>
+                </div>
+              )}
+
             </div>
 
             {/* Right Column - Files */}
