@@ -1,7 +1,7 @@
 import {
   LambdaClient,
   InvokeCommand,
-  // type LambdaClientConfig,
+  type InvokeCommandInput,
 } from "@aws-sdk/client-lambda";
 import type { PdfPayload } from "~/types/pdfPayload";
 import logger from "~/server/utils/logger";
@@ -31,6 +31,28 @@ export interface ExtractedPdfData {
   success: boolean;
   file_key: string;
   bucket: string;
+}
+
+export interface ExternalApiPayload {
+  url: string;
+  method?: "GET" | "POST" | "PUT" | "DELETE";
+  headers?: Record<string, string>;
+  body?: Record<string, unknown> | string;
+  timeout?: number;
+}
+
+export interface ExternalApiResponse {
+  success: boolean;
+  httpStatusCode?: number;
+  contentType?: string;
+  response: string;
+  headers?: Record<string, string>;
+  error?: string;
+  errorType?: string;
+}
+
+export interface LambdaInvokeOptions {
+  async?: boolean;
 }
 
 /**
@@ -102,24 +124,6 @@ function extractBucketFromResponse(data: unknown): string | null {
 
   return null;
 }
-
-// let lambdaClient: LambdaClient = null as unknown as LambdaClient;
-
-// if(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
-//   console.log("AWS credentials found in environment variables. Using explicit credentials provider.");
-//   lambdaClient = new LambdaClient({
-//     region: process.env.AWS_REGION ?? "ap-south-1",
-//     credentials: {
-//       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-//       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-//     },
-//   });
-// } else{
-//   console.warn("AWS credentials not found in environment variables. Using default credentials provider.");
-//   lambdaClient = new LambdaClient({
-//     region: process.env.AWS_REGION ?? "ap-south-1",
-//   });
-// }
 
 function createLambdaClient() {
   const config: {
@@ -279,5 +283,102 @@ export async function invokePdfGenerator(
     throw error;
   } finally {
     lambdaClient.destroy();
+  }
+}
+
+/**
+ * Invoke external API Lambda function
+ * This Lambda makes HTTP requests to external APIs and returns the response
+ */
+export async function invokeExternalApiLambda(
+  payload: ExternalApiPayload,
+  options: LambdaInvokeOptions = { async: false },
+): Promise<ExternalApiResponse> {
+  const functionName =
+    process.env.EXTERNAL_API_LAMBDA_FUNCTION_NAME ?? "external-api-call";
+
+  logger.debug(
+    {
+      functionName,
+      url: payload.url,
+      method: payload.method ?? "GET",
+    },
+    "Invoking external API Lambda",
+  );
+
+  try {
+    const params: InvokeCommandInput = {
+      FunctionName: functionName,
+      InvocationType: options.async ? "Event" : "RequestResponse",
+      Payload: JSON.stringify(payload),
+    };
+
+    const command = new InvokeCommand(params);
+    const result = await lambdaClient.send(command);
+
+    logger.info(
+      { functionName, statusCode: result.StatusCode },
+      "External API Lambda invoked successfully",
+    );
+
+    // Parse response
+    let response: ExternalApiResponse;
+
+    if (result.Payload) {
+      const payloadString =
+        result.Payload instanceof Uint8Array
+          ? new TextDecoder().decode(result.Payload)
+          : String(result.Payload);
+
+      logger.debug({}, "Parsing Lambda payload");
+
+      const lambdaResponse = JSON.parse(payloadString) as {
+        statusCode: number;
+        body: string;
+      };
+
+      if (lambdaResponse.statusCode !== 200) {
+        logger.warn(
+          { statusCode: lambdaResponse.statusCode },
+          "External API Lambda returned non-200 status",
+        );
+      }
+
+      // Parse the body which is a JSON string
+      const bodyContent = JSON.parse(
+        lambdaResponse.body,
+      ) as ExternalApiResponse;
+      response = bodyContent;
+    } else {
+      throw new Error("No payload returned from Lambda");
+    }
+
+    if (result.FunctionError) {
+      logger.error(
+        { functionError: result.FunctionError },
+        "Lambda function error",
+      );
+      throw new Error(`Lambda execution error: ${result.FunctionError}`);
+    }
+
+    logger.debug(
+      { success: response.success, httpStatusCode: response.httpStatusCode },
+      "External API Lambda response parsed successfully",
+    );
+
+    return response;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    logger.error(
+      {
+        functionName,
+        url: payload.url,
+        error: errorMessage,
+      },
+      "Error invoking external API Lambda",
+    );
+
+    throw error;
   }
 }

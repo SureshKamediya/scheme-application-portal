@@ -4,6 +4,14 @@
  */
 
 import logger from "~/server/utils/logger";
+import { invokeExternalApiLambda } from "./lambda";
+import type { ExternalApiResponse } from "./lambda";
+
+export interface SendSMSResult {
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}
 
 interface SMSConfig {
   username: string;
@@ -164,32 +172,48 @@ async function sendSMS(
       "Sending SMS with full URL",
     );
 
-    // Make the API call
-    const response = await fetch(url.toString(), {
+    // Call Lambda with the full SMS provider URL
+    const response = await invokeExternalApiLambda({
+      url: url.toString(),
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      timeout: 30,
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      logger.error(
+    if (!response.success) {
+      logger.warn(
         {
           phoneNumber: formattedPhoneNumber,
+          error: response.error,
+          errorType: response.errorType,
           messageType,
-          status: response.status,
-          error: errorText,
         },
-        "SMS API HTTP error",
+        "SMS Lambda returned error",
       );
+
       return {
         success: false,
-        error: `SMS API error: ${response.status}`,
+        error: response.error ?? "Unknown error from SMS provider",
       };
     }
 
-    const responseText = await response.text();
+    // if (!response.ok) {
+    //   const errorText = await response.text();
+    //   logger.error(
+    //     {
+    //       phoneNumber: formattedPhoneNumber,
+    //       messageType,
+    //       status: response.status,
+    //       error: errorText,
+    //     },
+    //     "SMS API HTTP error",
+    //   );
+    //   return {
+    //     success: false,
+    //     error: `SMS API error: ${response.status}`,
+    //   };
+    // }
+
+    const responseText = await response.response;
 
     logger.debug(
       {
