@@ -14,15 +14,18 @@ import {
   STATUS_MESSAGES,
 } from "./utils/applicationConstants";
 import type { FormState, ValidationErrors } from "./types";
+import Image from "next/image";
 
 export function ApplicationForm({
   initialSchemeId = 1,
   initialSchemeName = "Default-Scheme",
   initialMobileNumber = "1234567890",
+  paymentQRCodeFileName = "",
 }: {
   initialSchemeId?: number;
   initialSchemeName?: string;
   initialMobileNumber?: string;
+  paymentQRCodeFileName?: string;
 }) {
   const [state, setState] = useState<FormState>({
     mobile_number: initialMobileNumber,
@@ -683,7 +686,7 @@ export function ApplicationForm({
                   <label className="mb-1 block text-xs sm:text-sm">
                     Registration fees
                   </label>
-                  <p className="mt-1 text-xs sm:text-sm">
+                  <p className="w-full rounded border px-2 py-1.5 text-xs sm:text-sm">
                     ₹{state.registration_fees || "-"}
                   </p>
                 </div>
@@ -692,20 +695,42 @@ export function ApplicationForm({
                   <label className="mb-1 block text-xs sm:text-sm">
                     Processing fees
                   </label>
-                  <p className="mt-1 text-xs sm:text-sm">
+                  <p className="w-full rounded border px-2 py-1.5 text-xs sm:text-sm">
                     ₹{state.processing_fees || "-"}
                   </p>
                 </div>
 
-                <div className="sm:col-span-2">
+                <div>
                   <label className="mb-1 block text-xs sm:text-sm">
                     Total payable amount
                   </label>
-                  <p className="mt-1 text-xs font-semibold sm:text-sm">
+                  <p className="w-full rounded border px-2 py-1.5 text-xs sm:text-sm">
                     ₹{state.total_payable_amount || "-"}
                   </p>
                 </div>
               </div>
+
+              {paymentQRCodeFileName && (
+                <div className="rounded-lg bg-white p-6 shadow-sm flex flex-col items-center gap-4">
+                  <h2 className="text-xl font-semibold text-gray-900 text-center">
+                    Payment QR Code
+                  </h2>
+
+                  {/* QR Image */}
+                  <Image
+                    src={paymentQRCodeFileName}
+                    alt="Payment QR Code"
+                    width={400}
+                    height={200}
+                    className="w-60 h-60 object-contain rounded-lg border shadow-sm 
+                              sm:w-72 sm:h-72 md:w-80 md:h-80"
+                  />
+
+                  <p className="text-sm text-gray-600 text-center">
+                    Scan the QR code to pay the scheme amount.
+                  </p>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                 <div>

@@ -68,6 +68,7 @@ export function SchemeDetail({ schemeId }: SchemeDetailProps) {
           schemeId={Number(scheme.id)}
           schemeName={scheme.name}
           termsAndConditionsFileName={termsAndConditionsFileName ?? ""}
+          paymentQRCodeFileName={paymentQRCodeFileName ?? ""}
         />
       </div>
     );
@@ -174,7 +175,7 @@ export function SchemeDetail({ schemeId }: SchemeDetailProps) {
                   </p>
 
                   {/* Download button */}
-                  <a
+                  {/* <a
                     href={paymentQRCodeFileName}
                     download
                     target="_blank"
@@ -182,7 +183,7 @@ export function SchemeDetail({ schemeId }: SchemeDetailProps) {
                     className="rounded-lg bg-blue-600 text-white px-6 py-2 text-sm font-medium hover:bg-blue-700"
                   >
                     Download QR Code
-                  </a>
+                  </a> */}
                 </div>
               )}
 
