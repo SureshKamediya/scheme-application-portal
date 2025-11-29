@@ -88,6 +88,7 @@ export interface GeneratePdfPayload {
   scheme_id: number;
   application_id: number;
   application_submission_date: string;
+  application_number: number;
 }
 
 export interface DownloadPdfResponse {
