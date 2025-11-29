@@ -159,6 +159,7 @@ export function useApplicationDetails(applicationId: number) {
         scheme_id: schemeId,
         application_id: applicationId,
         application_submission_date: applicationSubmissionString,
+        application_number: applicationNumber,
       };
 
       await generatePdfMutation.mutateAsync(generatePayload);

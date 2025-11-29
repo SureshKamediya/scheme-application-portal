@@ -8,6 +8,7 @@ export interface OTPFormProps {
   schemeId?: number;
   schemeName?: string;
   termsAndConditionsFileName?: string;
+  paymentQRCodeFileName?: string;
 }
 
 export interface OTPStatus {

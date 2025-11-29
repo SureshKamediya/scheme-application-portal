@@ -8,6 +8,7 @@ export function OTPForm({
   schemeId = 1,
   schemeName = "Default-Scheme",
   termsAndConditionsFileName = "",
+  paymentQRCodeFileName = "",
 }: OTPFormProps = {}) {
   const {
     mobileNumber,
@@ -45,6 +46,7 @@ export function OTPForm({
         initialSchemeId={schemeId}
         initialSchemeName={schemeName}
         initialMobileNumber={mobileNumber}
+        paymentQRCodeFileName={paymentQRCodeFileName}
       />
     );
   }
