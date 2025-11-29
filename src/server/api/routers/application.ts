@@ -664,7 +664,7 @@ export const applicationRouter = createTRPCRouter({
           scheme_id: input.scheme_id,
           scheme_name: scheme?.name ?? "",
           scheme_address: scheme?.address ?? "",
-          application_number: applicationId,
+          application_number: input.application_number ?? 0,
           application_submission_date:
             input.application_submission_date ??
             new Date().toISOString().split("T")[0],
