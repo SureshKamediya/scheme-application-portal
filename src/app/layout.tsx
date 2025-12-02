@@ -29,7 +29,7 @@ export default function RootLayout({
             {/* Logo Left */}
             <Link href="/">
               <Image
-                src="/riyasat-logo.png"
+                src="/logo-riyasat.png"
                 alt="Riyasat Logo"
                 width={140}
                 height={40}
