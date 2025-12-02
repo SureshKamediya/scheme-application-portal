@@ -4,6 +4,8 @@ import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 
 import { TRPCReactProvider } from "~/trpc/react";
+import Image from "next/image";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Riyasat SAP",
@@ -20,8 +22,42 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${geist.variable}`}>
-      <body>
-        <TRPCReactProvider>{children}</TRPCReactProvider>
+      <body className="min-h-screen flex flex-col bg-gray-50">
+        {/* Header */}
+        <header className="w-full bg-white shadow-sm">
+          <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
+            {/* Logo Left */}
+            <Link href="/">
+              <Image
+                src="/riyasat-logo.png"
+                alt="Riyasat Logo"
+                width={140}
+                height={40}
+                className="object-contain"
+              />
+            </Link>
+
+            {/* Empty Space Middle (only visible in mobile view) */}
+            <div className="flex-1 flex justify-center sm:hidden">
+              {/* If you want any text or navigation in future, add here */}
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <TRPCReactProvider>
+          <main className="flex-grow">{children}</main>
+        </TRPCReactProvider>
+
+        {/* Footer */}
+        <footer className="w-full bg-white border-t">
+          <div className="mx-auto max-w-6xl px-4 py-4 flex flex-col sm:flex-row items-center justify-between text-sm text-gray-600">
+            <p>Copyright © 2025 Riyasat. All Right Reserved</p>
+            <p className="mt-1 sm:mt-0">
+              Developed by <span className="font-medium">Sona Bateshar</span>
+            </p>
+          </div>
+        </footer>
       </body>
     </html>
   );
