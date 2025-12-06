@@ -18,6 +18,8 @@ const REGEX = {
   ifsc: /^[A-Z]{4}0[A-Z0-9]{6}$/,
   drivingLicense: /^[A-Z]{2}[0-9]{2}\s?[0-9]{11}$/,
   rationCard: /^[A-Z0-9]{8,15}$/,
+  upi: /^\d{12}$/,
+  dd: /^\d{6}$/,
 };
 
 export function validateStep(
@@ -186,8 +188,26 @@ function validatePaymentStep(
 
   if (!dd_id_or_transaction_id.trim()) {
     errors.dd_id_or_transaction_id = "DD/Transaction ID is required";
-  } else if (!REGEX.onlyAlphanumeric.test(dd_id_or_transaction_id)) {
-    errors.dd_id_or_transaction_id = "DD/Transaction ID should be alphanumeric";
+  } else {
+    let isValid = false;
+    let errorMessage = "DD/Transaction id is invalid";
+
+    switch (payment_mode.toLowerCase()) {
+      case "dd":
+        isValid = REGEX.dd.test(dd_id_or_transaction_id);
+        errorMessage = "Enter a valid 6 digit dd number";
+        break;
+      case "upi":
+        isValid = REGEX.upi.test(dd_id_or_transaction_id);
+        errorMessage = "Enter a valid 12 digit transaction/UTR number";
+        break;
+      default:
+        isValid = REGEX.onlyNumeric.test(dd_id_or_transaction_id);
+    }
+
+    if (!isValid) {
+      errors.dd_id_or_transaction_id = errorMessage;
+    }
   }
 
   if (!dd_date_or_transaction_date) {
