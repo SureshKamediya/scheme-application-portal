@@ -197,7 +197,7 @@ export function SchemeDetail({ schemeId }: SchemeDetailProps) {
                   )}
                   {scheme.reserved_price !== undefined && (
                     <div>
-                      <p className="text-sm text-gray-600">Reserved Price</p>
+                      <p className="text-sm text-gray-600">Reserved Price per Sq Meter</p>
                       <p className="text-gray-900">
                         {`${scheme.reserved_price}`}
                       </p>
