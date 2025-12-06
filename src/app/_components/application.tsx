@@ -722,8 +722,8 @@ export function ApplicationForm({
                     alt="Payment QR Code"
                     width={400}
                     height={200}
-                    className="w-60 h-60 object-contain rounded-lg border shadow-sm 
-                              sm:w-72 sm:h-72 md:w-80 md:h-80"
+                    className="w-48 h-48 object-contain rounded-lg border shadow-sm 
+                              sm:w-60 sm:h-60 md:w-72 md:h-72"
                   />
 
                   <p className="text-sm text-gray-600 text-center">

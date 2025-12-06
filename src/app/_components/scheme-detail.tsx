@@ -173,17 +173,7 @@ export function SchemeDetail({ schemeId }: SchemeDetailProps) {
                   <p className="text-sm text-gray-600 text-center">
                     Scan the QR code to pay the scheme amount.
                   </p>
-
-                  {/* Download button */}
-                  {/* <a
-                    href={paymentQRCodeFileName}
-                    download
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded-lg bg-blue-600 text-white px-6 py-2 text-sm font-medium hover:bg-blue-700"
-                  >
-                    Download QR Code
-                  </a> */}
+                  
                 </div>
               )}
 
@@ -277,18 +267,6 @@ export function SchemeDetail({ schemeId }: SchemeDetailProps) {
                       <p className="font-medium">
                         {new Date(
                           scheme.lottery_result_date,
-                        ).toLocaleDateString()}
-                      </p>
-                    </div>
-                  )}
-                  {scheme.successful_applicants_publish_date && (
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-gray-600">
-                        Results Publication
-                      </p>
-                      <p className="font-medium">
-                        {new Date(
-                          scheme.successful_applicants_publish_date,
                         ).toLocaleDateString()}
                       </p>
                     </div>
