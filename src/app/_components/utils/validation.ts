@@ -21,6 +21,7 @@ const REGEX = {
   upi: /^\d{12}$/,
   dd: /^\d{6}$/,
   address: /^[a-zA-Z0-9 @.,&()\\\-/_\n]*$/,
+  accountNumber: /^[0-9]{6,18}$/,
 };
 
 export function validateStep(
@@ -272,9 +273,9 @@ function validateRefundStep(
 
   if (!applicant_account_number.trim()) {
     errors.applicant_account_number = "Applicant account number is required";
-  } else if (!REGEX.onlyAlphanumeric.test(applicant_account_number)) {
+  } else if (!REGEX.accountNumber.test(applicant_account_number)) {
     errors.applicant_account_number =
-      "Applicant account number should be alphanumeric";
+      "Invalid applicant account number. It must be 6–18 digits and contain numbers only.";
   }
 
   if (!applicant_bank_name.trim()) {
