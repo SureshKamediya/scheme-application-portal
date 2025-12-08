@@ -20,6 +20,7 @@ const REGEX = {
   rationCard: /^[A-Z0-9]{8,15}$/,
   upi: /^\d{12}$/,
   dd: /^\d{6}$/,
+  address: /^[a-zA-Z0-9 @.,&()\\\-/_\n]*$/,
 };
 
 export function validateStep(
@@ -133,6 +134,8 @@ function validatePersonalStep(
 
   if (!permanent_address.trim()) {
     errors.permanent_address = "Permanent address is required";
+  } else if(!REGEX.address.test(permanent_address)){
+    errors.permanent_address = "Permanent Address contains invalid characters. Allowed: letters, numbers, spaces, @ . , & ( ) - / _";
   }
 
   if (!permanent_address_pincode.trim()) {
@@ -144,6 +147,8 @@ function validatePersonalStep(
 
   if (!postal_address.trim()) {
     errors.postal_address = "Postal address is required";
+  } else if(!REGEX.address.test(postal_address)){
+    errors.postal_address = "Postal Address contains invalid characters. Allowed: letters, numbers, spaces, @ . , & ( ) - / _";
   }
 
   if (!postal_address_pincode.trim()) {
@@ -282,6 +287,8 @@ function validateRefundStep(
   if (!applicant_bank_branch_address.trim()) {
     errors.applicant_bank_branch_address =
       "Applicant bank branch address is required";
+  } else if(!REGEX.address.test(applicant_bank_branch_address)){
+    errors.applicant_bank_branch_address = "Applicant Bank Branch Address contains invalid characters. Allowed: letters, numbers, spaces, @ . , & ( ) - / _";
   }
 
   const ifsc = applicant_bank_ifsc.trim().replace(/\s+/g, "").toUpperCase();
